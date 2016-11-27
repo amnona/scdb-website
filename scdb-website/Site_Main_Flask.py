@@ -172,6 +172,7 @@ def getexperimentinfo(expid):
 		type,value,descstring about dataid
 		empty if dataid not found
 	"""
+	return 'pita'
 	rdata={}
 	rdata['expId']=expid
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
