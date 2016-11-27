@@ -92,7 +92,7 @@ def search_results():
 		strDetails = ""
 		for dataRow in jsonResponse.get('annotations'):
 			webPage += "<tr>"
-			webPage += "<td><a href="">" + str(dataRow.get('expid','not found')) + "</a></td>"
+			webPage += "<td><a href=exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
 			cdesc = getannotationstrings(dataRow)
 			# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 			webPage += "<td>" + cdesc + "</td>"
