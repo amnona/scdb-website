@@ -176,7 +176,10 @@ def getexperimentinfo(expid):
 	rdata['expId']=expid
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
 	if res.status_code==200:
-		details=res.json()['details']
-		return details
+		outstr = ''
+		for cres in res.json()['details']:
+			outstr += cres[0]+','+cres[1]+','+cres[2]+'<br>'
+		# details=res.json()['details']
+		return outstr
 	return []
 
