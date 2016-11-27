@@ -158,7 +158,7 @@ def getannotationstrings(cann):
 	return cdesc
 
 
-@Site_Main_Flask_Obj.route('/exp_info/<int:exp_id>')
+@Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
 def getexperimentinfo(expid):
 	"""
 	get the information about a given study dataid
@@ -172,7 +172,6 @@ def getexperimentinfo(expid):
 		type,value,descstring about dataid
 		empty if dataid not found
 	"""
-	return 'pita'
 	rdata={}
 	rdata['expId']=expid
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
