@@ -6,6 +6,9 @@ from utils import debug,getdoc
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__,template_folder='templates')
 
 
+scbd_server_address = 'http://amnonim.webfactional.com/scdb_main'
+
+
 @Site_Main_Flask_Obj.route('/site/test_html',methods=['POST','GET'])
 def test_html():
 	"""
@@ -70,7 +73,7 @@ def search_results():
 
 	rdata = {}
 	rdata['sequence'] = sequence
-	httpRes=requests.get('http://127.0.0.1:5000/sequences/get_annotations',json=rdata)
+	httpRes=requests.get(scbd_server_address + '/sequences/get_annotations',json=rdata)
 
 	if httpRes.status_code != requests.codes.ok:
 		debug(6,"Error code:" + str(httpRes.status_code))
