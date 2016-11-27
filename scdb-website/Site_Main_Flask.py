@@ -178,7 +178,7 @@ def getexperimentinfo(expid):
 	if res.status_code==200:
 		outstr = ''
 		for cres in res.json()['details']:
-			outstr += cres[0]+','+cres[1]+','+cres[2]+'<br>'
+			outstr += cres[0]+'<br>'
 		# details=res.json()['details']
 		return outstr
 	return []
