@@ -156,3 +156,27 @@ def getannotationstrings(cann):
 		for cdet in cann['details']:
 			cdesc=cdesc+' '+cdet[1]+','
 	return cdesc
+
+
+@Site_Main_Flask_Obj.route('/exp_info/<int:exp_id>')
+def getexperimentinfo(expid):
+	"""
+	get the information about a given study dataid
+	input:
+	dataid : int
+		The dataid on the study (DataID field)
+
+	output:
+	info : list of (str,str,str)
+		list of tuples for each entry in the study:
+		type,value,descstring about dataid
+		empty if dataid not found
+	"""
+	rdata={}
+	rdata['expId']=expid
+	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
+	if res.status_code==200:
+		details=res.json()['details']
+		return details
+	return []
+
