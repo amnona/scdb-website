@@ -26,7 +26,7 @@ def test_html():
 	return webPage
 
 
-@Site_Main_Flask_Obj.route('/site/main',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/main',methods=['POST','GET'])
 def main_html():
 	"""
 	Title: Test Html
@@ -53,7 +53,7 @@ def main_html():
 	return webPage
 
 
-@Site_Main_Flask_Obj.route('/site/search_results',methods=['POST'])
+@Site_Main_Flask_Obj.route('/search_results',methods=['POST'])
 def search_results():
 	"""
 	Title: Search results page
