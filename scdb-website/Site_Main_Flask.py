@@ -252,7 +252,7 @@ def draw_annotation_details(annotations):
 		rdata['annotationid']=dataRow['annotationid']
 		res=requests.get(scbd_server_address+'/annotations/get_sequences',json=rdata)
 		if res.status_code==200:
-			wpart +='<td>'+len(res.json()['seqids'])+'/td'
+			wpart +='<td>%d</td>' % len(res.json()['seqids'])
 		else:
 			# print(res.content)
 			wpart +='<td>'+'NA'+'</td>'
