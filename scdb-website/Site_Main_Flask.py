@@ -66,9 +66,9 @@ def main_html():
 	webPage += "<center>"
 	webPage += "<div style='border-radius: 5px; background-color: #f2f2f2; padding: 20px;'>"
 	webPage += "<form action='search_results' method='post'><h1>Sequence Search</h1><br>"
-	webPage += "<input value='tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>"
+	webPage += "<input value='' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>"
 	webPage += "<input style='height: 40px; width: 140px; font-size:20px;' type='submit'>"
-	webPage += "</form></div>"
+	webPage += "</form><br><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'>Or click here for example</a></div>"
 	webPage += "</center></body></html>"
 
 	cfunc=test_html
@@ -78,7 +78,7 @@ def main_html():
 	return webPage
 
 
-@Site_Main_Flask_Obj.route('/search_results',methods=['POST'])
+@Site_Main_Flask_Obj.route('/search_results',methods=['POST','GET'])
 def search_results():
 	"""
 	Title: Search results page
@@ -86,7 +86,10 @@ def search_results():
 	Method: POST
 	"""
 
-	sequence = request.form['sequence']
+	if request.method=='GET':
+		sequence=request.args['sequence']
+	else:
+		sequence = request.form['sequence']
 
 	# style = "<style>table {margin:40px; border-collapse: collapse; width: 100%;} th, td {text-align: left; padding: 8px;}tr:nth-child(even){background-color: #f2f2f2}th {background-color: #4CAF50;color: white; margin-top:100px;}</style>"
 
