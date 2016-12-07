@@ -34,6 +34,7 @@ def get_db_address():
 	else:
 		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 		server_address='http://amnonim.webfactional.com/scdb_main'
+	
 	return server_address
 
 
@@ -102,7 +103,6 @@ def search_results():
 	rdata = {}
 	rdata['sequence'] = sequence
 	httpRes=requests.get(scbd_server_address + '/sequences/get_annotations',json=rdata)
-
 	webPage=render_template('seqinfo.html',sequence=sequence.upper())
 
 	if httpRes.status_code != requests.codes.ok:
@@ -110,7 +110,7 @@ def search_results():
 		webPage += "Failed to get annotations for the given sequence"
 	else:
 		webPage += draw_annotation_details(httpRes.json().get('annotations'))
-		# jsonResponse = httpRes.json()
+        # jsonResponse = httpRes.json()
 		# # webPage += "<table>"
 		# # webPage += "<col width='10%'>"
 		# # webPage += "<col width='30%'>"
@@ -239,7 +239,7 @@ def getuserid(userid):
 		return "Error: Invalid user";
     
 	# get the experiment details
-	httpRes=requests.get(scbd_server_address +'/users/get_user_public_information',json=rdata)
+	httpRes=requests.post(scbd_server_address +'/users/get_user_public_information',json=rdata)
 	if httpRes.status_code==200:
 		userInfo = httpRes.json()
 		username = userInfo.get('name','')
