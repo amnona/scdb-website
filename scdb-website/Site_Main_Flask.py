@@ -136,7 +136,6 @@ def search_results():
 		# webPage += "</table>"
 	webPage += "</body>"
 	webPage += "</html>"
-
 	return webPage
 
 
@@ -224,6 +223,34 @@ def getexperimentinfo(expid):
 
 	return webPage
 
+@Site_Main_Flask_Obj.route('/user_info/<int:userid>')
+def getuserid(userid):
+	"""
+	get the information about a user
+	input:
+	dataid : int
+		the user id
+
+	output:
+	"""
+	rdata={}
+	rdata['userid']=userid
+	if userid < 0:
+		return "Error: Invalid user";
+    
+	# get the experiment details
+	httpRes=requests.get(scbd_server_address +'/users/get_user_public_information',json=rdata)
+	if httpRes.status_code==200:
+		userInfo = httpRes.json()
+		username = userInfo.get('name','')
+		name = userInfo.get('username','')
+		desc = userInfo.get('description','')
+		email = userInfo.get('email','-')
+		webPage = render_template('userinfo.html',userid=userid,name=name,username=username,desc=desc,email=email)
+	else:
+		webPage = "Failed to get user information"
+	return webPage
+
 
 def draw_annotation_details(annotations):
 	'''
@@ -241,14 +268,11 @@ def draw_annotation_details(annotations):
 	for dataRow in annotations:
 		wpart += "<tr>"
 		wpart += "<td><a href=exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
+		wpart += "<td><a href=user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
 		cdesc = getannotationstrings(dataRow)
 		# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 		wpart += '<td>' + cdesc + "</td>"
 		#webPage += "<td>" + str(dataRow) + "</td>"
-		strDetails = ''
-		for detailesRow in dataRow.get('details'):
-			strDetails += str(detailesRow)
-		wpart += "<td>" + str(strDetails) + "</td>"
 		# wpart += "</tr>"
 		wpart +='<td>'+dataRow['date']+'</td>'
 		rdata={}
