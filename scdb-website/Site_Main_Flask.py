@@ -34,7 +34,6 @@ def get_db_address():
 	else:
 		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 		server_address='http://amnonim.webfactional.com/scdb_main'
-	
 	return server_address
 
 
@@ -64,6 +63,8 @@ def main_html():
 	webPage += "<html>"
 	webPage += "<title>Seqeunce Search</title>"
 	webPage += "<body>"
+	webPage += "<a href='/reset_password'>Reset password</a><br>"
+	webPage += "<a href='/about'>About us</a>"
 	webPage += "<center>"
 	webPage += "<div style='border-radius: 5px; background-color: #f2f2f2; padding: 20px;'>"
 	webPage += "<form action='search_results' method='post'><h1>Sequence Search</h1><br>"
@@ -78,6 +79,25 @@ def main_html():
 
 	return webPage
 
+@Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
+def reset_password():
+	"""
+	Title: Reset password via mail
+	URL: /reset password
+	Method: POST
+	"""
+	webpage=render_template('reset_password.html')
+	return webpage
+
+@Site_Main_Flask_Obj.route('/about',methods=['POST','GET'])
+def about():
+	"""
+	Title: About us
+	URL: /about
+	Method: POST
+	"""
+	webpage=render_template('about.html')
+	return webpage
 
 @Site_Main_Flask_Obj.route('/search_results',methods=['POST','GET'])
 def search_results():
@@ -223,6 +243,31 @@ def getexperimentinfo(expid):
 
 	return webPage
 
+@Site_Main_Flask_Obj.route('/forgot_password_submit',methods=['POST','GET'])
+def forgot_password_submit():
+    """
+	this page will send the forgoten password to the user via mail
+	input:
+	dataid : string
+		user email
+
+	output:
+	"""
+    
+    usermail = ''
+    if request.method=='GET':
+        usermail=request.args['useremail']
+    else:
+        usermail = request.form['useremail']
+    
+    json_user={'user':usermail}
+    httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
+    if httpRes.status_code==200:
+        webpage = render_template('done_success.html')
+    else:
+        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+    return webpage
+        
 @Site_Main_Flask_Obj.route('/user_info/<int:userid>')
 def getuserid(userid):
 	"""
