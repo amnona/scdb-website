@@ -34,6 +34,7 @@ def get_db_address():
 	else:
 		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 		server_address='http://amnonim.webfactional.com/scdb_main'
+	
 	return server_address
 
 
@@ -63,8 +64,8 @@ def main_html():
 	webPage += "<html>"
 	webPage += "<title>Seqeunce Search</title>"
 	webPage += "<body>"
-	webPage += "<a href='/reset_password'>Reset password</a><br>"
-	webPage += "<a href='/about'>About us</a>"
+	webPage += "<a href='reset_password'>Reset password</a><br>"
+	webPage += "<a href='about'>About us</a>"
 	webPage += "<center>"
 	webPage += "<div style='border-radius: 5px; background-color: #f2f2f2; padding: 20px;'>"
 	webPage += "<form action='search_results' method='post'><h1>Sequence Search</h1><br>"
