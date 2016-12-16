@@ -293,6 +293,13 @@ def getuserid(userid):
 		desc = userInfo.get('description','')
 		email = userInfo.get('email','-')
 		webPage = render_template('userinfo.html',userid=userid,name=name,username=username,desc=desc,email=email)
+        
+        #get user annotation
+		forUserId={'foruserid':userid}
+		httpRes=requests.get(scbd_server_address + '/users/get_user_annotations',json=forUserId)
+		if httpRes.status_code==200:
+		  webPage += draw_annotation_details(httpRes.json().get('userannotations'))
+		webPage += "</body></html>"
 	else:
 		webPage = "Failed to get user information"
 	return webPage
