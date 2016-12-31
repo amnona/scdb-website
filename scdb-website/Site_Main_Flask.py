@@ -60,24 +60,12 @@ def main_html():
 	Method: GET
 	"""
 
-	webPage = ""
-	webPage += "<html>"
-	webPage += "<title>Seqeunce Search</title>"
-	webPage += "<body>"
-	webPage += "<a href='reset_password'>Reset password</a><br>"
-	webPage += "<a href='about'>About us</a>"
-	webPage += "<center>"
-	webPage += "<div style='border-radius: 5px; background-color: #f2f2f2; padding: 20px;'>"
-	webPage += "<form action='search_results' method='post'><h1>Sequence Search</h1><br>"
-	webPage += "<input value='' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>"
-	webPage += "<input style='height: 40px; width: 140px; font-size:20px;' type='submit'>"
-	webPage += "</form><br><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'>Or click here for example</a></div>"
-	webPage += "</center></body></html>"
-
 	cfunc=test_html
 	if request.method=='POST':
 		return(getdoc(cfunc))
 
+	webPage = render_template('searchpage.html')
+    
 	return webPage
 
 @Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
