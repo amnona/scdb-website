@@ -59,13 +59,23 @@ def main_html():
 	URL: site/main_html
 	Method: GET
 	"""
-
 	cfunc=test_html
 	if request.method=='POST':
 		return(getdoc(cfunc))
-
-	webPage = render_template('searchpage.html')
     
+	httpRes=requests.get(scbd_server_address + '/stats/stats')
+	NumOntologyTerms = 0
+	NumAnnotation = 0
+	NumSequences = 0
+	NumSequenceAnnotation = 0
+	if httpRes.status_code==200:
+	   jsonRes = httpRes.json()
+	   NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
+	   NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
+	   NumSequences = jsonRes.get("stats").get('NumSequences')
+	   NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
+	
+	webPage = render_template('searchpage.html',nunOntTerm=(str(NumOntologyTerms).replace('.0','')),numAnnot=(str(NumAnnotation).replace('.0','')),numSeq=(str(NumSequences).replace('.0','')),numSeqAnnot=(str(NumSequenceAnnotation).replace('.0','')))
 	return webPage
 
 @Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
