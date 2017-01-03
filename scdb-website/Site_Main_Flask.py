@@ -75,7 +75,7 @@ def main_html():
 	   NumSequences = jsonRes.get("stats").get('NumSequences')
 	   NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
 	
-	webPage = render_template('searchpage.html',nunOntTerm=(str(NumOntologyTerms).replace('.0','')),numAnnot=(str(NumAnnotation).replace('.0','')),numSeq=(str(NumSequences).replace('.0','')),numSeqAnnot=(str(NumSequenceAnnotation).replace('.0','')))
+	webPage = render_template('searchpage.html',numAnnot=(str(NumAnnotation).replace('.0','')),numSeq=(str(NumSequences).replace('.0','')),numSeqAnnot=(str(NumSequenceAnnotation).replace('.0','')))
 	return webPage
 
 @Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
