@@ -318,8 +318,8 @@ def draw_annotation_details(annotations):
 
 	for dataRow in annotations:
 		wpart += "<tr>"
-		wpart += "<td><a href=exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
-		wpart += "<td><a href=user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
+		wpart += "<td><a href=../exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
+		wpart += "<td><a href=../user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
 		cdesc = getannotationstrings(dataRow)
 		# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 		wpart += '<td>' + cdesc + "</td>"
