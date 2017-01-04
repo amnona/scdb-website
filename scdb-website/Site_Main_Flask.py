@@ -128,7 +128,7 @@ def search_results():
 		debug(6,"Error code:" + str(httpRes.status_code))
 		webPage += "Failed to get annotations for the given sequence"
 	else:
-		webPage += draw_annotation_details(httpRes.json().get('annotations'))
+		webPage += draw_annotation_details(httpRes.json().get('annotations'),'')
         # jsonResponse = httpRes.json()
 		# # webPage += "<table>"
 		# # webPage += "<col width='10%'>"
@@ -238,7 +238,7 @@ def getexperimentinfo(expid):
 	# get the experiment annotations
 	res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
 	webPage += '<h2>Annotations for experiment:</h2>'
-	webPage += draw_annotation_details(res.json()['annotations'])
+	webPage += draw_annotation_details(res.json()['annotations'],'../')
 
 	return webPage
 
@@ -296,14 +296,14 @@ def getuserid(userid):
 		forUserId={'foruserid':userid}
 		httpRes=requests.get(scbd_server_address + '/users/get_user_annotations',json=forUserId)
 		if httpRes.status_code==200:
-		  webPage += draw_annotation_details(httpRes.json().get('userannotations'))
+		  webPage += draw_annotation_details(httpRes.json().get('userannotations'),'../')
 		webPage += "</body></html>"
 	else:
 		webPage = "Failed to get user information"
 	return webPage
 
 
-def draw_annotation_details(annotations):
+def draw_annotation_details(annotations,relpath):
 	'''
 	create table entries for a list of annotations
 
@@ -318,8 +318,8 @@ def draw_annotation_details(annotations):
 
 	for dataRow in annotations:
 		wpart += "<tr>"
-		wpart += "<td><a href=exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
-		wpart += "<td><a href=user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
+		wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
+		wpart += "<td><a href=" + relpath + "user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
 		cdesc = getannotationstrings(dataRow)
 		# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 		wpart += '<td>' + cdesc + "</td>"
