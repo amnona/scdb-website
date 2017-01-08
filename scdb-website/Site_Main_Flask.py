@@ -204,6 +204,9 @@ def getannotationstrings(cann):
 		cdesc+=cann['annotationtype']+' '
 		for cdet in cann['details']:
 			cdesc=cdesc+' '+cdet[1]+','
+
+	if len(cdesc) >= 1 and cdesc[-1] == ',' : 
+		cdesc = cdesc[:-1] 
 	return cdesc
 
 
