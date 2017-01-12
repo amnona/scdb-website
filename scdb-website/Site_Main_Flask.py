@@ -223,12 +223,16 @@ def getontologyinfo(term):
 
 	# get the experiment details
 	res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
-	return res.json()
+	print(rdata)
 	webPage = render_template('ontologyterminfo.html',term=term)
+	print(webPage)
 	# get the experiment annotations
 	res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
+	print(res)
 	webPage += '<h2>Annotations for ontology term:</h2>'
+	print(webPage)
 	webPage += draw_annotation_details(res.json()['annotations'],'../')
+	print(webPage)
 
 	return webPage
 
