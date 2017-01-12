@@ -210,26 +210,26 @@ def getannotationstrings(cann):
 	return cdesc
 
 
-@Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
-def getontologyinfo(term):
-	"""
-	get the information all studies containing an ontology term (exact or as parent)
-	input:
-	term : str
-		the ontology term to look for
-	"""
-	rdata={}
-	rdata['term']=term
+# @Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
+# def getontologyinfo(term):
+# 	"""
+# 	get the information all studies containing an ontology term (exact or as parent)
+# 	input:
+# 	term : str
+# 		the ontology term to look for
+# 	"""
+# 	rdata={}
+# 	rdata['term']=term
 
-	# get the experiment details
-	res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
-	webPage = render_template('ontologyterminfo.html',term=term)
-	# get the experiment annotations
-	res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
-	webPage += '<h2>Annotations for ontology term:</h2>'
-	webPage += draw_annotation_details(res.json()['annotations'],'../')
+# 	# get the experiment details
+# 	res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
+# 	webPage = render_template('ontologyterminfo.html',term=term)
+# 	# get the experiment annotations
+# 	res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
+# 	webPage += '<h2>Annotations for ontology term:</h2>'
+# 	webPage += draw_annotation_details(res.json()['annotations'],'../')
 
-	return webPage
+# 	return webPage
 
 
 
