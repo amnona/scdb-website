@@ -219,23 +219,18 @@ def getannotationinfo(annotationid):
 		the annotationid to get the info for
 	"""
 	# get the experiment info for the annotation
-	print('**************annotationid')
 	rdata={}
 	rdata['annotationid']=annotationid
-	print(rdata)
 	# get the experiment annotations
 	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_annotation',params=rdata)
-	print(res)
 	annotation=res.json()
-	print(annotation)
 
 	# get the experiment details
 	rdata={}
 	expid=annotation['expid']
 	rdata['expId']=expid
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-	print(res)
-	webPage = render_template('expinfo.html',expid=expid)
+	webPage = render_template('annotationinfo.html',expid=expid)
 	if res.status_code==200:
 		for cres in res.json()['details']:
 			webPage += "<tr>"
@@ -244,7 +239,6 @@ def getannotationinfo(annotationid):
 	else:
 		webPage+='Error getting experiment details'
 	webPage += '</table>'
-	print(webPage)
 	webPage += '<h2>Annotations Details</h2>'
 	webPage += draw_annotation_details([annotation],'../')
 
