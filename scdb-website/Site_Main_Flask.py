@@ -246,7 +246,7 @@ def getannotationinfo(annotationid):
 	webPage += '</table>'
 	print(webPage)
 	webPage += '<h2>Annotations Details</h2>'
-	webPage += draw_annotation_details(annotation,'../')
+	webPage += draw_annotation_details([annotation],'../')
 
 	return webPage
 
