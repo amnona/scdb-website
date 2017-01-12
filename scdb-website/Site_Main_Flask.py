@@ -210,6 +210,44 @@ def getannotationstrings(cann):
 	return cdesc
 
 
+@Site_Main_Flask_Obj.route('/annotation_info/<int:annotationid>')
+def getannotationinfo(annotationid):
+	"""
+	get the information about an annotation
+	input:
+	annotationid : int
+		the annotationid to get the info for
+	"""
+	# get the experiment info for the annotation
+	rdata={}
+	rdata['annotationid']=annotationid
+	# get the experiment annotations
+	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',params=rdata)
+	annotation=res.json()
+
+	rdata={}
+	expid=annotation['expid']
+	rdata['expId']=expid
+
+	# get the experiment details
+	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
+	webPage = render_template('expinfo.html',expid=expid)
+	if res.status_code==200:
+		for cres in res.json()['details']:
+			webPage += "<tr>"
+			webPage += '<td>'+cres[0]+'</td>'
+			webPage += '<td>'+cres[1]+'</td><tr>'
+	else:
+		webPage+='Error getting experiment details'
+	webPage += '</table>'
+
+	webPage += '<h2>Annotations Details</h2>'
+	webPage += draw_annotation_details(annotation,'../')
+
+	return webPage
+
+
+
 @Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
 def getontologyinfo(term):
 	"""
@@ -369,3 +407,4 @@ def draw_annotation_details(annotations,relpath):
 		wpart += "</tr>"
 	wpart += "</table>"
 	return wpart
+
