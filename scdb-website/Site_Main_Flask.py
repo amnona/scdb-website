@@ -396,7 +396,7 @@ def draw_annotation_details(annotations,relpath):
 		cdesc = getannotationstrings(dataRow)
 		# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 		wpart +='<td><a href=' + relpath + 'annotation_info/'+str(dataRow.get('annotationid',-1))+'>'+cdesc+'</td>'
-		wpart += '<td>' + cdesc + "</td>"
+		# wpart += '<td>' + cdesc + "</td>"
 		#webPage += "<td>" + str(dataRow) + "</td>"
 		# wpart += "</tr>"
 		wpart +='<td>'+dataRow['date']+'</td>'
