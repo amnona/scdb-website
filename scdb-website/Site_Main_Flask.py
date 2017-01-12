@@ -219,8 +219,10 @@ def getannotationinfo(annotationid):
 		the annotationid to get the info for
 	"""
 	# get the experiment info for the annotation
+	print('**************annotationid')
 	rdata={}
 	rdata['annotationid']=annotationid
+	print(rdata)
 	# get the experiment annotations
 	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',params=rdata)
 	print(res)
