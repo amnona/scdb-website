@@ -223,14 +223,16 @@ def getannotationinfo(annotationid):
 	rdata['annotationid']=annotationid
 	# get the experiment annotations
 	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',params=rdata)
+	print(res)
 	annotation=res.json()
+	print(annotation)
 
+	# get the experiment details
 	rdata={}
 	expid=annotation['expid']
 	rdata['expId']=expid
-
-	# get the experiment details
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
+	print(res)
 	webPage = render_template('expinfo.html',expid=expid)
 	if res.status_code==200:
 		for cres in res.json()['details']:
@@ -240,7 +242,7 @@ def getannotationinfo(annotationid):
 	else:
 		webPage+='Error getting experiment details'
 	webPage += '</table>'
-
+	print(webPage)
 	webPage += '<h2>Annotations Details</h2>'
 	webPage += draw_annotation_details(annotation,'../')
 
