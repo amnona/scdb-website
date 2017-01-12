@@ -224,7 +224,7 @@ def getannotationinfo(annotationid):
 	rdata['annotationid']=annotationid
 	print(rdata)
 	# get the experiment annotations
-	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',params=rdata)
+	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_annotation',params=rdata)
 	print(res)
 	annotation=res.json()
 	print(annotation)
