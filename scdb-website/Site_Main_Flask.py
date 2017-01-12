@@ -381,7 +381,7 @@ def draw_annotation_details(annotations,relpath):
 	create table entries for a list of annotations
 
 	input:
-	annotations : list of dict of annotation details (from REST)
+	annotations : list of dict of annotation details (from REST API)
 
 	output:
 	wpart : str
