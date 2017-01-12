@@ -222,7 +222,8 @@ def getontologyinfo(term):
 	rdata['term']=term
 
 	# get the experiment details
-	res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
+	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',json=rdata)
+	# res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
 	print(rdata)
 	webPage = render_template('ontologyterminfo.html',term=term)
 	print(webPage)
