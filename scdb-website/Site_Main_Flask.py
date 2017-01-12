@@ -223,6 +223,7 @@ def getontologyinfo(term):
 
 	# get the experiment details
 	res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
+	return res.json()
 	webPage = render_template('ontologyterminfo.html',term=term)
 	# get the experiment annotations
 	res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
