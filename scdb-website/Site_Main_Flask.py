@@ -210,7 +210,7 @@ def getannotationstrings(cann):
 	return cdesc
 
 
-@Site_Main_Flask_Obj.route('/ontology_info/<str:term>')
+@Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
 def getontologyinfo(term):
 	"""
 	get the information all studies containing an ontology term (exact or as parent)
