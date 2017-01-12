@@ -230,7 +230,7 @@ def getannotationinfo(annotationid):
 	expid=annotation['expid']
 	rdata['expId']=expid
 	res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-	webPage = render_template('annotationinfo.html',expid=expid)
+	webPage = render_template('annotationinfo.html',expid=expid,annotationid=annotationid)
 	if res.status_code==200:
 		for cres in res.json()['details']:
 			webPage += "<tr>"
