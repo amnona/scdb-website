@@ -264,7 +264,7 @@ def getannotationinfo(annotationid):
 	for ctype,cparents in parents.items():
 		webPage += ctype + ':'
 		for cparentname in cparents:
-			webPage += cparentname + ', '
+			webPage += '<a href='+urllib.parse.quote('../ontology_info/'+str(cparentname))+'>' + cparentname + ' '
 		webPage += '<br>'
 	return webPage
 
