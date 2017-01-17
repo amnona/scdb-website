@@ -245,6 +245,7 @@ def getannotationinfo(annotationid):
 	webPage += '<h2>Annotations Details</h2>'
 	webPage += draw_annotation_details([annotation],'../')
 
+	webPage += render_template('annotationsubdetails.html')
 	annotationdetails = []
 	for k,v in annotation.items():
 		if type(v)==list:
