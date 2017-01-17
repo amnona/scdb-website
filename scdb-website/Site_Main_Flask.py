@@ -245,6 +245,19 @@ def getannotationinfo(annotationid):
 	webPage += '<h2>Annotations Details</h2>'
 	webPage += draw_annotation_details([annotation],'../')
 
+	annotationdetails = []
+	for k,v in annotation.items():
+		if type(v)==list:
+			annotationdetails = v
+		else:
+			webPage += "<tr>"
+			webPage += '<td>'+k+'</td>'
+			webPage += '<td>'+v+'</td><tr>'
+	for cad in annotationdetails:
+			webPage += "<tr>"
+			webPage += '<td>'+k+'</td>'
+			webPage += '<td>'+v+'</td><tr>'
+
 	return webPage
 
 
