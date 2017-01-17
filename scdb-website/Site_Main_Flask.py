@@ -106,7 +106,8 @@ def search_results():
 
 	# if it is short, try if it is an ontology term
 	if len(sequence)<80:
-		return(getontologyinfo(sequence, relpath=''))
+		# return(get_ontology_info(sequence, relpath=''))
+		return(get_taxonomy_info(sequence, relpath=''))
 
 	# long, so probably a sequence
 	rdata = {}
@@ -269,9 +270,8 @@ def getannotationinfo(annotationid):
 	return webPage
 
 
-
 @Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
-def getontologyinfo(term, relpath='../'):
+def get_ontology_info(term, relpath='../'):
 	"""
 	get the information all studies containing an ontology term (exact or as parent)
 	input:
@@ -288,6 +288,22 @@ def getontologyinfo(term, relpath='../'):
 
 	return webPage
 
+
+@Site_Main_Flask_Obj.route('/taxonomy_info/<string:taxonomy>')
+def get_taxonomy_info(taxonomy, relpath='../'):
+	"""
+	get the information all studies containing any bacteria with taxonomy as substring
+	input:
+	taxonomy : str
+		the ontology term to look for
+	"""
+	# get the taxonomy annotations
+	res=requests.get(get_db_address() +'sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
+	webPage = render_template('ontologyterminfo.html',term=taxonomy)
+	webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
+	webPage += draw_annotation_details(res.json()['annotations'], relpath)
+
+	return webPage
 
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
