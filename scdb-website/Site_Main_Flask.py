@@ -35,8 +35,10 @@ def get_db_address():
 		else:
 			raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
 	else:
-		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 		server_address='http://amnonim.webfactional.com/scdb_main'
+		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
+		server_address='http://amnonim.webfactional.com/scdb_develop'
+		#####!!!!!!!!!!!!!!!!!!!!!!!!!!####################################################
 
 	return server_address
 
