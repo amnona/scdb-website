@@ -226,7 +226,7 @@ def getannotationinfo(annotationid):
 	rdata['annotationid']=annotationid
 	# get the experiment annotations
 	res=requests.get(get_db_address() +'/annotations/get_annotation',params=rdata)
-	if res is None:
+	if res.status_code != 200:
 		return('AnnotationID %d not found' % annotationid, 400)
 	annotation=res.json()
 
