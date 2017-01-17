@@ -256,8 +256,8 @@ def getannotationinfo(annotationid):
 			webPage += '<td>'+str(v)+'</td><tr>'
 	for cad in annotationdetails:
 			webPage += "<tr>"
-			webPage += '<td>'+str(k)+'</td>'
-			webPage += '<td>'+str(v)+'</td><tr>'
+			webPage += '<td>'+str(cad[0])+'</td>'
+			webPage += '<td>'+str(cad[1])+'</td><tr>'
 
 	return webPage
 
