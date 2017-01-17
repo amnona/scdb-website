@@ -436,11 +436,13 @@ def download_sequences(annotationid):
 	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_full_sequences',json=rdata)
 	annotation=res.json()
 	seqs = annotation.get('sequences')
+	if seqs in None:
+		debug(6,'No sequences found')
+		return('No sequences found',400)
 	output=''
 	for idx,cseq in enumerate(seqs):
 		output += '>%d\n%s\n' % (idx,cseq)
 	response = make_response(output)
-	response.headers["Content-Disposition"] = "attachment; filename=books.csv"
+	response.headers["Content-Disposition"] = "attachment; filename=annotation-%d-sequences.fa" % annotationid
 	return response
-
 
