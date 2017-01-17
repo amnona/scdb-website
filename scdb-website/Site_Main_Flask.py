@@ -46,17 +46,6 @@ def get_db_address():
 scbd_server_address = get_db_address()
 
 
-@Site_Main_Flask_Obj.route('/site/test_html',methods=['POST','GET'])
-def test_html():
-	"""
-	Title: Test Html
-	URL: site/test_html
-	Method: GET
-	"""
-
-	return render_template('seqinfo.html',sequence='lala3.txt')
-
-
 @Site_Main_Flask_Obj.route('/main',methods=['POST','GET'])
 def main_html():
 	"""
@@ -64,10 +53,6 @@ def main_html():
 	URL: site/main_html
 	Method: GET
 	"""
-	cfunc=test_html
-	if request.method=='POST':
-		return(getdoc(cfunc))
-
 	httpRes=requests.get(scbd_server_address + '/stats/stats')
 	# NumOntologyTerms = 0
 	NumAnnotation = 0
