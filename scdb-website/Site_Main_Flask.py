@@ -274,8 +274,8 @@ def getannotationinfo(annotationid):
 		debug(6,'no ontology parents found for annotationid %d' % annotationid)
 		parents=[]
 	else:
-		debug(1,'found %d parent groups for annotationid %d' % annotationid)
 		parents = res.json().get('parents')
+		debug(1,'found %d parent groups for annotationid %d' % (len(parents),annotationid))
 	for cres in parents:
 		ctype = cres[0]
 		webPage += ctype + ':'
