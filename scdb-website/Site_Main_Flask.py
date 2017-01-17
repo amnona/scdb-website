@@ -299,6 +299,10 @@ def get_taxonomy_info(taxonomy, relpath='../'):
 	"""
 	# get the taxonomy annotations
 	res=requests.get(get_db_address() +'sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
+	if res.status_code != 200:
+		msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
+		debug(6, msg)
+		return msg
 	webPage = render_template('ontologyterminfo.html',term=taxonomy)
 	webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
 	debug(1,res)
