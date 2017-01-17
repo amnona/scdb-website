@@ -111,6 +111,9 @@ def search_results():
 	else:
 		sequence = request.form['sequence']
 
+	# if it is short, try if it is an ontology term
+	if len(sequence)<80:
+		return(getontologyinfo(sequence))
 	# style = "<style>table {margin:40px; border-collapse: collapse; width: 100%;} th, td {text-align: left; padding: 8px;}tr:nth-child(even){background-color: #f2f2f2}th {background-color: #4CAF50;color: white; margin-top:100px;}</style>"
 
 	# webPage = ""
