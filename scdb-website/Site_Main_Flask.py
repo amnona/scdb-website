@@ -301,6 +301,8 @@ def get_taxonomy_info(taxonomy, relpath='../'):
 	res=requests.get(get_db_address() +'sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
 	webPage = render_template('ontologyterminfo.html',term=taxonomy)
 	webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
+	debug(1,res)
+	debug(1,res.json())
 	webPage += draw_annotation_details(res.json()['annotations'], relpath)
 
 	return webPage
