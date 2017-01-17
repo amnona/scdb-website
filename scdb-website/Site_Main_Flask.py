@@ -1,4 +1,5 @@
 from flask import Blueprint,request,render_template
+import urllib
 import os
 import json
 import requests
@@ -257,7 +258,7 @@ def getannotationinfo(annotationid):
 	for cad in annotationdetails:
 			webPage += "<tr>"
 			webPage += '<td>'+str(cad[0])+'</td>'
-			webPage += '<td><a href=../ontology_info/'+str(cad[1])+'>'+str(cad[1])+'</td><tr>'
+			webPage += '<td><a href='+urllib.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</td><tr>'
 
 	return webPage
 
