@@ -246,7 +246,7 @@ def getannotationinfo(annotationid):
 	for cad in annotationdetails:
 			webPage += "<tr>"
 			webPage += '<td>'+str(cad[0])+'</td>'
-			webPage += '<td><a href='+urllib.parse.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</td><tr>'
+			webPage += '<td><a href='+urllib.parse.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</a></td><tr>'
 
 	webPage += '</table>'
 	webPage += '<h2>Sequences</h2>'
@@ -264,7 +264,7 @@ def getannotationinfo(annotationid):
 	for ctype,cparents in parents.items():
 		webPage += ctype + ':'
 		for cparentname in cparents:
-			webPage += '<a href='+urllib.parse.quote('../ontology_info/'+str(cparentname))+'>' + cparentname + ' '
+			webPage += '<a href='+urllib.parse.quote('../ontology_info/'+str(cparentname))+'>' + cparentname + '</a> '
 		webPage += '<br>'
 	return webPage
 
