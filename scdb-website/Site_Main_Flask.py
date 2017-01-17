@@ -27,6 +27,8 @@ def get_db_address():
 		elif servertype=='main':
 			print('servertype is main')
 			server_address='http://amnonim.webfactional.com/scdb_main'
+			#####!!!!!!!!!!!!!!!!!!!!!!!!!!####################################################
+			server_address='http://amnonim.webfactional.com/scdb_develop'
 		elif servertype=='develop':
 			print('servertype is develop')
 			server_address='http://amnonim.webfactional.com/scdb_develop'
@@ -63,21 +65,22 @@ def main_html():
 	cfunc=test_html
 	if request.method=='POST':
 		return(getdoc(cfunc))
-    
+
 	httpRes=requests.get(scbd_server_address + '/stats/stats')
-	NumOntologyTerms = 0
+	# NumOntologyTerms = 0
 	NumAnnotation = 0
 	NumSequences = 0
 	NumSequenceAnnotation = 0
 	if httpRes.status_code==200:
-	   jsonRes = httpRes.json()
-	   NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
-	   NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
-	   NumSequences = jsonRes.get("stats").get('NumSequences')
-	   NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
-	
+		jsonRes = httpRes.json()
+		# NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
+		NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
+		NumSequences = jsonRes.get("stats").get('NumSequences')
+		NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
+
 	webPage = render_template('searchpage.html',numAnnot=(str(NumAnnotation).replace('.0','')),numSeq=(str(NumSequences).replace('.0','')),numSeqAnnot=(str(NumSequenceAnnotation).replace('.0','')))
 	return webPage
+
 
 @Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
 def reset_password():
@@ -89,6 +92,7 @@ def reset_password():
 	webpage=render_template('reset_password.html')
 	return webpage
 
+
 @Site_Main_Flask_Obj.route('/about',methods=['POST','GET'])
 def about():
 	"""
@@ -98,6 +102,7 @@ def about():
 	"""
 	webpage=render_template('about.html')
 	return webpage
+
 
 @Site_Main_Flask_Obj.route('/search_results',methods=['POST','GET'])
 def search_results():
@@ -114,15 +119,9 @@ def search_results():
 
 	# if it is short, try if it is an ontology term
 	if len(sequence)<80:
-		return(getontologyinfo(sequence))
-	# style = "<style>table {margin:40px; border-collapse: collapse; width: 100%;} th, td {text-align: left; padding: 8px;}tr:nth-child(even){background-color: #f2f2f2}th {background-color: #4CAF50;color: white; margin-top:100px;}</style>"
+		return(getontologyinfo(sequence, relpath=''))
 
-	# webPage = ""
-	# webPage += "<html>"
-	# webPage += "<title>Seqeunce Search</title>"
-	# webPage += "<head>" + style + "</head>"
-	# webPage += "<body>Search results for sequence:<br>" + sequence + "<br>"
-
+	# long, so probably a sequence
 	rdata = {}
 	rdata['sequence'] = sequence
 	httpRes=requests.get(scbd_server_address + '/sequences/get_annotations',json=rdata)
@@ -133,7 +132,7 @@ def search_results():
 		webPage += "Failed to get annotations for the given sequence"
 	else:
 		webPage += draw_annotation_details(httpRes.json().get('annotations'),'')
-        # jsonResponse = httpRes.json()
+		# jsonResponse = httpRes.json()
 		# # webPage += "<table>"
 		# # webPage += "<col width='10%'>"
 		# # webPage += "<col width='30%'>"
@@ -209,8 +208,8 @@ def getannotationstrings(cann):
 		for cdet in cann['details']:
 			cdesc=cdesc+' '+cdet[1]+','
 
-	if len(cdesc) >= 1 and cdesc[-1] == ',' : 
-		cdesc = cdesc[:-1] 
+	if len(cdesc) >= 1 and cdesc[-1] == ',':
+		cdesc = cdesc[:-1]
 	return cdesc
 
 
@@ -226,7 +225,7 @@ def getannotationinfo(annotationid):
 	rdata={}
 	rdata['annotationid']=annotationid
 	# get the experiment annotations
-	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_annotation',params=rdata)
+	res=requests.get(get_db_address() +'/annotations/get_annotation',params=rdata)
 	annotation=res.json()
 
 	# get the experiment details
@@ -263,12 +262,25 @@ def getannotationinfo(annotationid):
 	webPage += '</table>'
 	webPage += '<h2>Sequences</h2>'
 	webPage += '<input type="button" onclick="location.href=\'../annotation_seq_download/%d\';" value="Download fasta" />' % annotationid
+
+	# add the ontology parent terms for the annotation
+	webPage += '<h2>Ontology terms</h2>'
+	res=requests.get(get_db_address() +'/annotations/get_annotation_ontology_parents',json={'annotationid':annotationid})
+	parents = res.json().get('parents')
+	if parents is not None:
+		for cres in parents:
+			ctype = cres[0]
+			webPage += ctype + ':'
+			cparents = cres[1]
+			for cparentname in cparents:
+				webPage += cparentname + ', '
+			webPage += '<br>'
 	return webPage
 
 
 
 @Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
-def getontologyinfo(term):
+def getontologyinfo(term, relpath='../'):
 	"""
 	get the information all studies containing an ontology term (exact or as parent)
 	input:
@@ -278,18 +290,10 @@ def getontologyinfo(term):
 	rdata={}
 	rdata['term']=term
 	# get the experiment annotations
-	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/ontology/get_annotations',params=rdata)
-	# res=requests.get(scbd_server_address +'/ontology/get_annotations',json=rdata)
-	print('ontology terms')
-	print(res)
-	print(res.json())
+	res=requests.get(get_db_address() +'/ontology/get_annotations',params=rdata)
 	webPage = render_template('ontologyterminfo.html',term=term)
-	print(webPage)
-	print(res)
 	webPage += '<h2>Annotations for ontology term:</h2>'
-	print(webPage)
-	webPage += draw_annotation_details(res.json()['annotations'],'../')
-	print(webPage)
+	webPage += draw_annotation_details(res.json()['annotations'], relpath)
 
 	return webPage
 
@@ -330,9 +334,10 @@ def getexperimentinfo(expid):
 
 	return webPage
 
+
 @Site_Main_Flask_Obj.route('/forgot_password_submit',methods=['POST','GET'])
 def forgot_password_submit():
-    """
+	"""
 	this page will send the forgoten password to the user via mail
 	input:
 	dataid : string
@@ -340,21 +345,22 @@ def forgot_password_submit():
 
 	output:
 	"""
-    
-    usermail = ''
-    if request.method=='GET':
-        usermail=request.args['useremail']
-    else:
-        usermail = request.form['useremail']
-    
-    json_user={'user':usermail}
-    httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
-    if httpRes.status_code==200:
-        webpage = render_template('done_success.html')
-    else:
-        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
-    return webpage
-        
+
+	usermail = ''
+	if request.method=='GET':
+		usermail=request.args['useremail']
+	else:
+		usermail = request.form['useremail']
+
+	json_user={'user':usermail}
+	httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
+	if httpRes.status_code==200:
+		webpage = render_template('done_success.html')
+	else:
+		webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+	return webpage
+
+
 @Site_Main_Flask_Obj.route('/user_info/<int:userid>')
 def getuserid(userid):
 	"""
@@ -368,8 +374,8 @@ def getuserid(userid):
 	rdata={}
 	rdata['userid']=userid
 	if userid < 0:
-		return "Error: Invalid user";
-    
+		return "Error: Invalid user"
+
 	# get the experiment details
 	httpRes=requests.post(scbd_server_address +'/users/get_user_public_information',json=rdata)
 	if httpRes.status_code==200:
@@ -379,12 +385,12 @@ def getuserid(userid):
 		desc = userInfo.get('description','')
 		email = userInfo.get('email','-')
 		webPage = render_template('userinfo.html',userid=userid,name=name,username=username,desc=desc,email=email)
-        
-        #get user annotation
+
+		# get user annotation
 		forUserId={'foruserid':userid}
 		httpRes=requests.get(scbd_server_address + '/users/get_user_annotations',json=forUserId)
 		if httpRes.status_code==200:
-		  webPage += draw_annotation_details(httpRes.json().get('userannotations'),'../')
+			webPage += draw_annotation_details(httpRes.json().get('userannotations'),'../')
 		webPage += "</body></html>"
 	else:
 		webPage = "Failed to get user information"
@@ -431,7 +437,7 @@ def download_sequences(annotationid):
 	rdata={}
 	rdata['annotationid']=annotationid
 	# get the experiment annotations
-	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_full_sequences',json=rdata)
+	res=requests.get(get_db_address() +'/annotations/get_full_sequences',json=rdata)
 	annotation=res.json()
 	seqs = annotation.get('sequences')
 	if seqs is None:
