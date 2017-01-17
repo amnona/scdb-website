@@ -270,7 +270,10 @@ def getannotationinfo(annotationid):
 	# add the ontology parent terms for the annotation
 	webPage += '<h2>Ontology terms</h2>'
 	res=requests.get(get_db_address() +'/annotations/get_annotation_ontology_parents',json={'annotationid':annotationid})
-	parents = res.json().get('parents')
+	if res.status_code != 200:
+		parents=[]
+	else:
+		parents = res.json().get('parents')
 	if parents is not None:
 		for cres in parents:
 			ctype = cres[0]
