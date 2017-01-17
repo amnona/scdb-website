@@ -411,18 +411,13 @@ def draw_annotation_details(annotations,relpath):
 		cdesc = getannotationstrings(dataRow)
 		# webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
 		wpart +='<td><a href=' + relpath + 'annotation_info/'+str(dataRow.get('annotationid',-1))+'>'+cdesc+'</td>'
-		# wpart += '<td>' + cdesc + "</td>"
-		#webPage += "<td>" + str(dataRow) + "</td>"
-		# wpart += "</tr>"
 		wpart +='<td>'+dataRow['date']+'</td>'
 		rdata={}
 		rdata['annotationid']=dataRow['annotationid']
 		res=requests.get(scbd_server_address+'/annotations/get_sequences',json=rdata)
 		if res.status_code==200:
-			wpart +='<td>%d</td>' % len(res.json()['seqids'])
-			# wpart +='<td>na</td>'
+			wpart +='<td><a href=' + relpath + 'annotation_seq_download/'+str(dataRow.get('annotationid',-1))+'>%d</td>' % len(res.json()['seqids'])
 		else:
-			# print(res.content)
 			wpart +='<td>'+'NA'+'</td>'
 		wpart += "</tr>"
 	wpart += "</table>"
