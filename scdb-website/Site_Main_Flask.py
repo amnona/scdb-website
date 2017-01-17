@@ -1,4 +1,4 @@
-from flask import Blueprint,request,render_template
+from flask import Blueprint,request,render_template, make_response
 import urllib.parse
 import os
 import json
@@ -35,7 +35,7 @@ def get_db_address():
 	else:
 		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 		server_address='http://amnonim.webfactional.com/scdb_main'
-	
+
 	return server_address
 
 
@@ -424,4 +424,20 @@ def draw_annotation_details(annotations,relpath):
 		wpart += "</tr>"
 	wpart += "</table>"
 	return wpart
+
+
+@Site_Main_Flask_Obj.route('/annotation_info/<int:annotationid>')
+def download_sequences(annotationid):
+	'''return a download of the sequences of the annotation as fasta
+	'''
+	rdata={}
+	rdata['annotationid']=annotationid
+	# get the experiment annotations
+	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_annotation',params=rdata)
+	annotation=res.json()
+	seqs = annotation.get('sequences')
+	response = make_response(seqs)
+	response.headers["Content-Disposition"] = "attachment; filename=books.csv"
+	return response
+
 
