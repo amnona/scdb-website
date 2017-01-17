@@ -426,7 +426,7 @@ def draw_annotation_details(annotations,relpath):
 	return wpart
 
 
-@Site_Main_Flask_Obj.route('/annotation_info/<int:annotationid>')
+@Site_Main_Flask_Obj.route('/annotation_seq_download/<int:annotationid>')
 def download_sequences(annotationid):
 	'''return a download of the sequences of the annotation as fasta
 	'''
