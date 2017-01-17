@@ -298,7 +298,7 @@ def get_taxonomy_info(taxonomy, relpath='../'):
 		the ontology term to look for
 	"""
 	# get the taxonomy annotations
-	res=requests.get(get_db_address() +'sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
+	res=requests.get(get_db_address() +'/sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
 	if res.status_code != 200:
 		msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
 		debug(6, msg)
