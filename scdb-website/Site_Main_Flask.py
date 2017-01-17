@@ -277,6 +277,7 @@ def getannotationinfo(annotationid):
 		parents = res.json().get('parents')
 		debug(1,'found %d parent groups for annotationid %d' % (len(parents),annotationid))
 	for cres in parents:
+		debug(1,cres)
 		ctype = cres[0]
 		webPage += ctype + ':'
 		cparents = cres[1]
