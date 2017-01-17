@@ -262,7 +262,7 @@ def getannotationinfo(annotationid):
 
 	webPage += '</table>'
 	webPage += '<h2>Sequences</h2>'
-	webPage += '<input type="button" onclick="location.href=\'../annotation_seq_download/%d\';" value="Download Fasta" />' % annotationid
+	webPage += '<input type="button" onclick="location.href=\'../annotation_seq_download/%d\';" value="Download fasta" />' % annotationid
 	return webPage
 
 
