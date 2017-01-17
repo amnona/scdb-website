@@ -260,6 +260,9 @@ def getannotationinfo(annotationid):
 			webPage += '<td>'+str(cad[0])+'</td>'
 			webPage += '<td><a href='+urllib.parse.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</td><tr>'
 
+	webPage += '</table>'
+	webPage += '<h2>Sequences</h2>'
+	webPage += '<input type="button" onclick="location.href=../annotation_seq_download/%d;" value="Download Fasta" />' % annotationid
 	return webPage
 
 
