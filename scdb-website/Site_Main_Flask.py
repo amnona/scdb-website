@@ -436,7 +436,7 @@ def download_sequences(annotationid):
 	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_full_sequences',json=rdata)
 	annotation=res.json()
 	seqs = annotation.get('sequences')
-	if seqs in None:
+	if seqs is None:
 		debug(6,'No sequences found')
 		return('No sequences found',400)
 	output=''
