@@ -271,17 +271,18 @@ def getannotationinfo(annotationid):
 	webPage += '<h2>Ontology terms</h2>'
 	res=requests.get(get_db_address() +'/annotations/get_annotation_ontology_parents',json={'annotationid':annotationid})
 	if res.status_code != 200:
+		debug(6,'no ontology parents found for annotationid %d' % annotationid)
 		parents=[]
 	else:
+		debug(1,'found %d parent groups for annotationid %d' % annotationid)
 		parents = res.json().get('parents')
-	if parents is not None:
-		for cres in parents:
-			ctype = cres[0]
-			webPage += ctype + ':'
-			cparents = cres[1]
-			for cparentname in cparents:
-				webPage += cparentname + ', '
-			webPage += '<br>'
+	for cres in parents:
+		ctype = cres[0]
+		webPage += ctype + ':'
+		cparents = cres[1]
+		for cparentname in cparents:
+			webPage += cparentname + ', '
+		webPage += '<br>'
 	return webPage
 
 
