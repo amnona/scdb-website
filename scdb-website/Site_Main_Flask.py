@@ -433,7 +433,7 @@ def download_sequences(annotationid):
 	rdata={}
 	rdata['annotationid']=annotationid
 	# get the experiment annotations
-	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_annotation',params=rdata)
+	res=requests.get('http://amnonim.webfactional.com/scdb_develop' +'/annotations/get_full_sequences',params=rdata)
 	annotation=res.json()
 	seqs = annotation.get('sequences')
 	output=''
