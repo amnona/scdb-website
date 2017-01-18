@@ -503,8 +503,8 @@ def draw_annotation_details(annotations,relpath):
 		termstr += cterm[0].replace(' ','_') + ' '
 	wordcloud_image = draw_cloud(termstr)
 	wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
-	# for cterm in common_terms:
-	# 	wpart+='%s : %d <br>' % (cterm[0],cterm[1])
+	for cterm in common_terms:
+		wpart+='%s : %d <br>' % (cterm[0],cterm[1])
 	return wpart
 
 
