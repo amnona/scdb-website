@@ -546,3 +546,29 @@ def get_common_terms(annotations):
 		common_terms.append([k,v])
 	common_terms = sorted(common_terms, reverse=True, key=lambda x: x[1])
 	return common_terms
+
+
+
+@Site_Main_Flask_Obj.route('/testimage')
+def test_image():
+	terms=['a big fish big very small fish fish big barvaz pita fish']
+	img = draw_cloud(terms)
+	webpage=render_template('testimg.html', wordcloudimg=img)
+	return webpage
+
+
+def draw_cloud(words):
+	from wordcloud import WordCloud
+	import matplotlib.pyplot as plt
+	from io import BytesIO
+
+	wordcloud = WordCloud().generate(words)
+	fig = plt.figure()
+	plt.imshow(wordcloud)
+	plt.axis("off")
+	figfile = BytesIO()
+	plt.savefig(figfile, format='png')
+	figfile.seek(0)  # rewind to beginning of file
+	import base64
+	figdata_png = base64.b64encode(figfile.getvalue())
+	return figdata_png
