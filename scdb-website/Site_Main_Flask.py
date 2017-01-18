@@ -544,5 +544,5 @@ def get_common_terms(annotations):
 	common_terms = []
 	for k,v in terms.items():
 		common_terms.append([k,v])
-	common_terms = sorted(common_terms, key=lambda x: x[1])
+	common_terms = sorted(common_terms, reverse=True, key=lambda x: x[1])
 	return common_terms
