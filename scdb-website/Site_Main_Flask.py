@@ -566,7 +566,7 @@ def draw_cloud(words):
 	import matplotlib.pyplot as plt
 	from io import BytesIO
 
-	wc = WordCloud(background_color="white")
+	wc = WordCloud(background_color="white", width=200, height=100)
 	wordcloud = wc.generate(words)
 	fig = plt.figure()
 	plt.imshow(wordcloud)
