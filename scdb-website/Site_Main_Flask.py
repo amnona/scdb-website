@@ -276,6 +276,17 @@ def getannotationinfo(annotationid):
 
 
 @Site_Main_Flask_Obj.route('/ontology_info/<string:term>')
+def ontology_info(term):
+	"""
+	get the information all studies containing an ontology term (exact or as parent)
+	input:
+	term : str
+		the ontology term to look for
+	"""
+	err, webpage = get_ontology_info(term)
+	return webpage
+
+
 def get_ontology_info(term, relpath='../'):
 	"""
 	get the information all studies containing an ontology term (exact or as parent)
@@ -302,6 +313,26 @@ def get_ontology_info(term, relpath='../'):
 
 
 @Site_Main_Flask_Obj.route('/taxonomy_info/<string:taxonomy>')
+def taxonomy_info(taxonomy):
+	'''
+	get the information all studies containing any bacteria with taxonomy as substring
+
+	Parameters
+	----------
+	taxonomy : str
+		the ontology term to look for
+
+	Returns
+	-------
+	err : str
+		empty ('') if found, none empty if error encountered
+	webPage : str
+		the html of the resulting table
+	'''
+	err,webpage = get_taxonomy_info(taxonomy)
+	return webpage
+
+
 def get_taxonomy_info(taxonomy, relpath='../'):
 	'''
 	get the information all studies containing any bacteria with taxonomy as substring
