@@ -477,7 +477,15 @@ def draw_annotation_details(annotations,relpath):
 	wpart : str
 		html code for the annotations table
 	'''
-	wpart = render_template('annotations_table.html')
+	termstr=''
+	for cannotation in annotations:
+		for cdetail in cannotation['details']:
+			if cdetail[0]=='all' or cdetail[0]=='high':
+				termstr += cdetail[1].replace(' ','_') + ' '
+	wordcloud_image = draw_cloud(termstr)
+	wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
+
+	wpart += render_template('annotations_table.html')
 
 
 	for dataRow in annotations:
@@ -498,13 +506,6 @@ def draw_annotation_details(annotations,relpath):
 		wpart += "</tr>"
 	wpart += "</table>"
 
-	termstr=''
-	for cannotation in annotations:
-		for cdetail in cannotation['details']:
-			if cdetail[0]=='all' or cdetail[0]=='high':
-				termstr += cdetail[1].replace(' ','_') + ' '
-	wordcloud_image = draw_cloud(termstr)
-	wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 	common_terms = get_common_terms(annotations)
 	for cterm in common_terms:
 		wpart+='%s : %d <br>' % (cterm[0],cterm[1])
