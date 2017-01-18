@@ -551,7 +551,7 @@ def get_common_terms(annotations):
 
 @Site_Main_Flask_Obj.route('/testimage')
 def test_image():
-	terms=['a big fish big very small fish fish big barvaz pita fish']
+	terms='a big fish big very small fish fish big barvaz pita fish'
 	img = draw_cloud(terms)
 	webpage=render_template('testimg.html', wordcloudimg=img)
 	return webpage
