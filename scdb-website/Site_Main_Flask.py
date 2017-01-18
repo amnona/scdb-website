@@ -497,12 +497,15 @@ def draw_annotation_details(annotations,relpath):
 			wpart +='<td>'+'NA'+'</td>'
 		wpart += "</tr>"
 	wpart += "</table>"
-	common_terms = get_common_terms(annotations)
+
 	termstr=''
-	for cterm in common_terms:
-		termstr += cterm[0].replace(' ','_') + ' '
+	for cannotation in annotations:
+		for cdetail in cannotation['details']:
+			if cdetail[0]=='all' or cdetail[0]=='high':
+				termstr += cdetail[1].replace(' ','_') + ' '
 	wordcloud_image = draw_cloud(termstr)
 	wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
+	common_terms = get_common_terms(annotations)
 	for cterm in common_terms:
 		wpart+='%s : %d <br>' % (cterm[0],cterm[1])
 	return wpart
