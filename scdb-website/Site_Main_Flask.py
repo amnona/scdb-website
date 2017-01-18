@@ -553,6 +553,8 @@ def get_common_terms(annotations):
 def test_image():
 	terms='a big fish big very small fish fish big barvaz pita fish'
 	img = draw_cloud(terms)
+	debug(1,len(img))
+	debug(1,img)
 	webpage=render_template('testimg.html', wordcloudimage=img)
 	return webpage
 
