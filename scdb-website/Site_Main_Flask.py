@@ -324,11 +324,14 @@ def get_taxonomy_info(taxonomy, relpath='../'):
 		msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
 		debug(6, msg)
 		return msg,msg
+	annotations = res.json()['annotations']
+	if len(annotations)==0:
+		return 'taxonomy not found', 'taxonomy not found'
 	webPage = render_template('ontologyterminfo.html',term=taxonomy)
 	webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
 	debug(1,res)
 	debug(1,res.json())
-	webPage += draw_annotation_details(res.json()['annotations'], relpath)
+	webPage += draw_annotation_details(annotations, relpath)
 
 	return '',webPage
 
