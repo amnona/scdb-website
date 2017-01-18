@@ -553,7 +553,7 @@ def get_common_terms(annotations):
 def test_image():
 	terms='a big fish big very small fish fish big barvaz pita fish'
 	img = draw_cloud(terms)
-	webpage=render_template('testimg.html', wordcloudimg=img)
+	webpage=render_template('testimg.html', wordcloudimage=img)
 	return webpage
 
 
@@ -567,7 +567,7 @@ def draw_cloud(words):
 	plt.imshow(wordcloud)
 	plt.axis("off")
 	figfile = BytesIO()
-	plt.savefig(figfile, format='png')
+	fig.savefig(figfile, format='png')
 	figfile.seek(0)  # rewind to beginning of file
 	import base64
 	figdata_png = base64.b64encode(figfile.getvalue())
