@@ -106,8 +106,13 @@ def search_results():
 
 	# if it is short, try if it is an ontology term
 	if len(sequence)<80:
-		# return(get_ontology_info(sequence, relpath=''))
-		return(get_taxonomy_info(sequence, relpath=''))
+		err, webPage = get_ontology_info(sequence, relpath='')
+		if not err:
+			return webPage
+		err, webPage = get_taxonomy_info(sequence, relpath='')
+		if not err:
+			return webPage
+		return('term %s not found in ontology or taxonomy' % sequence, 400)
 
 	# long, so probably a sequence
 	rdata = {}
@@ -282,34 +287,47 @@ def get_ontology_info(term, relpath='../'):
 	rdata['term']=term
 	# get the experiment annotations
 	res=requests.get(get_db_address() +'/ontology/get_annotations',params=rdata)
+	if res.status_code != 200:
+		msg = 'error getting annotations for ontology term %s: %s' % (term, res.content)
+		debug(6, msg)
+		return msg,msg
 	webPage = render_template('ontologyterminfo.html',term=term)
 	webPage += '<h2>Annotations for ontology term:</h2>'
 	webPage += draw_annotation_details(res.json()['annotations'], relpath)
 
-	return webPage
+	return '',webPage
 
 
 @Site_Main_Flask_Obj.route('/taxonomy_info/<string:taxonomy>')
 def get_taxonomy_info(taxonomy, relpath='../'):
-	"""
+	'''
 	get the information all studies containing any bacteria with taxonomy as substring
-	input:
+
+	Parameters
+	----------
 	taxonomy : str
 		the ontology term to look for
-	"""
+
+	Returns
+	-------
+	err : str
+		empty ('') if found, none empty if error encountered
+	webPage : str
+		the html of the resulting table
+	'''
 	# get the taxonomy annotations
 	res=requests.get(get_db_address() +'/sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
 	if res.status_code != 200:
 		msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
 		debug(6, msg)
-		return msg
+		return msg,msg
 	webPage = render_template('ontologyterminfo.html',term=taxonomy)
 	webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
 	debug(1,res)
 	debug(1,res.json())
 	webPage += draw_annotation_details(res.json()['annotations'], relpath)
 
-	return webPage
+	return '',webPage
 
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
