@@ -500,7 +500,7 @@ def draw_annotation_details(annotations,relpath):
 	common_terms = get_common_terms(annotations)
 	termstr=''
 	for cterm in common_terms:
-		termstr += cterm[0].replace(' ','_')
+		termstr += cterm[0].replace(' ','_') + ' '
 	wordcloud_image = draw_cloud(termstr)
 	wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 	# for cterm in common_terms:
