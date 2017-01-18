@@ -1,5 +1,6 @@
 from flask import Blueprint,request,render_template, make_response
 import urllib.parse
+from collections import defaultdict
 import os
 import json
 import requests
@@ -478,6 +479,7 @@ def draw_annotation_details(annotations,relpath):
 	'''
 	wpart = render_template('annotations_table.html')
 
+
 	for dataRow in annotations:
 		wpart += "<tr>"
 		wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
@@ -495,6 +497,9 @@ def draw_annotation_details(annotations,relpath):
 			wpart +='<td>'+'NA'+'</td>'
 		wpart += "</tr>"
 	wpart += "</table>"
+	common_terms = get_common_terms(annotations)
+	for cterm in common_terms:
+		wpart+='%s : %d <br>' % (cterm[0],cterm[1])
 	return wpart
 
 
@@ -518,3 +523,26 @@ def download_sequences(annotationid):
 	response.headers["Content-Disposition"] = "attachment; filename=annotation-%d-sequences.fa" % annotationid
 	return response
 
+
+def get_common_terms(annotations):
+	'''
+	Get the terms most common to all the annotations
+
+	Parameters
+	----------
+	annotations : list of annotations
+
+	Resturns
+	--------
+	common_terms: sorted list of (term, count)
+	'''
+	terms=defaultdict(int)
+	for cannotation in annotations:
+		for cdetail in cannotation['details']:
+			if cdetail[0]=='all' or cdetail[0]=='high':
+				terms[cdetail[1]]+=1
+	common_terms = []
+	for k,v in terms.items():
+		common_terms.append([k,v])
+	common_terms = sorted(common_terms, key=lambda x: x[1])
+	return common_terms
