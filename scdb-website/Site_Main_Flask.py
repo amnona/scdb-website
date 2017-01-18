@@ -555,7 +555,9 @@ def test_image():
 	img = draw_cloud(terms)
 	debug(1,len(img))
 	debug(1,img)
-	webpage=render_template('testimg.html', wordcloudimage=urllib.parse.quote(img.rstrip('\n')))
+	img2=img.rstrip('\n')
+	img3=urllib.parse.quote(img2)
+	webpage=render_template('testimg.html', wordcloudimage=img3)
 	return webpage
 
 
