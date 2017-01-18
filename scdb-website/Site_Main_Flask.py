@@ -291,9 +291,12 @@ def get_ontology_info(term, relpath='../'):
 		msg = 'error getting annotations for ontology term %s: %s' % (term, res.content)
 		debug(6, msg)
 		return msg,msg
+	annotations = res.json()['annotations']
+	if len(annotations)==0:
+		return 'term not found','term not found'
 	webPage = render_template('ontologyterminfo.html',term=term)
 	webPage += '<h2>Annotations for ontology term:</h2>'
-	webPage += draw_annotation_details(res.json()['annotations'], relpath)
+	webPage += draw_annotation_details(annotations, relpath)
 
 	return '',webPage
 
