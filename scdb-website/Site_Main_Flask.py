@@ -28,8 +28,6 @@ def get_db_address():
 		elif servertype=='main':
 			print('servertype is main')
 			server_address='http://amnonim.webfactional.com/scdb_main'
-			#####!!!!!!!!!!!!!!!!!!!!!!!!!!####################################################
-			server_address='http://amnonim.webfactional.com/scdb_develop'
 		elif servertype=='develop':
 			print('servertype is develop')
 			server_address='http://amnonim.webfactional.com/scdb_develop'
@@ -38,8 +36,6 @@ def get_db_address():
 	else:
 		server_address='http://amnonim.webfactional.com/scdb_main'
 		print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
-		server_address='http://amnonim.webfactional.com/scdb_develop'
-		#####!!!!!!!!!!!!!!!!!!!!!!!!!!####################################################
 
 	return server_address
 
