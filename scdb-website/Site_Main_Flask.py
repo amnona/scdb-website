@@ -47,7 +47,7 @@ def landing_page():
     '''
     Redirect to the main search page
     '''
-    return redirect(url_for('.main'))
+    return redirect(url_for('.main_html'))
 
 
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
