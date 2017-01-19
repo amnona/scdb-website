@@ -664,6 +664,7 @@ def draw_cloud(words):
 
     # wc = WordCloud(background_color="white", width=200, height=100)
     wc = WordCloud(background_color="white")
+    debug(1, words)
     wordcloud = wc.generate(words)
     fig = plt.figure()
     plt.imshow(wordcloud)
