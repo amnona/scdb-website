@@ -98,8 +98,9 @@ def search_results():
     if 'fasta file' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
         file = request.files['fasta file']
-        x = TextIOWrapper(file)
-        debug(1, x)
+        file = TextIOWrapper(file)
+        for x in file:
+            debug(1, x)
 
     # if it is short, try if it is an ontology term
     if len(sequence) < 80:
