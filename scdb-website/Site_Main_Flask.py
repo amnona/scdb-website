@@ -182,7 +182,7 @@ def draw_sequences_annotations(seqs, relpath=''):
     for cseqannotation in seqannotations:
         if len(cseqannotation) == 0:
             continue
-        for cannotation in cseqannotation[1]:
+        for cannotation in cseqannotation[0]:
             annotations.append(cannotation)
 
     webPage = render_template('ontologyterminfo.html', term='lala')
