@@ -76,7 +76,14 @@
                 <center>Enter amplicon sequence or ontology term or partial taxonomy to search for</center>
             </div>
             <div id="searchform">
-                <form action='search_results' method='post'>
+                <form action='search_results' method='post' enctype = "multipart/form-data">
+                    <input value='' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>
+                    <input type = "file" name = "fasta file" />
+                    <center>
+                    <input id='searchBut' type='submit' align='center'></center>
+                </form>
+
+<!--                 <form action='search_results' method='post'>
                     <input value='' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>
                     <center><input id='searchBut' type='submit' align='center'></center>
                 </form>
@@ -86,7 +93,7 @@
                 <input type = "file" name = "file" />
                 <input type = "submit"/>
                 </form>
-
+ -->
             </div>
             <div id="botMenu">
             <center><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'>Or click here for example</a>
