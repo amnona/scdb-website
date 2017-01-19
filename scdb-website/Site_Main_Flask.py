@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, make_response, redirect, url_for
 import urllib.parse
 from collections import defaultdict
+from io import TextIOWrapper
 import os
 import requests
 from utils import debug
@@ -97,7 +98,7 @@ def search_results():
     if 'fasta file' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
         file = request.files['fasta file']
-        x = file.read()
+        x = TextIOWrapper(file)
         debug(1, x)
 
     # if it is short, try if it is an ontology term
