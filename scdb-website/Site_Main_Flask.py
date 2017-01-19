@@ -98,9 +98,12 @@ def search_results():
     if 'fasta file' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
         file = request.files['fasta file']
-        file = TextIOWrapper(file)
-        for x in file:
-            debug(1, x)
+        textfile = TextIOWrapper(file)
+        seqs = get_fasta_seqs(textfile)
+        if seqs is None:
+            return('Error: Uploaded file not recognized as fasta', 400)
+        err, webpage = draw_sequences_annotations(seqs)
+        return webpage
 
     # if it is short, try if it is an ontology term
     if len(sequence) < 80:
@@ -115,65 +118,75 @@ def search_results():
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
-    httpRes=requests.get(scbd_server_address + '/sequences/get_annotations',json=rdata)
-    webPage=render_template('seqinfo.html',sequence=sequence.upper())
+    httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
+    webPage = render_template('seqinfo.html', sequence=sequence.upper())
 
     if httpRes.status_code != requests.codes.ok:
-        debug(6,"Error code:" + str(httpRes.status_code))
+        debug(6, "Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for the given sequence"
     else:
-        webPage += draw_annotation_details(httpRes.json().get('annotations'),'')
-        # jsonResponse = httpRes.json()
-        # # webPage += "<table>"
-        # # webPage += "<col width='10%'>"
-        # # webPage += "<col width='30%'>"
-        # # webPage += "<col width='60%'>"
-        # # webPage += "<tr>"
-        # # webPage += "<th>Expirment id</th>"
-        # # webPage += "<th>Description</th>"
-        # # webPage += "<th>Details</th>"
-        # # webPage += "</tr>"
-        # strDetails = ""
-        # for dataRow in jsonResponse.get('annotations'):
-        #   webPage += "<tr>"
-        #   webPage += "<td><a href=exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
-        #   cdesc = getannotationstrings(dataRow)
-        #   # webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
-        #   webPage += '<td>' + cdesc + "</td>"
-        #   #webPage += "<td>" + str(dataRow) + "</td>"
-        #   strDetails = ''
-        #   for detailesRow in dataRow.get('details'):
-        #       strDetails += str(detailesRow)
-        #   webPage += "<td>" + str(strDetails) + "</td>"
-        #   webPage += "</tr>"
-        # webPage += "</table>"
+        webPage += draw_annotation_details(httpRes.json().get('annotations'), '')
     webPage += "</body>"
     webPage += "</html>"
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/reset_password', methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
 def reset_password():
     """
     Title: Reset password via mail
     URL: /reset password
     Method: POST
     """
-    webpage=render_template('reset_password.html')
+    webpage = render_template('reset_password.html')
     return webpage
 
 
-@Site_Main_Flask_Obj.route('/about',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/about', methods=['POST', 'GET'])
 def about():
     """
     Title: About us
     URL: /about
     Method: POST
     """
-    webpage=render_template('about.html')
+    webpage = render_template('about.html')
     return webpage
 
 
+def draw_sequences_annotations(seqs, relpath=''):
+    '''Draw the webpage for annotations for a set of sequences
+
+    Parameters
+    ----------
+    seqs : list of str sequences (ACGT)
+    relpath : str (optional)
+        the relative link path for the links
+
+    Returns
+    -------
+    err : str
+        the error encountered or '' if ok
+    webpage : str
+        the webpage for the annotations of these sequences
+    '''
+    res = requests.get(get_db_address() + '/sequences/get_list_annotations', json={'sequences': seqs})
+    if res.status_code != 200:
+        msg = 'error getting annotations for sequences : %s' % res.content
+        debug(6, msg)
+        return msg, msg
+    seqannotations = res.json()['seqannotations']
+    if len(seqannotations) == 0:
+        msg = 'no sequences found'
+        return msg, msg
+    annotations = []
+    for cseqannotation in seqannotations:
+        for cannotation in cseqannotation['annotations']:
+            annotations.append(cannotation)
+
+    webPage = render_template('ontologyterminfo.html', term='lala')
+    webPage += '<h2>Annotations for sequence list:</h2>'
+    webPage += draw_annotation_details(annotations, relpath)
+    return '', webPage
 
 
 def getannotationstrings(cann):
@@ -609,3 +622,40 @@ def draw_cloud(words):
     import base64
     figdata_png = base64.b64encode(figfile.getvalue())
     return figdata_png
+
+
+def get_fasta_seqs(file):
+    '''Get sequences from a fasta file
+
+    Parameters
+    ----------
+    file : text file
+        the text fasta file to process
+
+    Returns
+    -------
+    seqs : list of str sequences (ACGT)
+        the sequences in the fasta file
+    '''
+    debug(1, 'reading fasta file')
+    seqs = []
+    cseq = ''
+    isfasta = False
+    for cline in file:
+        if cline[0] == '>':
+            isfasta = True
+            seqs.append(cseq)
+            cseq = ''
+        else:
+            cseq += cline
+    # process the last sequence
+    if cseq:
+        seqs.append(cseq)
+
+    # test if we encountered '>'
+    if not isfasta:
+        debug(2, 'not a fasta file')
+        return None
+
+    debug(1, 'read %d sequences' % len(seqs))
+    return seqs
