@@ -47,7 +47,7 @@ def landing_page():
     '''
     Redirect to the main search page
     '''
-    return redirect('amnonim.webfactional.com/scdb_website/main')
+    return redirect('scdb_website/main')
 
 
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
