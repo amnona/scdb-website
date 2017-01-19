@@ -662,6 +662,10 @@ def draw_cloud(words):
     import matplotlib.pyplot as plt
     from io import BytesIO
 
+    debug(1, 'draw_cloud for %d words' % len(words))
+    if len(words) == 0:
+        debug(2, 'no words for wordcloud')
+        return None
     # wc = WordCloud(background_color="white", width=200, height=100)
     wc = WordCloud(background_color="white")
     debug(1, words)
