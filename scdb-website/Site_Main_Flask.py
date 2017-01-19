@@ -180,6 +180,8 @@ def draw_sequences_annotations(seqs, relpath=''):
         return msg, msg
     annotations = []
     for cseqannotation in seqannotations:
+        if len(cseqannotation) == 0:
+            continue
         for cannotation in cseqannotation[1]:
             annotations.append(cannotation)
 
