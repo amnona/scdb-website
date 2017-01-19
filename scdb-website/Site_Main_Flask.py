@@ -502,7 +502,7 @@ def getuserid(userid):
     return webPage
 
 
-def draw_annotation_details(annotations,relpath):
+def draw_annotation_details(annotations, relpath):
     '''
     create table entries for a list of annotations
 
@@ -513,38 +513,40 @@ def draw_annotation_details(annotations,relpath):
     wpart : str
         html code for the annotations table
     '''
-    termstr=''
+    # draw the wordcloud
+    termstr = ''
     for cannotation in annotations:
         for cdetail in cannotation['details']:
-            if cdetail[0]=='all' or cdetail[0]=='high':
-                termstr += cdetail[1].replace(' ','_') + ' '
+            if cdetail[0] == 'all' or cdetail[0] == 'high':
+                termstr += cdetail[1].replace(' ', '_') + ' '
     wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
+    # draw the annotations table
     wpart += render_template('annotations_table.html')
-
-
     for dataRow in annotations:
         wpart += "<tr>"
-        wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid','not found'))+">" + str(dataRow.get('expid','not found')) + "</a></td>"
-        wpart += "<td><a href=" + relpath + "user_info/"+str(dataRow.get('userid',-1))+">" + str(dataRow.get('username','not found')) + "</a></td>"
+        wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid', 'not found'))+">" + str(dataRow.get('expid', 'not found')) + "</a></td>"
+        wpart += "<td><a href=" + relpath + "user_info/"+str(dataRow.get('userid', -1))+">" + str(dataRow.get('username', 'not found')) + "</a></td>"
         cdesc = getannotationstrings(dataRow)
         # webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
-        wpart +='<td><a href=' + relpath + 'annotation_info/'+str(dataRow.get('annotationid',-1))+'>'+cdesc+'</td>'
-        wpart +='<td>'+dataRow['date']+'</td>'
-        rdata={}
-        rdata['annotationid']=dataRow['annotationid']
-        res=requests.get(scbd_server_address+'/annotations/get_sequences',json=rdata)
-        if res.status_code==200:
-            wpart +='<td><a href=' + relpath + 'annotation_seq_download/'+str(dataRow.get('annotationid',-1))+'>%d</td>' % len(res.json()['seqids'])
-        else:
-            wpart +='<td>'+'NA'+'</td>'
+        wpart += '<td><a href=' + relpath + 'annotation_info/' + str(dataRow.get('annotationid', -1)) + '>' + cdesc + '</td>'
+        wpart += '<td>' + dataRow['date'] + '</td>'
+        rdata = {}
+        rdata['annotationid'] = dataRow['annotationid']
+        # res = requests.get(scbd_server_address+'/annotations/get_sequences', json=rdata)
+        # if res.status_code == 200:
+        #     wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>%d</td>' % len(res.json().get(['seqids'], []))
+        # else:
+        #     wpart +='<td>'+'NA'+'</td>'
+        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL</td>'
         wpart += "</tr>"
     wpart += "</table>"
 
+    # draw the ontlogy terms list
     common_terms = get_common_terms(annotations)
     for cterm in common_terms:
-        wpart+='%s : %d <br>' % (cterm[0],cterm[1])
+        wpart += '%s : %d <br>' % (cterm[0], cterm[1])
     return wpart
 
 
