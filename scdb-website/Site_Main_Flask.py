@@ -388,6 +388,8 @@ def get_experiments_list(relpath='../'):
         for cdetail in cexp[1]:
             cname = cdetail[0]
             cval = cdetail[1]
+            if cname != 'name':
+                continue
             webPage += '<tr>'
             webPage += '<td><a href=' + relpath + "exp_info/" + str(cid) + ">" + str(cid) + "</a></td>"
             webPage += '<td>' + cname + '</td>'
