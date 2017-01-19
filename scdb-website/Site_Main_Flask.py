@@ -354,7 +354,7 @@ def get_ontology_info(term, relpath='../'):
 
 @Site_Main_Flask_Obj.route('/experiments_list')
 def experiments_list():
-    err, webpage = get_experiments_list()
+    err, webpage = get_experiments_list(relpath='')
     if err:
         return err, 400
     return webpage
@@ -392,7 +392,6 @@ def get_experiments_list(relpath='../'):
                 continue
             webPage += '<tr>'
             webPage += '<td><a href=' + relpath + "exp_info/" + str(cid) + ">" + str(cid) + "</a></td>"
-            webPage += '<td>' + cname + '</td>'
             webPage += '<td>' + cval + '</td>'
             webPage += "</tr>"
     webPage += "</table>"
