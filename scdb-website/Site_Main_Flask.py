@@ -352,6 +352,51 @@ def get_ontology_info(term, relpath='../'):
     return '',webPage
 
 
+@Site_Main_Flask_Obj.route('/experiments_list')
+def experiments_list():
+    err, webpage = get_experiments_list()
+    if err:
+        return err, 400
+    return webpage
+
+
+def get_experiments_list(relpath='../'):
+    '''Get the list of experiments in the database and the details about each one
+    Parameters
+    ----------
+
+    Returns
+    -------
+    webpage : str
+        the webpage for the experiment list
+    '''
+    # get the experiments list
+    debug(1, 'get_experiments_list')
+    res = requests.get(get_db_address() + '/experiments/get_experiments_list')
+    if res.status_code != 200:
+        msg = 'error getting experiments list: %s' % res.content
+        debug(6, msg)
+        return msg, msg
+    explist = res.json().get('explist', [])
+    if len(explist) == 0:
+        msg = 'no experiments found.'
+        debug(3, msg)
+        return msg, msg
+    webPage = render_template('experimentslist.html')
+    for cexp in explist:
+        cid = cexp[0]
+        for cdetail in cexp[1]:
+            cname = cdetail[0]
+            cval = cdetail[1]
+            webPage += '<tr>'
+            webPage += '<td><a href=' + relpath + "exp_info/" + str(cid) + ">" + str(cid) + "</a></td>"
+            webPage += '<td>' + cname + '</td>'
+            webPage += '<td>' + cval + '</td>'
+            webPage += "</tr>"
+    webPage += "</table>"
+    return '', webPage
+
+
 @Site_Main_Flask_Obj.route('/taxonomy_info/<string:taxonomy>')
 def taxonomy_info(taxonomy):
     '''
