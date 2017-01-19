@@ -42,14 +42,14 @@ def get_db_address():
 scbd_server_address = get_db_address()
 
 
-# @Site_Main_Flask_Obj.route('/', methods=['POST', 'GET'])
-# def landing_page():
-#     '''
-#     Redirect to the main search page
-#     '''
-#     return redirect('main')
-
 @Site_Main_Flask_Obj.route('/', methods=['POST', 'GET'])
+def landing_page():
+    '''
+    Redirect to the main search page
+    '''
+    return redirect(url_for('main'))
+
+
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
 def main_html():
     """
