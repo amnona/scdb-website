@@ -47,13 +47,14 @@ def landing_page():
     '''
     Redirect to the main search page
     '''
+    # TODO: fix to non hard-coded
     return redirect('scdb_website/main')
 
 
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
 def main_html():
     """
-    Title: Test Html
+    Title: the main dbBact page and search tool
     URL: site/main_html
     Method: GET
     """
@@ -79,29 +80,7 @@ def main_html():
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/reset_password',methods=['POST','GET'])
-def reset_password():
-    """
-    Title: Reset password via mail
-    URL: /reset password
-    Method: POST
-    """
-    webpage=render_template('reset_password.html')
-    return webpage
-
-
-@Site_Main_Flask_Obj.route('/about',methods=['POST','GET'])
-def about():
-    """
-    Title: About us
-    URL: /about
-    Method: POST
-    """
-    webpage=render_template('about.html')
-    return webpage
-
-
-@Site_Main_Flask_Obj.route('/search_results',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/search_results', methods=['POST', 'GET'])
 def search_results():
     """
     Title: Search results page
@@ -109,13 +88,20 @@ def search_results():
     Method: POST
     """
 
-    if request.method=='GET':
-        sequence=request.args['sequence']
+    if request.method == 'GET':
+        sequence = request.args['sequence']
     else:
         sequence = request.form['sequence']
 
+    # if we have a fasta file attached, process it
+    if 'fasta file' in request.files:
+        debug(1, 'Fasta file uploaded, processing it')
+        file = request.files['fasta file']
+        for cline in file:
+            debug(1, cline)
+
     # if it is short, try if it is an ontology term
-    if len(sequence)<80:
+    if len(sequence) < 80:
         err, webPage = get_ontology_info(sequence, relpath='')
         if not err:
             return webPage
@@ -162,6 +148,30 @@ def search_results():
     webPage += "</body>"
     webPage += "</html>"
     return webPage
+
+
+@Site_Main_Flask_Obj.route('/reset_password', methods=['POST','GET'])
+def reset_password():
+    """
+    Title: Reset password via mail
+    URL: /reset password
+    Method: POST
+    """
+    webpage=render_template('reset_password.html')
+    return webpage
+
+
+@Site_Main_Flask_Obj.route('/about',methods=['POST','GET'])
+def about():
+    """
+    Title: About us
+    URL: /about
+    Method: POST
+    """
+    webpage=render_template('about.html')
+    return webpage
+
+
 
 
 def getannotationstrings(cann):
