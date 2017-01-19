@@ -1,12 +1,11 @@
-from flask import Blueprint,request,render_template, make_response
+from flask import Blueprint, request, render_template, make_response, redirect, url_for
 import urllib.parse
 from collections import defaultdict
 import os
-import json
 import requests
-from utils import debug,getdoc
+from utils import debug
 
-Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__,template_folder='templates')
+Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
 
 
 def get_db_address():
@@ -21,20 +20,20 @@ def get_db_address():
         the supercooldb server web address based on the env. variable
     '''
     if 'SCDB_WEBSITE_TYPE' in os.environ:
-        servertype=os.environ['SCDB_WEBSITE_TYPE'].lower()
-        if servertype=='local':
+        servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
+        if servertype == 'local':
             print('servertype is local')
-            server_address='http://127.0.0.1:5000'
-        elif servertype=='main':
+            server_address = 'http://127.0.0.1:5000'
+        elif servertype == 'main':
             print('servertype is main')
-            server_address='http://amnonim.webfactional.com/scdb_main'
-        elif servertype=='develop':
+            server_address = 'http://amnonim.webfactional.com/scdb_main'
+        elif servertype == 'develop':
             print('servertype is develop')
-            server_address='http://amnonim.webfactional.com/scdb_develop'
+            server_address = 'http://amnonim.webfactional.com/scdb_develop'
         else:
             raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
     else:
-        server_address='http://amnonim.webfactional.com/scdb_main'
+        server_address = 'http://amnonim.webfactional.com/scdb_main'
         print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
 
     return server_address
@@ -43,26 +42,40 @@ def get_db_address():
 scbd_server_address = get_db_address()
 
 
-@Site_Main_Flask_Obj.route('/main',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/', methods=['POST', 'GET'])
+def landing_page():
+    '''
+    Redirect to the main search page
+    '''
+    return redirect(url_for('main/'))
+
+
+@Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
 def main_html():
     """
     Title: Test Html
     URL: site/main_html
     Method: GET
     """
-    httpRes=requests.get(scbd_server_address + '/stats/stats')
+    httpRes = requests.get(scbd_server_address + '/stats/stats')
     # NumOntologyTerms = 0
     NumAnnotation = 0
     NumSequences = 0
     NumSequenceAnnotation = 0
-    if httpRes.status_code==200:
+    NumExperiments = 0
+    if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         # NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
         NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
         NumSequences = jsonRes.get("stats").get('NumSequences')
         NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
+        NumExperiments = jsonRes.get("stats").get('NumExperiments')
 
-    webPage = render_template('searchpage.html',numAnnot=(str(NumAnnotation).replace('.0','')),numSeq=(str(NumSequences).replace('.0','')),numSeqAnnot=(str(NumSequenceAnnotation).replace('.0','')))
+    webPage = render_template('searchpage.html',
+                              numAnnot=(str(NumAnnotation).replace('.0', '')),
+                              numSeq=(str(NumSequences).replace('.0', '')),
+                              numExp=(str(NumExperiments).replace('.0', '')),
+                              numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
 

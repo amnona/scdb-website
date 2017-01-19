@@ -33,7 +33,7 @@
             }
             #searchform {
             width: 100%;
-            height: 100px;
+            height: 200px;
             margin: 0;
             clear: both;
             overflow:auto;
@@ -61,11 +61,13 @@
             <div id="statistics">
                 {{numSeqAnnot}}<br>
                 {{numAnnot}}<br>
-                {{numSeq}}
+                {{numSeq}}<br>
+                {{numExp}}
             </div>
             <div id="statisticstitle">
                 Total annotated sequences:<br>
                 Total annotations:<br>
+                Total experiments:<br>
                 Total sequences:
             </div>
             <img src='static/dbBact.png'>
@@ -79,12 +81,12 @@
                     <center><input id='searchBut' type='submit' align='center'></center>
                 </form>
 
-<!--                  <form action = "uploader" method = "POST" 
+                 <form action = "uploader" method = "POST" 
                  enctype = "multipart/form-data">
                 <input type = "file" name = "file" />
                 <input type = "submit"/>
                 </form>
- -->
+
             </div>
             <div id="botMenu">
             <center><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'>Or click here for example</a>
