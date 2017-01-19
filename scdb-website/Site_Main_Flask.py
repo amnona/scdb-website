@@ -14,28 +14,30 @@ def get_db_address():
     Get the database address based on the environment variable SCDB_WEBSITE_TYPE
     (use export SCDB_WEBSITE_TYPE="local" / "main"(default) / "develop")
 
-    input:
+    Parameters
+    ----------
 
-    output:
+    Returns
+    -------
     server_address : str
         the supercooldb server web address based on the env. variable
     '''
     if 'SCDB_WEBSITE_TYPE' in os.environ:
         servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
         if servertype == 'local':
-            print('servertype is local')
+            debug(1, 'servertype is local')
             server_address = 'http://127.0.0.1:5000'
         elif servertype == 'main':
-            print('servertype is main')
+            debug(1, 'servertype is main')
             server_address = 'http://amnonim.webfactional.com/scdb_main'
         elif servertype == 'develop':
-            print('servertype is develop')
+            debug(1, 'servertype is develop')
             server_address = 'http://amnonim.webfactional.com/scdb_develop'
         else:
             raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
     else:
         server_address = 'http://amnonim.webfactional.com/scdb_main'
-        print('using default server main (use env. variable SCDB_WEBSITE_TYPE to set')
+        debug(1, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
 
     return server_address
 
@@ -95,15 +97,16 @@ def search_results():
         sequence = request.form['sequence']
 
     # if we have a fasta file attached, process it
-    if 'fasta file' in request.files:
-        debug(1, 'Fasta file uploaded, processing it')
-        file = request.files['fasta file']
-        textfile = TextIOWrapper(file)
-        seqs = get_fasta_seqs(textfile)
-        if seqs is None:
-            return('Error: Uploaded file not recognized as fasta', 400)
-        err, webpage = draw_sequences_annotations(seqs)
-        return webpage
+    if sequence == '':
+        if 'fasta file' in request.files:
+            debug(1, 'Fasta file uploaded, processing it')
+            file = request.files['fasta file']
+            textfile = TextIOWrapper(file)
+            seqs = get_fasta_seqs(textfile)
+            if seqs is None:
+                return('Error: Uploaded file not recognized as fasta', 400)
+            err, webpage = draw_sequences_annotations(seqs)
+            return webpage
 
     # if it is short, try if it is an ontology term
     if len(sequence) < 80:
