@@ -65,8 +65,6 @@
             </div>
             <div id="searchtitle">
                 <center><img src='static/dbBact.png'></center>
-                <center><h2>Sequence/Ontology term/Taxonomy Search</h2></center>
-                <center>Enter amplicon sequence or ontology term or partial taxonomy to search for</center>
             </div>
             <div id="statistics">
                 {{numSeqAnnot}}<br>
@@ -81,6 +79,8 @@
                 Total experiments:
             </div>
             <div id="searchform">
+                <center><h2>Sequence/Ontology term/Taxonomy Search</h2></center>
+                <center>Enter amplicon sequence or ontology term or partial taxonomy to search for</center>
                 <form action='search_results' method='post' enctype = "multipart/form-data">
                     <input value='' style='width: 100%; font-size:20px; height: 30px; margin-bottom: 20px;' type='text' name='sequence'><br>
                     <h3><br><center>Or upload fasta file:</center></h3>
