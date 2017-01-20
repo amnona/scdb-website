@@ -51,7 +51,7 @@ def landing_page():
     Redirect to the main search page
     '''
     # TODO: fix to non hard-coded
-    return redirect('scdb_website/main')
+    return redirect('.main_html')
 
 
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
