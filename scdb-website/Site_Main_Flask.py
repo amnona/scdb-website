@@ -218,7 +218,7 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
         return msg, msg
 
     dict_annotations = res.json()['annotations']
-    debug(list(dict_annotations.keys()))
+    debug(1, list(dict_annotations.keys()))
     seqannotations = res.json()['seqannotations']
     if len(seqannotations) == 0:
         msg = 'no sequences found'
