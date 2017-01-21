@@ -218,7 +218,6 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
         return msg, msg
 
     dict_annotations = res.json()['annotations']
-    debug(1, list(dict_annotations.keys()))
     seqannotations = res.json()['seqannotations']
     if len(seqannotations) == 0:
         msg = 'no sequences found'
@@ -238,7 +237,8 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
     annotations = []
     sorted_annotations = sorted(annotation_counts.items(), key=operator.itemgetter(1), reverse=True)
     for csan in sorted_annotations:
-        annotations.append(dict_annotations[csan[0]])
+        # note we need str as json dict keys are stored as strings :(
+        annotations.append(dict_annotations[str(csan[0])])
 
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
