@@ -388,17 +388,15 @@ def get_ontology_info(term, relpath='../'):
     term : str
         the ontology term to look for
     """
-    rdata={}
-    rdata['term']=term
     # get the experiment annotations
-    res=requests.get(get_db_address() +'/ontology/get_annotations',params=rdata)
+    res = requests.get(get_db_address() + '/ontology/get_annotations', params={'term': term})
     if res.status_code != 200:
         msg = 'error getting annotations for ontology term %s: %s' % (term, res.content)
         debug(6, msg)
-        return msg,msg
+        return msg, msg
     annotations = res.json()['annotations']
-    if len(annotations)==0:
-        return 'term not found','term not found'
+    if len(annotations) == 0:
+        return 'term not found', 'term not found'
     webPage = render_template('ontologyterminfo.html',term=term)
     webPage += '<h2>Annotations for ontology term:</h2>'
     webPage += draw_annotation_details(annotations, relpath)
@@ -490,21 +488,29 @@ def get_taxonomy_info(taxonomy, relpath='../'):
         the html of the resulting table
     '''
     # get the taxonomy annotations
-    res=requests.get(get_db_address() +'/sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
+    res = requests.get(get_db_address() + '/sequences/get_taxonomy_annotations', json={'taxonomy': taxonomy})
     if res.status_code != 200:
         msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
         debug(6, msg)
-        return msg,msg
-    annotations = res.json()['annotations']
-    if len(annotations)==0:
-        return 'taxonomy not found', 'taxonomy not found'
-    webPage = render_template('ontologyterminfo.html',term=taxonomy)
+        return msg, msg
+    annotations_counts = res.json()['annotations']
+    if len(annotations_counts) == 0:
+        msg = 'no annotations found for taxonomy %s' % taxonomy
+        debug(1, msg)
+        return msg, msg
+
+    # convert to list of annotations with counts as a key/value
+    annotations = []
+    for cann in annotations_counts:
+        cannotation = cann[0]
+        cannotation['website_sequences'] = [-1] * cann[1]
+        annotations.append(cannotation)
+
+    webPage = render_template('ontologyterminfo.html', term=taxonomy)
     webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
-    debug(1,res)
-    debug(1,res.json())
     webPage += draw_annotation_details(annotations, relpath)
 
-    return '',webPage
+    return '', webPage
 
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
