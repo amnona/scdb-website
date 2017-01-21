@@ -106,7 +106,7 @@ def search_results():
             seqs = get_fasta_seqs(textfile)
             if seqs is None:
                 return('Error: Uploaded file not recognized as fasta', 400)
-            err, webpage = draw_sequences_annotations(seqs)
+            err, webpage = draw_sequences_annotations_compact(seqs)
             return webpage
 
     # if it is short, try if it is an ontology term
