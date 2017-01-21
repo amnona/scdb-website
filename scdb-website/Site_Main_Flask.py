@@ -4,6 +4,7 @@ from collections import defaultdict
 from io import TextIOWrapper
 import os
 import requests
+import operator
 from utils import debug
 
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
@@ -105,7 +106,7 @@ def search_results():
             seqs = get_fasta_seqs(textfile)
             if seqs is None:
                 return('Error: Uploaded file not recognized as fasta', 400)
-            err, webpage = draw_sequences_annotations(seqs)
+            err, webpage = draw_sequences_annotations_compact(seqs)
             return webpage
 
     # if it is short, try if it is an ontology term
@@ -187,6 +188,59 @@ def draw_sequences_annotations(seqs, relpath=''):
             continue
         for cannotation in cseqannotation:
             annotations.append(cannotation)
+
+    webPage = render_template('ontologyterminfo.html', term='lala')
+    webPage += '<h2>Annotations for sequence list:</h2>'
+    webPage += draw_annotation_details(annotations, relpath)
+    return '', webPage
+
+
+def draw_sequences_annotations_compact(seqs, relpath=''):
+    '''Draw the webpage for annotations for a set of sequences
+
+    Parameters
+    ----------
+    seqs : list of str sequences (ACGT)
+    relpath : str (optional)
+        the relative link path for the links
+
+    Returns
+    -------
+    err : str
+        the error encountered or '' if ok
+    webpage : str
+        the webpage for the annotations of these sequences
+    '''
+    res = requests.get(get_db_address() + '/sequences/get_fast_annotations', json={'sequences': seqs})
+    if res.status_code != 200:
+        msg = 'error getting annotations for sequences : %s' % res.content
+        debug(6, msg)
+        return msg, msg
+
+    dict_annotations = res.json()['annotations']
+    seqannotations = res.json()['seqannotations']
+    if len(seqannotations) == 0:
+        msg = 'no sequences found'
+        return msg, msg
+
+    # convert to dict of key=annotationid, value=list of sequences with this annotation
+    annotation_seqs = defaultdict(list)
+    annotation_counts = defaultdict(int)
+    for cseqannotation in seqannotations:
+        cseqid = cseqannotation[0]
+        annotationids = cseqannotation[1]
+        for cid in annotationids:
+            annotation_seqs[cid].append(cseqid)
+            annotation_counts[cid] += 1
+
+    # get the sorted annotations list
+    annotations = []
+    sorted_annotations = sorted(annotation_counts.items(), key=operator.itemgetter(1), reverse=True)
+    for csan in sorted_annotations:
+        # note we need str as json dict keys are stored as strings :(
+        cannotation = dict_annotations[str(csan[0])]
+        cannotation['website_sequences'] = annotation_seqs[csan[0]]
+        annotations.append(cannotation)
 
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
@@ -334,17 +388,15 @@ def get_ontology_info(term, relpath='../'):
     term : str
         the ontology term to look for
     """
-    rdata={}
-    rdata['term']=term
     # get the experiment annotations
-    res=requests.get(get_db_address() +'/ontology/get_annotations',params=rdata)
+    res = requests.get(get_db_address() + '/ontology/get_annotations', params={'term': term})
     if res.status_code != 200:
         msg = 'error getting annotations for ontology term %s: %s' % (term, res.content)
         debug(6, msg)
-        return msg,msg
+        return msg, msg
     annotations = res.json()['annotations']
-    if len(annotations)==0:
-        return 'term not found','term not found'
+    if len(annotations) == 0:
+        return 'term not found', 'term not found'
     webPage = render_template('ontologyterminfo.html',term=term)
     webPage += '<h2>Annotations for ontology term:</h2>'
     webPage += draw_annotation_details(annotations, relpath)
@@ -436,21 +488,29 @@ def get_taxonomy_info(taxonomy, relpath='../'):
         the html of the resulting table
     '''
     # get the taxonomy annotations
-    res=requests.get(get_db_address() +'/sequences/get_taxonomy_annotations',json={'taxonomy':taxonomy})
+    res = requests.get(get_db_address() + '/sequences/get_taxonomy_annotations', json={'taxonomy': taxonomy})
     if res.status_code != 200:
         msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
         debug(6, msg)
-        return msg,msg
-    annotations = res.json()['annotations']
-    if len(annotations)==0:
-        return 'taxonomy not found', 'taxonomy not found'
-    webPage = render_template('ontologyterminfo.html',term=taxonomy)
+        return msg, msg
+    annotations_counts = res.json()['annotations']
+    if len(annotations_counts) == 0:
+        msg = 'no annotations found for taxonomy %s' % taxonomy
+        debug(1, msg)
+        return msg, msg
+
+    # convert to list of annotations with counts as a key/value
+    annotations = []
+    for cann in annotations_counts:
+        cannotation = cann[0]
+        cannotation['website_sequences'] = [-1] * cann[1]
+        annotations.append(cannotation)
+
+    webPage = render_template('ontologyterminfo.html', term=taxonomy)
     webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
-    debug(1,res)
-    debug(1,res.json())
     webPage += draw_annotation_details(annotations, relpath)
 
-    return '',webPage
+    return '', webPage
 
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
@@ -567,7 +627,10 @@ def draw_annotation_details(annotations, relpath):
     for cannotation in annotations:
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
-                termstr += cdetail[1].replace(' ', '_') + ' '
+                cterm = cdetail[1].replace(' ', '_') + ' '
+                if 'website_sequences' in cannotation:
+                    cterm = cterm * len(cannotation['website_sequences'])
+                termstr += cterm
     wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
@@ -588,7 +651,10 @@ def draw_annotation_details(annotations, relpath):
         #     wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>%d</td>' % len(res.json().get(['seqids'], []))
         # else:
         #     wpart +='<td>'+'NA'+'</td>'
-        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL</td>'
+        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL'
+        if 'website_sequences' in dataRow:
+            wpart += '(match %d seqs)' % len(dataRow['website_sequences'])
+        wpart += '</td>'
         wpart += "</tr>"
     wpart += "</table>"
 
@@ -632,14 +698,18 @@ def get_common_terms(annotations):
     --------
     common_terms: sorted list of (term, count)
     '''
-    terms=defaultdict(int)
+    terms = defaultdict(int)
     for cannotation in annotations:
         for cdetail in cannotation['details']:
-            if cdetail[0]=='all' or cdetail[0]=='high':
-                terms[cdetail[1]]+=1
+            if cdetail[0] == 'all' or cdetail[0] == 'high':
+                if 'website_sequences' in cannotation:
+                    numseqs = len(cannotation['website_sequences'])
+                else:
+                    numseqs = 1
+                terms[cdetail[1]] += numseqs
     common_terms = []
-    for k,v in terms.items():
-        common_terms.append([k,v])
+    for k, v in terms.items():
+        common_terms.append([k, v])
     common_terms = sorted(common_terms, reverse=True, key=lambda x: x[1])
     return common_terms
 
