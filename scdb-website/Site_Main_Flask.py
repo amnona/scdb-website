@@ -698,14 +698,18 @@ def get_common_terms(annotations):
     --------
     common_terms: sorted list of (term, count)
     '''
-    terms=defaultdict(int)
+    terms = defaultdict(int)
     for cannotation in annotations:
         for cdetail in cannotation['details']:
-            if cdetail[0]=='all' or cdetail[0]=='high':
-                terms[cdetail[1]]+=1
+            if cdetail[0] == 'all' or cdetail[0] == 'high':
+                if 'website_sequences' in cannotation:
+                    numseqs = cannotation['website_sequences']
+                else:
+                    numseqs = 1
+                terms[cdetail[1]] += numseqs
     common_terms = []
-    for k,v in terms.items():
-        common_terms.append([k,v])
+    for k, v in terms.items():
+        common_terms.append([k, v])
     common_terms = sorted(common_terms, reverse=True, key=lambda x: x[1])
     return common_terms
 
