@@ -239,7 +239,7 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
     for csan in sorted_annotations:
         # note we need str as json dict keys are stored as strings :(
         cannotation = dict_annotations[str(csan[0])]
-        cannotation['website_sequences'] = annotation_seqs[cid]
+        cannotation['website_sequences'] = annotation_seqs[csan[0]]
         annotations.append(cannotation)
 
     webPage = render_template('ontologyterminfo.html', term='lala')
@@ -621,7 +621,10 @@ def draw_annotation_details(annotations, relpath):
     for cannotation in annotations:
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
-                termstr += cdetail[1].replace(' ', '_') + ' '
+                cterm = cdetail[1].replace(' ', '_') + ' '
+                if 'website_sequences' in cannotation:
+                    cterm = cterm * len(cannotation['website_sequences'])
+                termstr += cterm
     wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
