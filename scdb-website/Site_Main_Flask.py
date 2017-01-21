@@ -703,7 +703,7 @@ def get_common_terms(annotations):
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
                 if 'website_sequences' in cannotation:
-                    numseqs = cannotation['website_sequences']
+                    numseqs = len(cannotation['website_sequences'])
                 else:
                     numseqs = 1
                 terms[cdetail[1]] += numseqs
