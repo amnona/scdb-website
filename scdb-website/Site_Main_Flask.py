@@ -238,7 +238,9 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
     sorted_annotations = sorted(annotation_counts.items(), key=operator.itemgetter(1), reverse=True)
     for csan in sorted_annotations:
         # note we need str as json dict keys are stored as strings :(
-        annotations.append(dict_annotations[str(csan[0])])
+        cannotation = dict_annotations[str(csan[0])]
+        cannotation['website_sequences'] = annotation_seqs[cid]
+        annotations.append(cannotation)
 
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
@@ -640,7 +642,10 @@ def draw_annotation_details(annotations, relpath):
         #     wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>%d</td>' % len(res.json().get(['seqids'], []))
         # else:
         #     wpart +='<td>'+'NA'+'</td>'
-        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL</td>'
+        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL'
+        if 'website_sequences' in dataRow:
+            wpart += '(match %d seqs)' % len(dataRow['website_sequences'])
+        wpart += '</td>'
         wpart += "</tr>"
     wpart += "</table>"
 
