@@ -4,6 +4,7 @@ from collections import defaultdict
 from io import TextIOWrapper
 import os
 import requests
+import operator
 from utils import debug
 
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
@@ -187,6 +188,56 @@ def draw_sequences_annotations(seqs, relpath=''):
             continue
         for cannotation in cseqannotation:
             annotations.append(cannotation)
+
+    webPage = render_template('ontologyterminfo.html', term='lala')
+    webPage += '<h2>Annotations for sequence list:</h2>'
+    webPage += draw_annotation_details(annotations, relpath)
+    return '', webPage
+
+
+def draw_sequences_annotations_compact(seqs, relpath=''):
+    '''Draw the webpage for annotations for a set of sequences
+
+    Parameters
+    ----------
+    seqs : list of str sequences (ACGT)
+    relpath : str (optional)
+        the relative link path for the links
+
+    Returns
+    -------
+    err : str
+        the error encountered or '' if ok
+    webpage : str
+        the webpage for the annotations of these sequences
+    '''
+    res = requests.get(get_db_address() + '/sequences/get_fast_annotations', json={'sequences': seqs})
+    if res.status_code != 200:
+        msg = 'error getting annotations for sequences : %s' % res.content
+        debug(6, msg)
+        return msg, msg
+
+    dict_annotations = res.json()['annotations']
+    seqannotations = res.json()['seqannotations']
+    if len(seqannotations) == 0:
+        msg = 'no sequences found'
+        return msg, msg
+
+    # convert to dict of key=annotationid, value=list of sequences with this annotation
+    annotation_seqs = defaultdict(list)
+    annotation_counts = defaultdict(int)
+    for cseqannotation in seqannotations:
+        cseqid = cseqannotation[0]
+        annotationids = cseqannotation[1]
+        for cid in annotationids:
+            annotation_seqs[cid].append(cseqid)
+            annotation_counts[cid] += 1
+
+    # get the sorted annotations list
+    annotations = []
+    sorted_annotations = sorted(annotation_counts.items(), key=operator.itemgetter(1), reverse=True)
+    for csan in sorted_annotations:
+        annotations.append(dict_annotations[csan[0]])
 
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
