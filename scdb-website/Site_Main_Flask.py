@@ -576,7 +576,7 @@ def get_annotation_seqs_info(annotationid):
         msg = 'error encountered when getting annotation sequence info for annotationid %d: %s' % (annotationid, res.content)
         debug(6, msg)
         return msg, 600
-    sequences = res.json()
+    sequences = res.json()['sequences']
     err, pagepart = draw_sequences_info(sequences)
     if err:
         msg = 'error encountered when getting annotation sequences for annotationid %d: %s' % (annotationid, err)
