@@ -572,6 +572,10 @@ def get_annotation_seqs_info(annotationid):
 
     # get the sequence information for the annotation
     res = requests.get(scbd_server_address + '/annotations/get_annotation_full_sequences', json={'annotationid': annotationid})
+    if res.status_code != 200:
+        msg = 'error encountered when getting annotation sequence info for annotationid %d: %s' % (annotationid, res.content)
+        debug(6, msg)
+        return msg, 600
     sequences = res.json()
     err, pagepart = draw_sequences_info(sequences)
     if err:
