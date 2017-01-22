@@ -549,6 +549,48 @@ def getexperimentinfo(expid):
     return webPage
 
 
+@Site_Main_Flask_Obj.route('/annotation_seqs/<int:annotationid>')
+def get_annotation_seqs_info(annotationid):
+    '''
+    get the information about all sequences in a given annotation
+    input:
+    annotationid : int
+        The annotation for which to show the sequence info
+    '''
+
+    # get the annotation details
+    res = requests.get(scbd_server_address + '/annotations/get_annotation', json={'annotationid': annotationid})
+    annotation = res.json()
+    shortdesc = getannotationstrings(annotation)
+    webPage = render_template('annotationsequences.html')
+    webPage += '<h1>Annotation %d Sequence list</h1>' % annotationid
+    webPage += shortdesc
+
+    # get the sequence information for the annotation
+    res = requests.get(scbd_server_address + '/annotations/get_annotation_full_sequences', json={'annotationid': annotationid})
+    sequences = res.json()
+    err, pagepart = draw_sequences_info(sequences)
+    if err:
+        msg = 'error encountered when getting annotation sequences for annotationid %d: %s' % (annotationid, err)
+        debug(6, msg)
+        return msg, 400
+    webPage += pagepart
+    return webPage
+
+
+def draw_sequences_info(sequences):
+    webPage = render_template('sequenceslist.html')
+    # sort the sequences based on taxonomy
+    sequences = sorted(sequences, key=lambda x: x.get('taxonomy', ''))
+    for cseqinfo in sequences:
+            webPage += "<tr>"
+            webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
+            webPage += '<td>' + cseqinfo['seq'] + '</td>'
+            webPage += '<td>' + 'na' + '</td><tr>'
+    webPage += '</table>'
+    return webPage
+
+
 @Site_Main_Flask_Obj.route('/forgot_password_submit',methods=['POST','GET'])
 def forgot_password_submit():
     """
@@ -669,18 +711,16 @@ def draw_annotation_details(annotations, relpath):
 def download_sequences(annotationid):
     '''return a download of the sequences of the annotation as fasta
     '''
-    rdata={}
-    rdata['annotationid']=annotationid
     # get the experiment annotations
-    res=requests.get(get_db_address() +'/annotations/get_full_sequences',json=rdata)
-    annotation=res.json()
+    res = requests.get(get_db_address() + '/annotations/get_full_sequences', json={'annotationid': annotationid})
+    annotation = res.json()
     seqs = annotation.get('sequences')
     if seqs is None:
-        debug(6,'No sequences found')
-        return('No sequences found',400)
-    output=''
-    for idx,cseq in enumerate(seqs):
-        output += '>%d\n%s\n' % (idx,cseq)
+        debug(6, 'No sequences found')
+        return('No sequences found', 400)
+    output = ''
+    for idx, cseq in enumerate(seqs):
+        output += '>%d %s\n%s\n' % (idx, cseq.get('taxonomy', ''), cseq['seq'])
     response = make_response(output)
     response.headers["Content-Disposition"] = "attachment; filename=annotation-%d-sequences.fa" % annotationid
     return response
