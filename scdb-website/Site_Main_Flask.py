@@ -560,6 +560,10 @@ def get_annotation_seqs_info(annotationid):
 
     # get the annotation details
     res = requests.get(scbd_server_address + '/annotations/get_annotation', json={'annotationid': annotationid})
+    if res.status_code != 200:
+        msg = 'error encountered when getting annotation info for annotationid %d: %s' % (annotationid, res.content)
+        debug(6, msg)
+        return msg, 600
     annotation = res.json()
     shortdesc = getannotationstrings(annotation)
     webPage = render_template('annotationsequences.html')
