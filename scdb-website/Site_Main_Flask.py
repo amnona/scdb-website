@@ -697,7 +697,8 @@ def draw_annotation_details(annotations, relpath):
         #     wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>%d</td>' % len(res.json().get(['seqids'], []))
         # else:
         #     wpart +='<td>'+'NA'+'</td>'
-        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL'
+        # wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL'
+        wpart += '<td><a href=' + relpath + 'annotationseqs/' + str(dataRow.get('annotationid', -1)) + '>Seqs'
         if 'website_sequences' in dataRow:
             wpart += '(match %d seqs)' % len(dataRow['website_sequences'])
         wpart += '</td>'
