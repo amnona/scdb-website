@@ -789,7 +789,7 @@ def draw_cloud(words):
         debug(2, 'no words for wordcloud')
         return ''
     # wc = WordCloud(background_color="white", width=200, height=100)
-    wc = WordCloud(background_color="white")
+    wc = WordCloud(background_color="white", relative_scaling=1)
     debug(1, words)
     wordcloud = wc.generate(words)
     fig = plt.figure()
