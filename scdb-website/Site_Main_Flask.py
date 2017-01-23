@@ -133,7 +133,7 @@ def get_sequence_annotations(sequence, relpath='../'):
 
     if httpRes.status_code != requests.codes.ok:
         debug(6, "Error code:" + str(httpRes.status_code))
-        webPage += "Failed to get annotations for the given sequence"
+        webPage += "Failed to get annotations for sequence:\n%s" % sequence
     else:
         webPage += draw_annotation_details(httpRes.json().get('annotations'), relpath)
     webPage += "</body>"
@@ -715,7 +715,7 @@ def draw_annotation_details(annotations, relpath):
     # draw the ontlogy terms list
     common_terms = get_common_terms(annotations)
     for cterm in common_terms:
-        wpart += '%s : %d <br>' % (cterm[0], cterm[1])
+        wpart += '<a href=' + relpath + 'ontology_info/%s' % cterm[0] + '>%s <\a>: %d <br>' % (cterm[0], cterm[1])
     return wpart
 
 
