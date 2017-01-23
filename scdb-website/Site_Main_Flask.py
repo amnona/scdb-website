@@ -123,7 +123,7 @@ def search_results():
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
+# @Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
 def get_sequence_annotations(sequence):
     # long, so probably a sequence
     rdata = {}
