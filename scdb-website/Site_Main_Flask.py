@@ -593,10 +593,11 @@ def draw_sequences_info(sequences, relpath=''):
     # sort the sequences based on taxonomy
     sequences = sorted(sequences, key=lambda x: x.get('taxonomy', ''))
     for cseqinfo in sequences:
-            webPage += "<tr>"
-            webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
-            webPage += '<td><a href=' + relpath + 'sequence_annotations/' + cseqinfo['seq'] + '>' + cseqinfo['seq'] + '</a></td>'
-            webPage += '<td>' + 'na' + '</td><tr>'
+        cseqinfo = cseqinfo.upper()
+        webPage += "<tr>"
+        webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
+        webPage += '<td><a href=' + relpath + 'sequence_annotations/' + cseqinfo['seq'] + '>' + cseqinfo['seq'] + '</a></td>'
+        webPage += '<td>' + 'na' + '</td><tr>'
     webPage += '</table>'
     return webPage
 
