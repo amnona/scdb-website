@@ -124,9 +124,10 @@ def search_results():
 
 
 @Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
-def get_sequence_annotations(sequence, relpath=''):
+def get_sequence_annotations(sequence):
     # long, so probably a sequence
     rdata = {}
+    relpath = ''
     rdata['sequence'] = sequence
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
     webPage = render_template('seqinfo.html', sequence=sequence.upper())
