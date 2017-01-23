@@ -583,7 +583,7 @@ def get_annotation_seqs_info(annotationid):
         debug(6, msg)
         return msg, 600
     sequences = res.json()['sequences']
-    pagepart = draw_sequences_info(sequences)
+    pagepart = draw_sequences_info(sequences, relpath='../')
     webPage += pagepart
     return webPage
 
