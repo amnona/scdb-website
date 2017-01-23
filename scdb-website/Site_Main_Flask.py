@@ -124,7 +124,7 @@ def search_results():
 
 
 @Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
-def get_sequence_annotations(sequence, relpath=''):
+def get_sequence_annotations(sequence, relpath='../'):
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
@@ -135,7 +135,7 @@ def get_sequence_annotations(sequence, relpath=''):
         debug(6, "Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for the given sequence"
     else:
-        webPage += draw_annotation_details(httpRes.json().get('annotations'), '')
+        webPage += draw_annotation_details(httpRes.json().get('annotations'), relpath)
     webPage += "</body>"
     webPage += "</html>"
     return webPage
