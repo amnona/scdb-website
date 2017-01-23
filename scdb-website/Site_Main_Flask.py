@@ -595,7 +595,7 @@ def draw_sequences_info(sequences, relpath=''):
     for cseqinfo in sequences:
             webPage += "<tr>"
             webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
-            webPage += '<td><a href=' + relpath + '' + '>' + cseqinfo['seq'] + '</a></td>'
+            webPage += '<td><a href=' + relpath + 'sequence_annotations/' + cseqinfo['seq'] + '>' + cseqinfo['seq'] + '</a></td>'
             webPage += '<td>' + 'na' + '</td><tr>'
     webPage += '</table>'
     return webPage
