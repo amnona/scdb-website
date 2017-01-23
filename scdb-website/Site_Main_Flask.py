@@ -119,6 +119,12 @@ def search_results():
             return webPage
         return('term %s not found in ontology or taxonomy' % sequence, 400)
 
+    webPage = get_sequence_annotations(sequence, relpath='')
+    return webPage
+
+
+@Site_Main_Flask_Obj.route('/sequence_annotations/<str:sequence>')
+def get_sequence_annotations(sequence, relpath=''):
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
@@ -582,14 +588,14 @@ def get_annotation_seqs_info(annotationid):
     return webPage
 
 
-def draw_sequences_info(sequences):
+def draw_sequences_info(sequences, relpath=''):
     webPage = render_template('sequenceslist.html')
     # sort the sequences based on taxonomy
     sequences = sorted(sequences, key=lambda x: x.get('taxonomy', ''))
     for cseqinfo in sequences:
             webPage += "<tr>"
             webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
-            webPage += '<td>' + cseqinfo['seq'] + '</td>'
+            webPage += '<td><a href=' + relpath + '' + '>' + cseqinfo['seq'] + '</a></td>'
             webPage += '<td>' + 'na' + '</td><tr>'
     webPage += '</table>'
     return webPage
