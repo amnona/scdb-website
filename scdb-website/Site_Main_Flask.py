@@ -715,7 +715,7 @@ def draw_annotation_details(annotations, relpath):
     # draw the ontlogy terms list
     common_terms = get_common_terms(annotations)
     for cterm in common_terms:
-        wpart += '<a href=' + relpath + 'ontology_info/%s' % cterm[0] + '>%s <\a>: %d <br>' % (cterm[0], cterm[1])
+        wpart += '<a href=' + urllib.parse.quote(relpath + 'ontology_info/' + cterm[0]) + '>%s</a>: %d <br>' % (cterm[0], cterm[1])
     return wpart
 
 
