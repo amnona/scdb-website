@@ -98,7 +98,7 @@ def search_results():
         sequence = request.form['sequence']
 
     # if we have a fasta file attached, process it
-    if sequence == '':
+    if sequence == '': 
         if 'fasta file' in request.files:
             debug(1, 'Fasta file uploaded, processing it')
             file = request.files['fasta file']
@@ -533,12 +533,10 @@ def getexperimentinfo(expid):
         type,value,descstring about dataid
         empty if dataid not found
     """
-    rdata={}
-    rdata['expId']=expid
 
     # get the experiment details
-    res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-    webPage = render_template('expinfo.html',expid=expid)
+    res = requests.get(scbd_server_address + '/experiments/get_details', json={'expId': expid})
+    webPage = render_template('expinfo.html', expid=expid)
     if res.status_code==200:
         for cres in res.json()['details']:
             webPage += "<tr>"

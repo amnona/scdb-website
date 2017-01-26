@@ -14,6 +14,6 @@ app.register_blueprint(Site_Main_Flask_Obj)
 # the following function will be called for every request autentication is required
 
 if __name__ == '__main__':
-	SetDebugLevel(0)
-	debug(2,'starting server')
-	app.run(debug=True)
+    SetDebugLevel(0)
+    debug(2, 'starting server')
+    app.run(debug=True)
