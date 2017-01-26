@@ -537,18 +537,18 @@ def getexperimentinfo(expid):
     # get the experiment details
     res = requests.get(scbd_server_address + '/experiments/get_details', json={'expId': expid})
     webPage = render_template('expinfo.html', expid=expid)
-    if res.status_code==200:
+    if res.status_code == 200:
         for cres in res.json()['details']:
             webPage += "<tr>"
             webPage += '<td>'+cres[0]+'</td>'
             webPage += '<td>'+cres[1]+'</td><tr>'
     else:
-        webPage+='Error getting experiment details'
+        webPage += 'Error getting experiment details'
     webPage += '</table>'
     # get the experiment annotations
-    res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
+    res = requests.get(scbd_server_address+'/experiments/get_annotations', json={'expId': expid})
     webPage += '<h2>Annotations for experiment:</h2>'
-    webPage += draw_annotation_details(res.json()['annotations'],'../')
+    webPage += draw_annotation_details(res.json()['annotations'], '../')
 
     return webPage
 
