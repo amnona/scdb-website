@@ -253,7 +253,7 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
     webPage += draw_annotation_details(annotations, relpath)
-    for cterm, cinfo in term_info:
+    for cterm, cinfo in term_info.items():
         webPage += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
     return '', webPage
 
