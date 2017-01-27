@@ -788,8 +788,8 @@ def draw_cloud(words):
 
     Parameters
     ----------
-    words : list of str or dict
-        If list of str, the terms (each replicated according to it's frequency).
+    words : str or dict
+        If str, the terms (each replicated according to it's frequency).
         If dict, key is term and value is the frequency.
 
     Returns
@@ -806,7 +806,7 @@ def draw_cloud(words):
         return ''
     # wc = WordCloud(background_color="white", width=200, height=100)
     wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set())
-    if isinstance(words, list):
+    if isinstance(words, str):
         debug(1, 'generating from words list')
         wordcloud = wc.generate(words)
     elif isinstance(words, dict):
