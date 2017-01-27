@@ -98,7 +98,7 @@ def search_results():
         sequence = request.form['sequence']
 
     # if we have a fasta file attached, process it
-    if sequence == '': 
+    if sequence == '':
         if 'fasta file' in request.files:
             debug(1, 'Fasta file uploaded, processing it')
             file = request.files['fasta file']
@@ -223,11 +223,13 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
         debug(6, msg)
         return msg, msg
 
-    dict_annotations = res.json()['annotations']
-    seqannotations = res.json()['seqannotations']
+    res = res.json()
+    dict_annotations = res['annotations']
+    seqannotations = res['seqannotations']
     if len(seqannotations) == 0:
         msg = 'no sequences found'
         return msg, msg
+    term_info = res['term_info']
 
     # convert to dict of key=annotationid, value=list of sequences with this annotation
     annotation_seqs = defaultdict(list)
@@ -251,6 +253,8 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
     webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
     webPage += draw_annotation_details(annotations, relpath)
+    for cterm, cinfo in term_info:
+        webPage += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
     return '', webPage
 
 
@@ -264,42 +268,42 @@ def getannotationstrings(cann):
     cdesc : str
         a short summary of each annotation
     """
-    cdesc=''
+    cdesc = ''
     if cann['description']:
-        cdesc+=cann['description']+' ('
-    if cann['annotationtype']=='diffexp':
-        chigh=[]
-        clow=[]
-        call=[]
+        cdesc += cann['description'] + ' ('
+    if cann['annotationtype'] == 'diffexp':
+        chigh = []
+        clow = []
+        call = []
         for cdet in cann['details']:
-            if cdet[0]=='all':
+            if cdet[0] == 'all':
                 call.append(cdet[1])
                 continue
-            if cdet[0]=='low':
+            if cdet[0] == 'low':
                 clow.append(cdet[1])
                 continue
-            if cdet[0]=='high':
+            if cdet[0] == 'high':
                 chigh.append(cdet[1])
                 continue
-        cdesc+=' high in '
+        cdesc += ' high in '
         for cval in chigh:
-            cdesc+=cval+' '
-        cdesc+=' compared to '
+            cdesc += cval + ' '
+        cdesc += ' compared to '
         for cval in clow:
-            cdesc+=cval+' '
-        cdesc+=' in '
+            cdesc += cval + ' '
+        cdesc += ' in '
         for cval in call:
-            cdesc+=cval+' '
-    elif cann['annotationtype']=='isa':
-        cdesc+=' is a '
+            cdesc += cval + ' '
+    elif cann['annotationtype'] == 'isa':
+        cdesc += ' is a '
         for cdet in cann['details']:
-            cdesc+='cdet,'
-    elif cann['annotationtype']=='contamination':
-        cdesc+='contamination'
+            cdesc += 'cdet,'
+    elif cann['annotationtype'] == 'contamination':
+        cdesc += 'contamination'
     else:
-        cdesc+=cann['annotationtype']+' '
+        cdesc += cann['annotationtype'] + ' '
         for cdet in cann['details']:
-            cdesc=cdesc+' '+cdet[1]+','
+            cdesc = cdesc + ' ' + cdet[1] + ','
 
     if len(cdesc) >= 1 and cdesc[-1] == ',':
         cdesc = cdesc[:-1]
@@ -315,44 +319,44 @@ def getannotationinfo(annotationid):
         the annotationid to get the info for
     """
     # get the experiment info for the annotation
-    rdata={}
-    rdata['annotationid']=annotationid
+    rdata = {}
+    rdata['annotationid'] = annotationid
     # get the experiment annotations
-    res=requests.get(get_db_address() +'/annotations/get_annotation',params=rdata)
+    res = requests.get(get_db_address() + '/annotations/get_annotation', params=rdata)
     if res.status_code != 200:
         return('AnnotationID %d not found' % annotationid, 400)
-    annotation=res.json()
+    annotation = res.json()
 
     # get the experiment details
-    rdata={}
-    expid=annotation['expid']
-    rdata['expId']=expid
-    res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-    webPage = render_template('annotationinfo.html',expid=expid,annotationid=annotationid)
-    if res.status_code==200:
+    rdata = {}
+    expid = annotation['expid']
+    rdata['expId'] = expid
+    res = requests.get(scbd_server_address + '/experiments/get_details', json=rdata)
+    webPage = render_template('annotationinfo.html', expid=expid, annotationid=annotationid)
+    if res.status_code == 200:
         for cres in res.json()['details']:
             webPage += "<tr>"
-            webPage += '<td>'+cres[0]+'</td>'
-            webPage += '<td>'+cres[1]+'</td><tr>'
+            webPage += '<td>' + cres[0] + '</td>'
+            webPage += '<td>' + cres[1] + '</td><tr>'
     else:
-        webPage+='Error getting experiment details'
+        webPage += 'Error getting experiment details'
     webPage += '</table>'
     webPage += '<h2>Annotations Details</h2>'
-    webPage += draw_annotation_details([annotation],'../')
+    webPage += draw_annotation_details([annotation], '../')
 
     webPage += render_template('annotationsubdetails.html')
     annotationdetails = []
-    for k,v in annotation.items():
-        if type(v)==list:
+    for k, v in annotation.items():
+        if isinstance(v, list):
             annotationdetails = v
         else:
             webPage += "<tr>"
-            webPage += '<td>'+str(k)+'</td>'
-            webPage += '<td>'+str(v)+'</td><tr>'
+            webPage += '<td>' + str(k) + '</td>'
+            webPage += '<td>' + str(v) + '</td><tr>'
     for cad in annotationdetails:
-            webPage += "<tr>"
-            webPage += '<td>'+str(cad[0])+'</td>'
-            webPage += '<td><a href='+urllib.parse.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</a></td><tr>'
+        webPage += "<tr>"
+        webPage += '<td>' + str(cad[0]) + '</td>'
+        webPage += '<td><a href=' + urllib.parse.quote('../ontology_info/' + str(cad[1])) + '>' + str(cad[1]) + '</a></td><tr>'
 
     webPage += '</table>'
     webPage += '<h2>Sequences</h2>'
@@ -360,17 +364,17 @@ def getannotationinfo(annotationid):
 
     # add the ontology parent terms for the annotation
     webPage += '<h2>Ontology terms</h2>'
-    res=requests.get(get_db_address() +'/annotations/get_annotation_ontology_parents',json={'annotationid':annotationid})
+    res = requests.get(get_db_address() + '/annotations/get_annotation_ontology_parents', json={'annotationid': annotationid})
     if res.status_code != 200:
-        debug(6,'no ontology parents found for annotationid %d' % annotationid)
-        parents=[]
+        debug(6, 'no ontology parents found for annotationid %d' % annotationid)
+        parents = []
     else:
         parents = res.json().get('parents')
-        debug(1,'found %d parent groups for annotationid %d' % (len(parents),annotationid))
-    for ctype,cparents in parents.items():
+        debug(1, 'found %d parent groups for annotationid %d' % (len(parents), annotationid))
+    for ctype, cparents in parents.items():
         webPage += ctype + ':'
         for cparentname in cparents:
-            webPage += '<a href='+urllib.parse.quote('../ontology_info/'+str(cparentname))+'>' + cparentname + '</a> '
+            webPage += '<a href=' + urllib.parse.quote('../ontology_info/' + str(cparentname)) + '>' + cparentname + '</a> '
         webPage += '<br>'
     return webPage
 
@@ -403,11 +407,11 @@ def get_ontology_info(term, relpath='../'):
     annotations = res.json()['annotations']
     if len(annotations) == 0:
         return 'term not found', 'term not found'
-    webPage = render_template('ontologyterminfo.html',term=term)
+    webPage = render_template('ontologyterminfo.html', term=term)
     webPage += '<h2>Annotations for ontology term:</h2>'
     webPage += draw_annotation_details(annotations, relpath)
 
-    return '',webPage
+    return '', webPage
 
 
 @Site_Main_Flask_Obj.route('/experiments_list')
@@ -473,7 +477,7 @@ def taxonomy_info(taxonomy):
     webPage : str
         the html of the resulting table
     '''
-    err,webpage = get_taxonomy_info(taxonomy)
+    err, webpage = get_taxonomy_info(taxonomy)
     return webpage
 
 
@@ -540,13 +544,13 @@ def getexperimentinfo(expid):
     if res.status_code == 200:
         for cres in res.json()['details']:
             webPage += "<tr>"
-            webPage += '<td>'+cres[0]+'</td>'
-            webPage += '<td>'+cres[1]+'</td><tr>'
+            webPage += '<td>' + cres[0] + '</td>'
+            webPage += '<td>' + cres[1] + '</td><tr>'
     else:
         webPage += 'Error getting experiment details'
     webPage += '</table>'
     # get the experiment annotations
-    res = requests.get(scbd_server_address+'/experiments/get_annotations', json={'expId': expid})
+    res = requests.get(scbd_server_address + '/experiments/get_annotations', json={'expId': expid})
     webPage += '<h2>Annotations for experiment:</h2>'
     webPage += draw_annotation_details(res.json()['annotations'], '../')
 
@@ -600,7 +604,7 @@ def draw_sequences_info(sequences, relpath=''):
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/forgot_password_submit',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/forgot_password_submit', methods=['POST', 'GET'])
 def forgot_password_submit():
     """
     this page will send the forgoten password to the user via mail
@@ -612,17 +616,17 @@ def forgot_password_submit():
     """
 
     usermail = ''
-    if request.method=='GET':
-        usermail=request.args['useremail']
+    if request.method == 'GET':
+        usermail = request.args['useremail']
     else:
         usermail = request.form['useremail']
 
-    json_user={'user':usermail}
-    httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
-    if httpRes.status_code==200:
+    json_user = {'user': usermail}
+    httpRes = requests.post(scbd_server_address + '/users/forgot_password', json=json_user)
+    if httpRes.status_code == 200:
         webpage = render_template('done_success.html')
     else:
-        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+        webpage = render_template('done_fail.html', mes='Failed to reset password', error=httpRes.text)
     return webpage
 
 
@@ -636,26 +640,26 @@ def getuserid(userid):
 
     output:
     """
-    rdata={}
-    rdata['userid']=userid
+    rdata = {}
+    rdata['userid'] = userid
     if userid < 0:
         return "Error: Invalid user"
 
     # get the experiment details
-    httpRes=requests.post(scbd_server_address +'/users/get_user_public_information',json=rdata)
-    if httpRes.status_code==200:
+    httpRes = requests.post(scbd_server_address + '/users/get_user_public_information', json=rdata)
+    if httpRes.status_code == 200:
         userInfo = httpRes.json()
-        username = userInfo.get('name','')
-        name = userInfo.get('username','')
-        desc = userInfo.get('description','')
-        email = userInfo.get('email','-')
-        webPage = render_template('userinfo.html',userid=userid,name=name,username=username,desc=desc,email=email)
+        username = userInfo.get('name', '')
+        name = userInfo.get('username', '')
+        desc = userInfo.get('description', '')
+        email = userInfo.get('email', '-')
+        webPage = render_template('userinfo.html', userid=userid, name=name, username=username, desc=desc, email=email)
 
         # get user annotation
-        forUserId={'foruserid':userid}
-        httpRes=requests.get(scbd_server_address + '/users/get_user_annotations',json=forUserId)
-        if httpRes.status_code==200:
-            webPage += draw_annotation_details(httpRes.json().get('userannotations'),'../')
+        forUserId = {'foruserid': userid}
+        httpRes = requests.get(scbd_server_address + '/users/get_user_annotations', json=forUserId)
+        if httpRes.status_code == 200:
+            webPage += draw_annotation_details(httpRes.json().get('userannotations'), '../')
         webPage += "</body></html>"
     else:
         webPage = "Failed to get user information"
@@ -689,8 +693,8 @@ def draw_annotation_details(annotations, relpath):
     wpart += render_template('annotations_table.html')
     for dataRow in annotations:
         wpart += "<tr>"
-        wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid', 'not found'))+">" + str(dataRow.get('expid', 'not found')) + "</a></td>"
-        wpart += "<td><a href=" + relpath + "user_info/"+str(dataRow.get('userid', -1))+">" + str(dataRow.get('username', 'not found')) + "</a></td>"
+        wpart += "<td><a href=" + relpath + "exp_info/" + str(dataRow.get('expid', 'not found')) + ">" + str(dataRow.get('expid', 'not found')) + "</a></td>"
+        wpart += "<td><a href=" + relpath + "user_info/" + str(dataRow.get('userid', -1)) + ">" + str(dataRow.get('username', 'not found')) + "</a></td>"
         cdesc = getannotationstrings(dataRow)
         # webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
         wpart += '<td><a href=' + relpath + 'annotation_info/' + str(dataRow.get('annotationid', -1)) + '>' + cdesc + '</td>'
@@ -764,16 +768,15 @@ def get_common_terms(annotations):
     return common_terms
 
 
-
 @Site_Main_Flask_Obj.route('/testimage')
 def test_image():
-    terms='a big fish big very small fish fish big barvaz pita fish'
+    terms = 'a big fish big very small fish fish big barvaz pita fish'
     img = draw_cloud(terms)
-    debug(1,len(img))
-    debug(1,img)
+    debug(1, len(img))
+    debug(1, img)
     # img2=img.rstrip('\n')
-    img3=urllib.parse.quote(img)
-    webpage=render_template('testimg.html', wordcloudimage=img3)
+    img3 = urllib.parse.quote(img)
+    webpage = render_template('testimg.html', wordcloudimage=img3)
     return webpage
 
 
@@ -820,9 +823,11 @@ def get_fasta_seqs(file):
     cseq = ''
     isfasta = False
     for cline in file:
+        cline = cline.strip()
         if cline[0] == '>':
             isfasta = True
-            seqs.append(cseq)
+            if cseq:
+                seqs.append(cseq)
             cseq = ''
         else:
             cseq += cline
