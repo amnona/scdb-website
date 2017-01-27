@@ -683,6 +683,8 @@ def draw_annotation_details(annotations, relpath):
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
                 cterm = cdetail[1].replace(' ', '_') + ' '
+                if 'term_info' in cannotation:
+                    debug(1,'found term_info with %d entries' % len(cannotation['term_info']))
                 if 'website_sequences' in cannotation:
                     cterm = cterm * len(cannotation['website_sequences'])
                 termstr += cterm
@@ -781,6 +783,19 @@ def test_image():
 
 
 def draw_cloud(words):
+    '''
+    Draw a wordcloud for a list of terms
+
+    Parameters
+    ----------
+    words : list of str or dict
+        If list of str, the terms (each replicated according to it's frequency).
+        If dict, key is term and value is the frequency.
+
+    Returns
+    -------
+    BytesIO file with the image
+    '''
     from wordcloud import WordCloud
     import matplotlib.pyplot as plt
     from io import BytesIO
@@ -791,8 +806,12 @@ def draw_cloud(words):
         return ''
     # wc = WordCloud(background_color="white", width=200, height=100)
     wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set())
-    debug(1, words)
-    wordcloud = wc.generate(words)
+    if isinstance(words, list):
+        debug(1, 'generating from words list')
+        wordcloud = wc.generate(words)
+    elif isinstance(words, dict):
+        debug(1, 'generating from frequency dict')
+        wordcloud = wc.generate_from_frequencies(words)
     fig = plt.figure()
     plt.imshow(wordcloud)
     plt.axis("off")
