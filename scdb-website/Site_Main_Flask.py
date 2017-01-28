@@ -839,6 +839,7 @@ def draw_cloud(words):
     elif isinstance(words, dict):
         debug(1, 'generating from frequency dict')
         debug(1,words)
+        words={'aa':4, 'bb':0.5, 'cc':1}
         wordcloud = wc.generate_from_frequencies(words)
     else:
         debug(4, 'unknown type for generate_wordcloud!')
