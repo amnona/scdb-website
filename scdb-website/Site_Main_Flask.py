@@ -840,7 +840,7 @@ def draw_cloud(words):
         debug(1, 'generating from frequency dict')
         debug(1,words)
         words={'aa':4, 'bb':0.5, 'cc':1}
-        from operator impoer itemgetter
+        from operator import itemgetter
         frequencies = sorted(words.items(), key=itemgetter(1), reverse=True)
         frequencies = frequencies[:200]
         # largest entry will be 1
