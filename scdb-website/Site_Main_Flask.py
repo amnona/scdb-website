@@ -838,14 +838,6 @@ def draw_cloud(words):
         wordcloud = wc.generate(words)
     elif isinstance(words, dict):
         debug(1, 'generating from frequency dict')
-        debug(1,words)
-        words={'aa':4, 'bb':0.5, 'cc':1}
-        from operator import itemgetter
-        frequencies = sorted(words.items(), key=itemgetter(1), reverse=True)
-        frequencies = frequencies[:200]
-        # largest entry will be 1
-        max_frequency = float(frequencies[0][1])
-        debug(1,'max freq %d' % max_frequency)
         wordcloud = wc.generate_from_frequencies(words)
     else:
         debug(4, 'unknown type for generate_wordcloud!')
