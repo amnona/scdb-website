@@ -666,12 +666,22 @@ def getuserid(userid):
     return webPage
 
 
-def draw_annotation_details(annotations, relpath):
+def draw_annotation_details(annotations, relpath, term_info=None):
     '''
     create table entries for a list of annotations
 
     input:
     annotations : list of dict of annotation details (from REST API)
+    relpath : str
+        the relative path for the links
+    term_info : dict of dict or None (optiona)
+        None (default) to skip relative word cloud.
+        Otherwise need to have information about all ontology terms to be drawn
+        dict of {term: dict} where
+            term : ontology term (str)
+            dict: pairs of:
+                'total_annotations' : int
+                'total_sequences' : int
 
     output:
     wpart : str
@@ -683,11 +693,10 @@ def draw_annotation_details(annotations, relpath):
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
                 cterm = cdetail[1].replace(' ', '_') + ' '
-                if 'term_info' in cannotation:
-                    debug(1,'found term_info with %d entries' % len(cannotation['term_info']))
                 if 'website_sequences' in cannotation:
                     cterm = cterm * len(cannotation['website_sequences'])
                 termstr += cterm
+    if 
     wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
@@ -821,6 +830,7 @@ def draw_cloud(words):
     figfile.seek(0)  # rewind to beginning of file
     import base64
     figdata_png = base64.b64encode(figfile.getvalue())
+    figfile.close()
     return figdata_png
 
 
