@@ -707,6 +707,12 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 continue
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         debug(1,term_frac)
+        from operator import itemgetter
+        frequencies = sorted(term_frac.items(), key=itemgetter(1), reverse=True)
+        debug(1,frequencies)
+        # largest entry will be 1
+        max_frequency = float(frequencies[0][1])
+        debug(1,max_frequency)
         wordcloud_image = draw_cloud(term_frac)
     else:
         wordcloud_image = draw_cloud(termstr)
