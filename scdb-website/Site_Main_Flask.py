@@ -706,6 +706,7 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 debug(2,'term %s not in term_info!' % cterm)
                 continue
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
+        debug(1,term_frac)
         wordcloud_image = draw_cloud(term_frac)
     else:
         wordcloud_image = draw_cloud(termstr)
