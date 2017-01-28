@@ -696,7 +696,6 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 if 'website_sequences' in cannotation:
                     cterm = cterm * len(cannotation['website_sequences'])
                 termstr += cterm
-    if 
     wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
