@@ -844,7 +844,7 @@ def draw_cloud(words):
         frequencies = frequencies[:200]
         # largest entry will be 1
         max_frequency = float(frequencies[0][1])
-        debug(1,max_frequency)
+        debug(1,'max freq %d' % max_frequency)
         wordcloud = wc.generate_from_frequencies(words)
     else:
         debug(4, 'unknown type for generate_wordcloud!')
