@@ -689,6 +689,7 @@ def draw_annotation_details(annotations, relpath, term_info=None):
     '''
     # draw the wordcloud
     termstr = ''
+    num_term = defaultdict(int)
     for cannotation in annotations:
         for cdetail in cannotation['details']:
             if cdetail[0] == 'all' or cdetail[0] == 'high':
@@ -696,7 +697,14 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 if 'website_sequences' in cannotation:
                     cterm = cterm * len(cannotation['website_sequences'])
                 termstr += cterm
-    wordcloud_image = draw_cloud(termstr)
+                num_term[cterm] += len(cannotation['website_sequences'])
+    if term_info is not None:
+        term_frac = {}
+        for cterm in num_term:
+            term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
+        wordcloud_image = draw_cloud(term_frac)
+    else:
+        wordcloud_image = draw_cloud(termstr)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
     # draw the annotations table
