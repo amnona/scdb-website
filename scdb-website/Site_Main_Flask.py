@@ -696,8 +696,8 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 cterm = cdetail[1].replace(' ', '_') + ' '
                 if 'website_sequences' in cannotation:
                     cterm = cterm * len(cannotation['website_sequences'])
-                termstr += cterm
-                num_term[cterm] += len(cannotation['website_sequences'])
+                    termstr += cterm
+                    num_term[cterm] += len(cannotation['website_sequences'])
     if term_info is not None:
         term_frac = {}
         for cterm in num_term:
