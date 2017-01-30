@@ -135,7 +135,10 @@ def get_sequence_annotations(sequence, relpath='../'):
         debug(6, "Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for sequence:\n%s" % sequence
     else:
-        webPage += draw_annotation_details(httpRes.json().get('annotations'), relpath)
+        annotations = httpRes.json().get('annotations')
+        for cannotation in annotations:
+            cannotation['website_sequences'] = [-1]
+        webPage += draw_annotation_details(annotations, relpath)
     webPage += "</body>"
     webPage += "</html>"
     return webPage
