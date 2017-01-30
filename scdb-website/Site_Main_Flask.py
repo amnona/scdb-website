@@ -713,11 +713,12 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                 continue
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         wordcloud_image = draw_cloud(term_frac)
-    else:
-        # do the absolute number word cloud
-        # wordcloud_image = draw_cloud(termstr)
-        debug(1, 'drawing absolute count wordcloud')
-        wordcloud_image = draw_cloud(num_term)
+        wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
+
+    # do the absolute number word cloud
+    # wordcloud_image = draw_cloud(termstr)
+    debug(1, 'drawing absolute count wordcloud')
+    wordcloud_image = draw_cloud(num_term)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
     # draw the annotations table
