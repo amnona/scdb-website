@@ -701,6 +701,7 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                     termstr += cterm_long
                     num_term[orig_term] += len(cannotation['website_sequences'])
     if term_info is not None:
+        debug(1, 'drawing relative frequencies wordcloud')
         # do the relative freq. word cloud
         term_frac = {}
         for cterm in num_term:
@@ -712,6 +713,7 @@ def draw_annotation_details(annotations, relpath, term_info=None):
     else:
         # do the absolute number word cloud
         # wordcloud_image = draw_cloud(termstr)
+        debug(1, 'drawing absolute count wordcloud')
         wordcloud_image = draw_cloud(num_term)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
