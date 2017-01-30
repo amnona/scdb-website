@@ -689,6 +689,7 @@ def draw_annotation_details(annotations, relpath, term_info=None):
     '''
     # draw the wordcloud
     termstr = ''
+    # total frequencies of each term (not only leaves) in dbbact
     num_term = defaultdict(int)
     for cannotation in annotations:
         for cdetail in cannotation['details']:
@@ -700,16 +701,18 @@ def draw_annotation_details(annotations, relpath, term_info=None):
                     termstr += cterm_long
                     num_term[orig_term] += len(cannotation['website_sequences'])
     if term_info is not None:
+        # do the relative freq. word cloud
         term_frac = {}
         for cterm in num_term:
             if cterm not in term_info:
                 debug(2, 'term %s not in term_info!' % cterm)
                 continue
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
-        # largest entry will be 1
         wordcloud_image = draw_cloud(term_frac)
     else:
-        wordcloud_image = draw_cloud(termstr)
+        # do the absolute number word cloud
+        # wordcloud_image = draw_cloud(termstr)
+        wordcloud_image = draw_cloud(num_term)
     wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
 
     # draw the annotations table
