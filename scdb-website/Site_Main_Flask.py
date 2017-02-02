@@ -405,6 +405,7 @@ def get_ontology_info(term):
         return msg, msg
     annotations = res.json()['annotations']
     if len(annotations) == 0:
+        debug(1, 'ontology term %s not found' % term)
         return 'term not found', 'term not found'
 
     for cannotation in annotations:
