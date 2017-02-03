@@ -69,9 +69,9 @@
             </div>
             <div id="statistics">
                 {{numSeqAnnot}}<br>
-                {{numAnnot}}<br>
+                <a href={{ url_for('.annotations_list') }}>{{numAnnot}}</a><br>
                 {{numSeq}}<br>
-                <a href='experiments_list'>{{numExp}}</a>
+                <a href={{ url_for('.experiments_list') }}>{{numExp}}</a>
             </div>
             <div id="statisticstitle">
                 Total annotated sequences:<br>

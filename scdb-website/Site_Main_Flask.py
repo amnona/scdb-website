@@ -424,6 +424,23 @@ def get_ontology_info(term):
     return '', webPage
 
 
+@Site_Main_Flask_Obj.route('/annotations_list')
+def annotations_list():
+    debug(1, 'annotations_list')
+    res = requests.get(get_db_address() + '/annotations/get_all_annotations')
+    if res.status_code != 200:
+        msg = 'error getting annotations list: %s' % res.content
+        debug(6, msg)
+        return msg, msg
+    webPage = render_template('info_header.html', title='dbBact annotations list')
+    webPage += '<h1>dbBact Annotations List</h1>'
+    annotations = res.json()['annotations']
+    for cannotation in annotations:
+        cannotation['website_sequences'] = [-1]
+    webPage += draw_annotation_details(annotations)
+    return webPage
+
+
 @Site_Main_Flask_Obj.route('/experiments_list')
 def experiments_list():
     err, webpage = get_experiments_list()
@@ -454,7 +471,9 @@ def get_experiments_list():
         msg = 'no experiments found.'
         debug(3, msg)
         return msg, msg
-    webPage = render_template('experimentslist.html')
+    webPage = render_template('info_header.html')
+    webPage += '<h1>dbBact Experiments List</h1>'
+    webPage += render_template('experimentslist.html')
     for cexp in explist:
         cid = cexp[0]
         for cdetail in cexp[1]:
