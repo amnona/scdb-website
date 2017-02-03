@@ -437,6 +437,7 @@ def annotations_list():
     annotations = res.json()['annotations']
     for cannotation in annotations:
         cannotation['website_sequences'] = [-1]
+    annotations = sorted(annotations, key=lambda x: x.get('date', 0), reverse=True)
     webPage += draw_annotation_details(annotations)
     return webPage
 
@@ -476,16 +477,20 @@ def get_experiments_list():
     webPage += render_template('experimentslist.html')
     for cexp in explist:
         cid = cexp[0]
+        cexpname = ''
         for cdetail in cexp[1]:
             cname = cdetail[0]
             cval = cdetail[1]
             if cname != 'name':
                 continue
-            webPage += '<tr>'
-            # webPage += '<td><a href=' + relpath + "exp_info/" + str(cid) + ">" + str(cid) + "</a></td>"
-            webPage += '<td><a href=exp_info/' + str(cid) + ">" + str(cid) + "</a></td>"
-            webPage += '<td>' + cval + '</td>'
-            webPage += "</tr>"
+            if len(cexpname) > 0:
+                cexpname += '<br>'
+            cexpname += cval
+        webPage += '<tr><td><a href=%s>%d</a></td>' % (url_for('.experiment_info', expid=cid), cid)
+        webPage += '<td>%s</td>' % cexpname
+        # webPage += '<td><a href=exp_info/' + str(cid) + ">" + str(cid) + "</a></td>"
+        # webPage += '<td>' + cval + '</td>'
+        webPage += "</tr>"
     webPage += "</table>"
     webPage += render_template('info_end.html')
     return '', webPage
@@ -582,8 +587,12 @@ def experiment_info(expid):
 
     # get the experiment annotations
     res = requests.get(scbd_server_address + '/experiments/get_annotations', json={'expId': expid})
+    annotations = res.json()['annotations']
+    for cannotation in annotations:
+        cannotation['website_sequences'] = [-1]
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=True)
     webPage += '<h2>Annotations for experiment:</h2>'
-    webPage += draw_annotation_details(res.json()['annotations'])
+    webPage += draw_annotation_details(annotations)
     webPage += render_template('info_end.html')
     return webPage
 
