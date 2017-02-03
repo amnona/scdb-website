@@ -323,40 +323,45 @@ def annotation_info(annotationid):
     else:
         webPage += 'Error getting experiment details'
     webPage += '<h2>Annotations Details</h2>'
-    webPage += draw_annotation_details([annotation])
+    webPage += draw_annotations_table([annotation])
 
-    # webPage += render_template('annotationsubdetails.html')
-    # annotationdetails = []
-    # for k, v in annotation.items():
-    #     if isinstance(v, list):
-    #         annotationdetails = v
-    #     else:
-    #         webPage += "<tr>"
-    #         webPage += '<td>' + str(k) + '</td>'
-    #         webPage += '<td>' + str(v) + '</td><tr>'
-    # for cad in annotationdetails:
-    #     webPage += "<tr>"
-    #     webPage += '<td>' + str(cad[0]) + '</td>'
-    #     webPage += '<td><a href=' + urllib.parse.quote('../ontology_info/' + str(cad[1])) + '>' + str(cad[1]) + '</a></td><tr>'
+    print(annotation)
+    webPage += render_template('annotationsubdetails.html')
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('description', annotation['description'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('type', annotation['annotationtype'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('agent', annotation['agent'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('method', annotation['method'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('num_sequences', annotation['num_sequences'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('date', annotation['date'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('username', annotation['username'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('private', annotation['private'])
+    annotationdetails = annotation['details']
 
-    # webPage += '</table>'
+    for cad in annotationdetails:
+        webPage += "<tr>"
+        webPage += '<td>' + str(cad[0]) + '</td>'
+        webPage += '<td><a href=' + urllib.parse.quote('../ontology_info/' + str(cad[1])) + '>' + str(cad[1]) + '</a></td></tr>'
+
+    webPage += '</table>'
+
     webPage += '<h2>Sequences</h2>'
     webPage += draw_download_fasta_button(annotationid)
 
-    # # add the ontology parent terms for the annotation
-    # webPage += '<h2>Ontology terms</h2>'
-    # res = requests.get(get_db_address() + '/annotations/get_annotation_ontology_parents', json={'annotationid': annotationid})
-    # if res.status_code != 200:
-    #     debug(6, 'no ontology parents found for annotationid %d' % annotationid)
-    #     parents = []
-    # else:
-    #     parents = res.json().get('parents')
-    #     debug(1, 'found %d parent groups for annotationid %d' % (len(parents), annotationid))
-    # for ctype, cparents in parents.items():
-    #     webPage += ctype + ':'
-    #     for cparentname in cparents:
-    #         webPage += '<a href=' + urllib.parse.quote('../ontology_info/' + str(cparentname)) + '>' + cparentname + '</a> '
-    #     webPage += '<br>'
+    # add the ontology parent terms for the annotation
+    webPage += '<h2>Ontology terms</h2>'
+    res = requests.get(get_db_address() + '/annotations/get_annotation_ontology_parents', json={'annotationid': annotationid})
+    if res.status_code != 200:
+        debug(6, 'no ontology parents found for annotationid %d' % annotationid)
+        parents = []
+    else:
+        parents = res.json().get('parents')
+        debug(1, 'found %d parent groups for annotationid %d' % (len(parents), annotationid))
+    for ctype, cparents in parents.items():
+        cparents = list(set(cparents))
+        webPage += ctype + ':'
+        for cparentname in cparents:
+            webPage += '<a href=' + urllib.parse.quote('../ontology_info/' + str(cparentname)) + '>' + cparentname + '</a> '
+        webPage += '<br>'
     return webPage
 
 
@@ -849,6 +854,7 @@ def draw_annotations_table(annotations):
             observed_sequences = '?'
             sequences_string = '%s' % num_sequences
         wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_seqs', annotationid=annotationid), sequences_string)
+        wpart += '</tr>'
     wpart += "</table>"
     return wpart
 
