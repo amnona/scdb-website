@@ -611,11 +611,43 @@ def forgot_password_submit():
     json_user={'user':usermail}
     httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
     if httpRes.status_code==200:
-        webpage = render_template('done_success.html')
+        webpage = render_template('recover_form.html')
     else:
         webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
     return webpage
 
+@Site_Main_Flask_Obj.route('/recover_user_password',methods=['POST','GET'])
+def recover_user_password():
+    """
+    this function will update new user password in the db
+    input:
+    dataid : string
+        user email
+
+    output:
+    """
+
+    usermail = ''
+    if request.method=='GET':
+        usermail=request.args['user']
+        recoverycode=request.args['recoverycode']
+        newpassword=request.args['newpassword']
+    else:
+        usermail = request.form['user']
+        recoverycode = request.form['recoverycode']
+        newpassword = request.form['newpassword']
+
+    json_user={}
+    json_user['user']=usermail
+    json_user['recoverycode']=recoverycode
+    json_user['newpassword']=newpassword
+    
+    httpRes=requests.post(scbd_server_address +'/users/recover_password',json=json_user)
+    if httpRes.status_code==200:
+        webpage = render_template('done_success.html')
+    else:
+        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+    return webpage
 
 @Site_Main_Flask_Obj.route('/user_info/<int:userid>')
 def getuserid(userid):
