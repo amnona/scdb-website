@@ -111,60 +111,48 @@ def search_results():
 
     # if it is short, try if it is an ontology term
     if len(sequence) < 80:
-        err, webPage = get_ontology_info(sequence, relpath='')
+        err, webPage = get_ontology_info(sequence)
         if not err:
             return webPage
-        err, webPage = get_taxonomy_info(sequence, relpath='')
+        err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
         return('term %s not found in ontology or taxonomy' % sequence, 400)
 
+    webPage = sequence_annotations(sequence)
+    return webPage
+
+
+@Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
+def sequence_annotations(sequence):
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
-    webPage = render_template('seqinfo.html', sequence=sequence.upper())
+    webPage = render_template('info_header.html', title='dbBact Sequence annotations')
+
+    webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy='na')
 
     if httpRes.status_code != requests.codes.ok:
         debug(6, "Error code:" + str(httpRes.status_code))
-        webPage += "Failed to get annotations for the given sequence"
+        webPage += "Failed to get annotations for sequence:\n%s" % sequence
     else:
-        webPage += draw_annotation_details(httpRes.json().get('annotations'), '')
-    webPage += "</body>"
-    webPage += "</html>"
+        annotations = httpRes.json().get('annotations')
+        for cannotation in annotations:
+            cannotation['website_sequences'] = [0]
+        annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+        webPage += draw_annotation_details(annotations)
+    webPage += render_template('info_end.html')
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
-def reset_password():
-    """
-    Title: Reset password via mail
-    URL: /reset password
-    Method: POST
-    """
-    webpage = render_template('reset_password.html')
-    return webpage
-
-
-@Site_Main_Flask_Obj.route('/about', methods=['POST', 'GET'])
-def about():
-    """
-    Title: About us
-    URL: /about
-    Method: POST
-    """
-    webpage = render_template('about.html')
-    return webpage
-
-
-def draw_sequences_annotations(seqs, relpath=''):
-    '''Draw the webpage for annotations for a set of sequences
+def draw_sequences_annotations(seqs):
+    '''Draw the webpage for annotations for a list of sequences
 
     Parameters
     ----------
-    seqs : list of str sequences (ACGT)
-    relpath : str (optional)
-        the relative link path for the links
+    seqs : list of str
+        list of DNA sequences sequences to get annotations for
 
     Returns
     -------
@@ -189,20 +177,19 @@ def draw_sequences_annotations(seqs, relpath=''):
         for cannotation in cseqannotation:
             annotations.append(cannotation)
 
-    webPage = render_template('ontologyterminfo.html', term='lala')
+    webPage = render_template('info_header.html')
     webPage += '<h2>Annotations for sequence list:</h2>'
-    webPage += draw_annotation_details(annotations, relpath)
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('info_end.html')
     return '', webPage
 
 
-def draw_sequences_annotations_compact(seqs, relpath=''):
+def draw_sequences_annotations_compact(seqs):
     '''Draw the webpage for annotations for a set of sequences
 
     Parameters
     ----------
     seqs : list of str sequences (ACGT)
-    relpath : str (optional)
-        the relative link path for the links
 
     Returns
     -------
@@ -217,11 +204,13 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
         debug(6, msg)
         return msg, msg
 
-    dict_annotations = res.json()['annotations']
-    seqannotations = res.json()['seqannotations']
+    res = res.json()
+    dict_annotations = res['annotations']
+    seqannotations = res['seqannotations']
     if len(seqannotations) == 0:
         msg = 'no sequences found'
         return msg, msg
+    term_info = res['term_info']
 
     # convert to dict of key=annotationid, value=list of sequences with this annotation
     annotation_seqs = defaultdict(list)
@@ -242,9 +231,14 @@ def draw_sequences_annotations_compact(seqs, relpath=''):
         cannotation['website_sequences'] = annotation_seqs[csan[0]]
         annotations.append(cannotation)
 
-    webPage = render_template('ontologyterminfo.html', term='lala')
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
+
+    webPage = render_template('info_header.html')
+    # webPage = render_template('ontologyterminfo.html', term='lala')
     webPage += '<h2>Annotations for sequence list:</h2>'
-    webPage += draw_annotation_details(annotations, relpath)
+    webPage += draw_annotation_details(annotations, term_info=term_info)
+    webPage += render_template('info_end.html')
     return '', webPage
 
 
@@ -258,42 +252,42 @@ def getannotationstrings(cann):
     cdesc : str
         a short summary of each annotation
     """
-    cdesc=''
+    cdesc = ''
     if cann['description']:
-        cdesc+=cann['description']+' ('
-    if cann['annotationtype']=='diffexp':
-        chigh=[]
-        clow=[]
-        call=[]
+        cdesc += cann['description'] + ' ('
+    if cann['annotationtype'] == 'diffexp':
+        chigh = []
+        clow = []
+        call = []
         for cdet in cann['details']:
-            if cdet[0]=='all':
+            if cdet[0] == 'all':
                 call.append(cdet[1])
                 continue
-            if cdet[0]=='low':
+            if cdet[0] == 'low':
                 clow.append(cdet[1])
                 continue
-            if cdet[0]=='high':
+            if cdet[0] == 'high':
                 chigh.append(cdet[1])
                 continue
-        cdesc+=' high in '
+        cdesc += ' high in '
         for cval in chigh:
-            cdesc+=cval+' '
-        cdesc+=' compared to '
+            cdesc += cval + ' '
+        cdesc += ' compared to '
         for cval in clow:
-            cdesc+=cval+' '
-        cdesc+=' in '
+            cdesc += cval + ' '
+        cdesc += ' in '
         for cval in call:
-            cdesc+=cval+' '
-    elif cann['annotationtype']=='isa':
-        cdesc+=' is a '
+            cdesc += cval + ' '
+    elif cann['annotationtype'] == 'isa':
+        cdesc += ' is a '
         for cdet in cann['details']:
-            cdesc+='cdet,'
-    elif cann['annotationtype']=='contamination':
-        cdesc+='contamination'
+            cdesc += 'cdet,'
+    elif cann['annotationtype'] == 'contamination':
+        cdesc += 'contamination'
     else:
-        cdesc+=cann['annotationtype']+' '
+        cdesc += cann['annotationtype'] + ' '
         for cdet in cann['details']:
-            cdesc=cdesc+' '+cdet[1]+','
+            cdesc = cdesc + ' ' + cdet[1] + ','
 
     if len(cdesc) >= 1 and cdesc[-1] == ',':
         cdesc = cdesc[:-1]
@@ -301,7 +295,7 @@ def getannotationstrings(cann):
 
 
 @Site_Main_Flask_Obj.route('/annotation_info/<int:annotationid>')
-def getannotationinfo(annotationid):
+def annotation_info(annotationid):
     """
     get the information about an annotation
     input:
@@ -309,63 +303,83 @@ def getannotationinfo(annotationid):
         the annotationid to get the info for
     """
     # get the experiment info for the annotation
-    rdata={}
-    rdata['annotationid']=annotationid
+    rdata = {}
+    rdata['annotationid'] = annotationid
     # get the experiment annotations
-    res=requests.get(get_db_address() +'/annotations/get_annotation',params=rdata)
+    res = requests.get(get_db_address() + '/annotations/get_annotation', params=rdata)
     if res.status_code != 200:
         return('AnnotationID %d not found' % annotationid, 400)
-    annotation=res.json()
+    annotation = res.json()
 
     # get the experiment details
-    rdata={}
-    expid=annotation['expid']
-    rdata['expId']=expid
-    res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-    webPage = render_template('annotationinfo.html',expid=expid,annotationid=annotationid)
-    if res.status_code==200:
-        for cres in res.json()['details']:
-            webPage += "<tr>"
-            webPage += '<td>'+cres[0]+'</td>'
-            webPage += '<td>'+cres[1]+'</td><tr>'
+    rdata = {}
+    expid = annotation['expid']
+    rdata['expId'] = expid
+    webPage = render_template('info_header.html')
+    webPage += render_template('annotationinfo.html', annotationid=annotationid)
+    res = requests.get(scbd_server_address + '/experiments/get_details', json=rdata)
+    if res.status_code == 200:
+        webPage += draw_experiment_info(expid, res.json()['details'])
     else:
-        webPage+='Error getting experiment details'
-    webPage += '</table>'
+        webPage += 'Error getting experiment details'
     webPage += '<h2>Annotations Details</h2>'
-    webPage += draw_annotation_details([annotation],'../')
+    webPage += draw_annotations_table([annotation])
 
+    print(annotation)
     webPage += render_template('annotationsubdetails.html')
-    annotationdetails = []
-    for k,v in annotation.items():
-        if type(v)==list:
-            annotationdetails = v
-        else:
-            webPage += "<tr>"
-            webPage += '<td>'+str(k)+'</td>'
-            webPage += '<td>'+str(v)+'</td><tr>'
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('description', annotation['description'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('type', annotation['annotationtype'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('agent', annotation['agent'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('method', annotation['method'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('num_sequences', annotation['num_sequences'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('date', annotation['date'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('username', annotation['username'])
+    webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('private', annotation['private'])
+    annotationdetails = annotation['details']
+
     for cad in annotationdetails:
-            webPage += "<tr>"
-            webPage += '<td>'+str(cad[0])+'</td>'
-            webPage += '<td><a href='+urllib.parse.quote('../ontology_info/'+str(cad[1]))+'>'+str(cad[1])+'</a></td><tr>'
+        webPage += "<tr>"
+        webPage += '<td>' + str(cad[0]) + '</td>'
+        webPage += '<td><a href=' + urllib.parse.quote('../ontology_info/' + str(cad[1])) + '>' + str(cad[1]) + '</a></td></tr>'
 
     webPage += '</table>'
+
     webPage += '<h2>Sequences</h2>'
-    webPage += '<input type="button" onclick="location.href=\'../annotation_seq_download/%d\';" value="Download fasta" />' % annotationid
+    webPage += draw_download_fasta_button(annotationid)
 
     # add the ontology parent terms for the annotation
     webPage += '<h2>Ontology terms</h2>'
-    res=requests.get(get_db_address() +'/annotations/get_annotation_ontology_parents',json={'annotationid':annotationid})
+    res = requests.get(get_db_address() + '/annotations/get_annotation_ontology_parents', json={'annotationid': annotationid})
     if res.status_code != 200:
-        debug(6,'no ontology parents found for annotationid %d' % annotationid)
-        parents=[]
+        debug(6, 'no ontology parents found for annotationid %d' % annotationid)
+        parents = []
     else:
         parents = res.json().get('parents')
-        debug(1,'found %d parent groups for annotationid %d' % (len(parents),annotationid))
-    for ctype,cparents in parents.items():
+        debug(1, 'found %d parent groups for annotationid %d' % (len(parents), annotationid))
+    for ctype, cparents in parents.items():
+        cparents = list(set(cparents))
         webPage += ctype + ':'
         for cparentname in cparents:
-            webPage += '<a href='+urllib.parse.quote('../ontology_info/'+str(cparentname))+'>' + cparentname + '</a> '
+            webPage += '<a href=' + urllib.parse.quote('../ontology_info/' + str(cparentname)) + '>' + cparentname + '</a> '
         webPage += '<br>'
+    return webPage
+
+
+def draw_download_fasta_button(annotationid):
+    '''
+    Draw a button with a link to download the fasta sequences of the annotation
+
+    Parameters
+    ----------
+    annotationid : int
+        the annotationid for which to download the sequences
+
+    Returns
+    -------
+    webPage : str
+        html for the download button with the link to the fasta file download page
+    '''
+    webPage = '<input type="button" onclick="location.href=\'%s\';" value="Download fasta" />' % url_for('.annotation_seq_download', annotationid=annotationid)
     return webPage
 
 
@@ -381,7 +395,7 @@ def ontology_info(term):
     return webpage
 
 
-def get_ontology_info(term, relpath='../'):
+def get_ontology_info(term):
     """
     get the information all studies containing an ontology term (exact or as parent)
     input:
@@ -396,23 +410,47 @@ def get_ontology_info(term, relpath='../'):
         return msg, msg
     annotations = res.json()['annotations']
     if len(annotations) == 0:
+        debug(1, 'ontology term %s not found' % term)
         return 'term not found', 'term not found'
-    webPage = render_template('ontologyterminfo.html',term=term)
-    webPage += '<h2>Annotations for ontology term:</h2>'
-    webPage += draw_annotation_details(annotations, relpath)
 
-    return '',webPage
+    for cannotation in annotations:
+        cannotation['website_sequences'] = [0]
+
+    webPage = render_template('info_header.html')
+    webPage += render_template('ontologyterminfo.html', term=term)
+    webPage += '<h2>Annotations:</h2>'
+    webPage += draw_annotation_details(annotations)
+
+    return '', webPage
+
+
+@Site_Main_Flask_Obj.route('/annotations_list')
+def annotations_list():
+    debug(1, 'annotations_list')
+    res = requests.get(get_db_address() + '/annotations/get_all_annotations')
+    if res.status_code != 200:
+        msg = 'error getting annotations list: %s' % res.content
+        debug(6, msg)
+        return msg, msg
+    webPage = render_template('info_header.html', title='dbBact annotations list')
+    webPage += '<h1>dbBact Annotations List</h1>'
+    annotations = res.json()['annotations']
+    for cannotation in annotations:
+        cannotation['website_sequences'] = [-1]
+    annotations = sorted(annotations, key=lambda x: x.get('date', 0), reverse=True)
+    webPage += draw_annotation_details(annotations)
+    return webPage
 
 
 @Site_Main_Flask_Obj.route('/experiments_list')
 def experiments_list():
-    err, webpage = get_experiments_list(relpath='')
+    err, webpage = get_experiments_list()
     if err:
         return err, 400
     return webpage
 
 
-def get_experiments_list(relpath='../'):
+def get_experiments_list():
     '''Get the list of experiments in the database and the details about each one
     Parameters
     ----------
@@ -434,19 +472,27 @@ def get_experiments_list(relpath='../'):
         msg = 'no experiments found.'
         debug(3, msg)
         return msg, msg
-    webPage = render_template('experimentslist.html')
+    webPage = render_template('info_header.html')
+    webPage += '<h1>dbBact Experiments List</h1>'
+    webPage += render_template('experimentslist.html')
     for cexp in explist:
         cid = cexp[0]
+        cexpname = ''
         for cdetail in cexp[1]:
             cname = cdetail[0]
             cval = cdetail[1]
             if cname != 'name':
                 continue
-            webPage += '<tr>'
-            webPage += '<td><a href=' + relpath + "exp_info/" + str(cid) + ">" + str(cid) + "</a></td>"
-            webPage += '<td>' + cval + '</td>'
-            webPage += "</tr>"
+            if len(cexpname) > 0:
+                cexpname += '<br>'
+            cexpname += cval
+        webPage += '<tr><td><a href=%s>%d</a></td>' % (url_for('.experiment_info', expid=cid), cid)
+        webPage += '<td>%s</td>' % cexpname
+        # webPage += '<td><a href=exp_info/' + str(cid) + ">" + str(cid) + "</a></td>"
+        # webPage += '<td>' + cval + '</td>'
+        webPage += "</tr>"
     webPage += "</table>"
+    webPage += render_template('info_end.html')
     return '', webPage
 
 
@@ -467,11 +513,11 @@ def taxonomy_info(taxonomy):
     webPage : str
         the html of the resulting table
     '''
-    err,webpage = get_taxonomy_info(taxonomy)
+    err, webpage = get_taxonomy_info(taxonomy)
     return webpage
 
 
-def get_taxonomy_info(taxonomy, relpath='../'):
+def get_taxonomy_info(taxonomy):
     '''
     get the information all studies containing any bacteria with taxonomy as substring
 
@@ -506,15 +552,18 @@ def get_taxonomy_info(taxonomy, relpath='../'):
         cannotation['website_sequences'] = [-1] * cann[1]
         annotations.append(cannotation)
 
-    webPage = render_template('ontologyterminfo.html', term=taxonomy)
-    webPage += '<h2>Annotations for taxonomy: %s</h2>' % taxonomy
-    webPage += draw_annotation_details(annotations, relpath)
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
 
+    webPage = render_template('info_header.html')
+    webPage += render_template('taxonomyterminfo.html', taxonomy=taxonomy)
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('info_end.html')
     return '', webPage
 
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
-def getexperimentinfo(expid):
+def experiment_info(expid):
     """
     get the information about a given study dataid
     input:
@@ -527,54 +576,90 @@ def getexperimentinfo(expid):
         type,value,descstring about dataid
         empty if dataid not found
     """
-    rdata={}
-    rdata['expId']=expid
 
     # get the experiment details
-    res=requests.get(scbd_server_address +'/experiments/get_details',json=rdata)
-    webPage = render_template('expinfo.html',expid=expid)
-    if res.status_code==200:
-        for cres in res.json()['details']:
-            webPage += "<tr>"
-            webPage += '<td>'+cres[0]+'</td>'
-            webPage += '<td>'+cres[1]+'</td><tr>'
+    webPage = render_template('info_header.html')
+    res = requests.get(scbd_server_address + '/experiments/get_details', json={'expId': expid})
+    if res.status_code == 200:
+        webPage += draw_experiment_info(expid, res.json()['details'])
     else:
-        webPage+='Error getting experiment details'
-    webPage += '</table>'
-    # get the experiment annotations
-    res=requests.get(scbd_server_address+'/experiments/get_annotations',json=rdata)
-    webPage += '<h2>Annotations for experiment:</h2>'
-    webPage += draw_annotation_details(res.json()['annotations'],'../')
+        webPage += 'Error getting experiment details'
 
+    # get the experiment annotations
+    res = requests.get(scbd_server_address + '/experiments/get_annotations', json={'expId': expid})
+    annotations = res.json()['annotations']
+    for cannotation in annotations:
+        cannotation['website_sequences'] = [-1]
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=True)
+    webPage += '<h2>Annotations for experiment:</h2>'
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('info_end.html')
+    return webPage
+
+
+def draw_experiment_info(expid, exp_details):
+    '''
+    Draw the table with all experiment details
+
+    Parameters
+    ----------
+    expid : int
+        the experiment id
+    exp_details : list of (str,str)
+        list of experiment detail name and type ('details' from REST API /experiments/get_details/ )
+
+    Returns
+    -------
+    webPage : str
+        the html of the experiment info table
+    '''
+    webPage = render_template('expinfo.html', expid=expid)
+    for cres in exp_details:
+        webPage += "<tr>"
+        webPage += '<td>' + cres[0] + '</td>'
+        webPage += '<td>' + cres[1] + '</td><tr>'
+    webPage += '</table>'
     return webPage
 
 
 @Site_Main_Flask_Obj.route('/annotation_seqs/<int:annotationid>')
-def get_annotation_seqs_info(annotationid):
+def annotation_seqs(annotationid):
     '''
     get the information about all sequences in a given annotation
     input:
     annotationid : int
         The annotation for which to show the sequence info
+
+    returns
+    -------
+    webPage : str
+        the html page for the annotation sequences
     '''
 
     # get the annotation details
     res = requests.get(scbd_server_address + '/annotations/get_annotation', json={'annotationid': annotationid})
+    if res.status_code != 200:
+        msg = 'error encountered when getting annotation info for annotationid %d: %s' % (annotationid, res.content)
+        debug(6, msg)
+        return msg, 600
     annotation = res.json()
     shortdesc = getannotationstrings(annotation)
-    webPage = render_template('annotationsequences.html')
-    webPage += '<h1>Annotation %d Sequence list</h1>' % annotationid
+    webPage = render_template('info_header.html')
+    webPage += render_template('annotationsequences.html', annotationid=annotationid)
     webPage += shortdesc
 
+    webPage += '<h2>Download</h2>'
+    webPage += draw_download_fasta_button(annotationid)
+
     # get the sequence information for the annotation
-    res = requests.get(scbd_server_address + '/annotations/get_annotation_full_sequences', json={'annotationid': annotationid})
-    sequences = res.json()
-    err, pagepart = draw_sequences_info(sequences)
-    if err:
-        msg = 'error encountered when getting annotation sequences for annotationid %d: %s' % (annotationid, err)
+    res = requests.get(scbd_server_address + '/annotations/get_full_sequences', json={'annotationid': annotationid})
+    if res.status_code != 200:
+        msg = 'error encountered when getting annotation sequence info for annotationid %d: %s' % (annotationid, res.content)
         debug(6, msg)
-        return msg, 400
-    webPage += pagepart
+        return msg, 600
+    sequences = res.json()['sequences']
+    webPage += draw_sequences_info(sequences)
+
     return webPage
 
 
@@ -583,15 +668,16 @@ def draw_sequences_info(sequences):
     # sort the sequences based on taxonomy
     sequences = sorted(sequences, key=lambda x: x.get('taxonomy', ''))
     for cseqinfo in sequences:
-            webPage += "<tr>"
-            webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
-            webPage += '<td>' + cseqinfo['seq'] + '</td>'
-            webPage += '<td>' + 'na' + '</td><tr>'
+        cseqinfo['seq'] = cseqinfo['seq'].upper()
+        webPage += "<tr>"
+        webPage += '<td>' + cseqinfo['taxonomy'] + '</td>'
+        webPage += '<td><a href=%s>%s</a></td>' % (url_for('.sequence_annotations', sequence=cseqinfo['seq']), cseqinfo['seq'])
+        webPage += '<td>' + 'na' + '</td><tr>'
     webPage += '</table>'
     return webPage
 
 
-@Site_Main_Flask_Obj.route('/forgot_password_submit',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/forgot_password_submit', methods=['POST', 'GET'])
 def forgot_password_submit():
     """
     this page will send the forgoten password to the user via mail
@@ -603,8 +689,8 @@ def forgot_password_submit():
     """
 
     usermail = ''
-    if request.method=='GET':
-        usermail=request.args['useremail']
+    if request.method == 'GET':
+        usermail = request.args['useremail']
     else:
         usermail = request.form['useremail']
 
@@ -613,7 +699,7 @@ def forgot_password_submit():
     if httpRes.status_code==200:
         webpage = render_template('recover_form.html')
     else:
-        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+        webpage = render_template('done_fail.html', mes='Failed to reset password', error=httpRes.text)
     return webpage
 
 @Site_Main_Flask_Obj.route('/recover_user_password',methods=['POST','GET'])
@@ -650,7 +736,7 @@ def recover_user_password():
     return webpage
 
 @Site_Main_Flask_Obj.route('/user_info/<int:userid>')
-def getuserid(userid):
+def user_info(userid):
     """
     get the information about a user
     input:
@@ -659,88 +745,190 @@ def getuserid(userid):
 
     output:
     """
-    rdata={}
-    rdata['userid']=userid
+    rdata = {}
+    rdata['userid'] = userid
     if userid < 0:
         return "Error: Invalid user"
 
+    debug(1, 'get user info for user %d' % userid)
     # get the experiment details
-    httpRes=requests.post(scbd_server_address +'/users/get_user_public_information',json=rdata)
-    if httpRes.status_code==200:
+    httpRes = requests.post(scbd_server_address + '/users/get_user_public_information', json=rdata)
+    if httpRes.status_code == 200:
         userInfo = httpRes.json()
-        username = userInfo.get('name','')
-        name = userInfo.get('username','')
-        desc = userInfo.get('description','')
-        email = userInfo.get('email','-')
-        webPage = render_template('userinfo.html',userid=userid,name=name,username=username,desc=desc,email=email)
+        username = userInfo.get('name', '')
+        name = userInfo.get('username', '')
+        desc = userInfo.get('description', '')
+        email = userInfo.get('email', '-')
+
+        webPage = render_template('info_header.html')
+        webPage += render_template('userinfo.html', userid=userid, name=name, username=username, desc=desc, email=email)
 
         # get user annotation
-        forUserId={'foruserid':userid}
-        httpRes=requests.get(scbd_server_address + '/users/get_user_annotations',json=forUserId)
-        if httpRes.status_code==200:
-            webPage += draw_annotation_details(httpRes.json().get('userannotations'),'../')
+        forUserId = {'foruserid': userid}
+        httpRes = requests.get(scbd_server_address + '/users/get_user_annotations', json=forUserId)
+        if httpRes.status_code == 200:
+            webPage += draw_annotation_details(httpRes.json().get('userannotations'))
         webPage += "</body></html>"
     else:
-        webPage = "Failed to get user information"
+        webPage = "Failed to get user information<br>"
+        webPage += '%s' % httpRes.content
     return webPage
 
 
-def draw_annotation_details(annotations, relpath):
+def draw_annotation_details(annotations, term_info=None):
     '''
     create table entries for a list of annotations
 
     input:
     annotations : list of dict of annotation details (from REST API)
+    term_info : dict of dict or None (optiona)
+        None (default) to skip relative word cloud.
+        Otherwise need to have information about all ontology terms to be drawn
+        dict of {term: dict} where
+            term : ontology term (str)
+            dict: pairs of:
+                'total_annotations' : int
+                'total_sequences' : int
 
     output:
     wpart : str
         html code for the annotations table
     '''
+    # The output webpage part
+    wpart = ''
     # draw the wordcloud
-    termstr = ''
-    for cannotation in annotations:
-        for cdetail in cannotation['details']:
-            if cdetail[0] == 'all' or cdetail[0] == 'high':
-                cterm = cdetail[1].replace(' ', '_') + ' '
-                if 'website_sequences' in cannotation:
-                    cterm = cterm * len(cannotation['website_sequences'])
-                termstr += cterm
-    wordcloud_image = draw_cloud(termstr)
-    wpart = render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image), terms=termstr)
+    wpart += draw_wordcloud(annotations, term_info)
 
     # draw the annotations table
-    wpart += render_template('annotations_table.html')
-    for dataRow in annotations:
-        wpart += "<tr>"
-        wpart += "<td><a href=" + relpath + "exp_info/"+str(dataRow.get('expid', 'not found'))+">" + str(dataRow.get('expid', 'not found')) + "</a></td>"
-        wpart += "<td><a href=" + relpath + "user_info/"+str(dataRow.get('userid', -1))+">" + str(dataRow.get('username', 'not found')) + "</a></td>"
-        cdesc = getannotationstrings(dataRow)
-        # webPage += "<td>" + str(dataRow.get('description','not found')) + "</td>"
-        wpart += '<td><a href=' + relpath + 'annotation_info/' + str(dataRow.get('annotationid', -1)) + '>' + cdesc + '</td>'
-        wpart += '<td>' + dataRow['date'] + '</td>'
-        rdata = {}
-        rdata['annotationid'] = dataRow['annotationid']
-        # res = requests.get(scbd_server_address+'/annotations/get_sequences', json=rdata)
-        # if res.status_code == 200:
-        #     wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>%d</td>' % len(res.json().get(['seqids'], []))
-        # else:
-        #     wpart +='<td>'+'NA'+'</td>'
-        wpart += '<td><a href=' + relpath + 'annotation_seq_download/' + str(dataRow.get('annotationid', -1)) + '>DL'
-        if 'website_sequences' in dataRow:
-            wpart += '(match %d seqs)' % len(dataRow['website_sequences'])
-        wpart += '</td>'
-        wpart += "</tr>"
-    wpart += "</table>"
+    wpart += draw_annotations_table(annotations)
 
     # draw the ontlogy terms list
     common_terms = get_common_terms(annotations)
     for cterm in common_terms:
-        wpart += '%s : %d <br>' % (cterm[0], cterm[1])
+        wpart += '<a href=%s>%s</a>: %d<br>' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
+        # wpart += '<a href=' + urllib.parse.quote(relpath + 'ontology_info/' + cterm[0]) + '>%s</a>: %d <br>' % (cterm[0], cterm[1])
+
+    # draw the ontology term relative frequencies
+    if term_info is not None:
+        for cterm, cinfo in term_info.items():
+            wpart += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
+
+    return wpart
+
+
+def draw_wordcloud(annotations, term_info=None):
+    '''
+    draw the wordcloud (image embedded in the html)
+
+    Parameters
+    ----------
+    annotations : annotation
+        The list of annotations to process for annotation ontology terms
+    term_info: dict or None
+        a dict with the total annotations per ontology term or None to skip relative abundance word cloud
+
+    Returns
+    -------
+    wpart : str
+        an html webpage part with the wordcloud embedded
+    '''
+    wpart = ''
+
+    # draw the wordcloud
+    # termstr = ''
+    # total frequencies of each term (not only leaves) in dbbact
+    num_term = defaultdict(int)
+    num_low_term = defaultdict(int)
+    num_high_term = defaultdict(int)
+    for cannotation in annotations:
+        for cdetail in cannotation['details']:
+            if cdetail[0] == 'all' or cdetail[0] == 'high':
+                orig_term = cdetail[1]
+                if 'website_sequences' in cannotation:
+                    # if it's high freq. it's worth more
+                    if cannotation['annotationtype'] == 'highfreq':
+                        factor = 2
+                    else:
+                        factor = 1
+                    num_to_add = factor * len(cannotation['website_sequences'])
+                    num_high_term[orig_term] += num_to_add
+                    num_term[orig_term] += num_to_add
+            elif cdetail[0] == 'low':
+                orig_term = cdetail[1]
+                if 'website_sequences' in cannotation:
+                    num_low_term[orig_term] += len(cannotation['website_sequences'])
+                    num_term[orig_term] += len(cannotation['website_sequences'])
+    term_frac = None
+    if term_info is not None:
+        debug(1, 'drawing relative frequencies wordcloud')
+        # do the relative freq. word cloud
+        term_frac = {}
+        for cterm in num_term:
+            if cterm not in term_info:
+                debug(2, 'term %s not in term_info!' % cterm)
+                continue
+            term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
+        # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
+        # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+        # wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
+
+    # do the absolute number word cloud
+    debug(1, 'drawing absolute count wordcloud')
+    wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+    wpart += render_template('testimg.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
+
+    return wpart
+
+
+def draw_annotations_table(annotations):
+    wpart = ''
+
+    # the table header and css
+    wpart += render_template('annotations_table.html')
+    for dataRow in annotations:
+        wpart += "<tr>"
+        # add the experimentid info+link
+        expid = dataRow.get('expid', 'not found')
+        wpart += "<td><a href=%s>%s</a></td>" % (url_for('.experiment_info', expid=expid), expid)
+
+        # add user name+link
+        userid = dataRow.get('userid', 'not found')
+        username = dataRow.get('username', 'not found')
+        wpart += "<td><a href=%s>%s</a></td>" % (url_for('.user_info', userid=userid), username)
+
+        # add the annotation description
+        cdesc = getannotationstrings(dataRow)
+        annotationid = dataRow.get('annotationid', -1)
+        wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_info', annotationid=annotationid), cdesc)
+
+        # add the annotation date
+        wpart += '<td>%s</td>' % dataRow['date']
+
+        # add the sequences
+        annotationid = dataRow.get('annotationid', -1)
+        num_sequences = dataRow.get('num_sequences', '?')
+        if 'website_sequences' in dataRow:
+            observed_sequences = len(dataRow['website_sequences'])
+            sequences_string = '%s / %s' % (observed_sequences, num_sequences)
+        else:
+            observed_sequences = '?'
+            sequences_string = '%s' % num_sequences
+        wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_seqs', annotationid=annotationid), sequences_string)
+        wpart += '</tr>'
+    wpart += "</table>"
+    return wpart
+
+
+def draw_annotation_terms(annotations):
+    wpart = ''
+    common_terms = get_common_terms(annotations)
+    for cterm in common_terms:
+        wpart += '<a href=%s>%s</a>: %d<br' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
     return wpart
 
 
 @Site_Main_Flask_Obj.route('/annotation_seq_download/<int:annotationid>')
-def download_sequences(annotationid):
+def annotation_seq_download(annotationid):
     '''return a download of the sequences of the annotation as fasta
     '''
     # get the experiment annotations
@@ -786,20 +974,46 @@ def get_common_terms(annotations):
     return common_terms
 
 
+def get_color(word, font_size, position, orientation, font_path, random_state, num_high_term=None, num_low_term=None, term_frac=None):
+    # debug(1,**kwargs)
+    clevel = hex(200)[2:]
+    if term_frac is not None:
+        if word in term_frac:
+            clevel = format(int(155 + 100 * term_frac[word]), '02x')
+    if num_high_term is None:
+        return '#0000' + clevel
+        return '#0000ff'
+    if num_low_term is None:
+        return '#0000' + clevel
+        return '#0000ff'
+    if word in num_high_term:
+        if word in num_low_term:
+            return '#' + clevel + clevel + '00'
+            return '#999900'
+        return '#00' + clevel + '00'
+        return '#00ff00'
+    else:
+        if word in num_low_term:
+            return '#' + clevel + '0000'
+            return '#ff0000'
+        return '#0000' + clevel
+        return '#0000ff'
 
-@Site_Main_Flask_Obj.route('/testimage')
-def test_image():
-    terms='a big fish big very small fish fish big barvaz pita fish'
-    img = draw_cloud(terms)
-    debug(1,len(img))
-    debug(1,img)
-    # img2=img.rstrip('\n')
-    img3=urllib.parse.quote(img)
-    webpage=render_template('testimg.html', wordcloudimage=img3)
-    return webpage
 
+def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
+    '''
+    Draw a wordcloud for a list of terms
 
-def draw_cloud(words):
+    Parameters
+    ----------
+    words : str or dict
+        If str, the terms (each replicated according to it's frequency).
+        If dict, key is term and value is the frequency.
+
+    Returns
+    -------
+    BytesIO file with the image
+    '''
     from wordcloud import WordCloud
     import matplotlib.pyplot as plt
     from io import BytesIO
@@ -809,9 +1023,23 @@ def draw_cloud(words):
         debug(2, 'no words for wordcloud')
         return ''
     # wc = WordCloud(background_color="white", width=200, height=100)
-    wc = WordCloud(background_color="white")
-    debug(1, words)
-    wordcloud = wc.generate(words)
+
+    # normalize the fractions to a scale max=1
+    if term_frac is not None:
+        maxval = max(term_frac.values())
+        debug(1, 'maxval is %f' % maxval)
+        for ckey, cval in term_frac.items():
+            term_frac[ckey] = term_frac[ckey] / maxval
+
+    wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
+    if isinstance(words, str):
+        debug(1, 'generating from words list')
+        wordcloud = wc.generate(words)
+    elif isinstance(words, dict):
+        debug(1, 'generating from frequency dict')
+        wordcloud = wc.generate_from_frequencies(words)
+    else:
+        debug(4, 'unknown type for generate_wordcloud!')
     fig = plt.figure()
     plt.imshow(wordcloud)
     plt.axis("off")
@@ -821,6 +1049,7 @@ def draw_cloud(words):
     figfile.seek(0)  # rewind to beginning of file
     import base64
     figdata_png = base64.b64encode(figfile.getvalue())
+    figfile.close()
     return figdata_png
 
 
@@ -842,9 +1071,11 @@ def get_fasta_seqs(file):
     cseq = ''
     isfasta = False
     for cline in file:
+        cline = cline.strip()
         if cline[0] == '>':
             isfasta = True
-            seqs.append(cseq)
+            if cseq:
+                seqs.append(cseq)
             cseq = ''
         else:
             cseq += cline
@@ -859,3 +1090,25 @@ def get_fasta_seqs(file):
 
     debug(1, 'read %d sequences' % len(seqs))
     return seqs
+
+
+@Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
+def reset_password():
+    """
+    Title: Reset password via mail
+    URL: /reset password
+    Method: POST
+    """
+    webpage = render_template('reset_password.html')
+    return webpage
+
+
+@Site_Main_Flask_Obj.route('/about', methods=['POST', 'GET'])
+def about():
+    """
+    Title: About us
+    URL: /about
+    Method: POST
+    """
+    webpage = render_template('about.html')
+    return webpage
