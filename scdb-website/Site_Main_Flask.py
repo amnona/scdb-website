@@ -138,10 +138,13 @@ def sequence_annotations(sequence):
         webPage += "Failed to get annotations for sequence:\n%s" % sequence
     else:
         annotations = httpRes.json().get('annotations')
-        for cannotation in annotations:
-            cannotation['website_sequences'] = [0]
-        annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
-        webPage += draw_annotation_details(annotations)
+        if len(annotations) == 0:
+            webPage += '<br><br><h1>No annotations for sequence found in dbBact</h1>'
+        else:
+            for cannotation in annotations:
+                cannotation['website_sequences'] = [0]
+            annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+            webPage += draw_annotation_details(annotations)
     webPage += render_template('info_end.html')
     return webPage
 
