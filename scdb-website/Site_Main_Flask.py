@@ -814,6 +814,10 @@ def draw_annotation_details(annotations, term_info=None):
     # draw the ontology term relative frequencies
     if term_info is not None:
         for cterm, cinfo in term_info.items():
+            if cinfo['total_annotations'] is None:
+                cinfo['total_annotations']=-1
+            if cinfo['total_sequences'] is None:
+                cinfo['total_sequences']=-1
             wpart += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
 
     return wpart
