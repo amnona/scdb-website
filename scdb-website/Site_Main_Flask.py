@@ -815,9 +815,11 @@ def draw_annotation_details(annotations, term_info=None):
     if term_info is not None:
         for cterm, cinfo in term_info.items():
             if cinfo['total_annotations'] is None:
-                cinfo['total_annotations']=-1
+                debug(4, 'missing info total_annotations for %s' % cterm)
+                continue
             if cinfo['total_sequences'] is None:
-                cinfo['total_sequences']=-1
+                debug(4, 'missing info total_sequences for %s' % cterm)
+                continue
             wpart += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
 
     return wpart
