@@ -1,9 +1,9 @@
 # dbBact website server
 ## the web frontend for the dbBact bacterial knowledgebase
-[dbBact](https://
+The live version is running at [http://dbbact.org](http://dbbact.org)
 
 # Installation
-- create the conda environment
+- create the [conda](http://conda.pydata.org/docs/install/quick.html) environment
 
 ```
 conda create --name dbbact-web python=3 numpy flask requests matplotlib
