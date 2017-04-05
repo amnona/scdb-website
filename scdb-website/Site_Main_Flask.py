@@ -110,7 +110,7 @@ def search_results():
             return webpage
 
     # if it is short, try if it is an ontology term
-    if len(sequence) < 80:
+    if len(sequence) < 50:
         err, webPage = get_ontology_info(sequence)
         if not err:
             return webPage
@@ -119,6 +119,8 @@ def search_results():
             return webPage
         return('term %s not found in ontology or taxonomy' % sequence, 400)
 
+    if len(sequence) < 100:
+        return('Sequences must be at least 100bp long.', 400)
     webPage = sequence_annotations(sequence)
     return webPage
 
@@ -140,6 +142,10 @@ def sequence_annotations(sequence):
         annotations = httpRes.json().get('annotations')
         if len(annotations) == 0:
             webPage += '<br><br><h1>No annotations for sequence found in dbBact</h1>'
+            webPage += '<h2>Are you using >100bp sequences?</h2>'
+            webPage += 'Note dbBact is populated mostly with V4 (EMP primer) based sequences<br>'
+            webPage += 'so no results could mean you are not using a EMP-V4 derived sequence<br>'
+            webPage += 'These sequences usually begin with a "TACG"'
         else:
             for cannotation in annotations:
                 cannotation['website_sequences'] = [0]
