@@ -6,7 +6,7 @@
 - create the conda environment
 
 ```
-conda create --name dbbact-web python=3 numpy flask requests
+conda create --name dbbact-web python=3 numpy flask requests matplotlib
 ```
 
 - activate it
