@@ -14,6 +14,10 @@ conda create --name dbbact-web python=3 numpy flask requests matplotlib
 ```
 source activate dbbact-web
 ```
+- clone this respository
+```
+git clone https://github.com/amnona/scdb-website
+```
 
 - install the wordcloud module from github (the pip install version is old and not good enough)
 
@@ -23,7 +27,7 @@ pip install git+git://github.com/amueller/word_cloud
 
 # running
 ```
-export FLASK_APP=Server_Main.py
+export FLASK_APP= XXX/XXX/scdb-website/scdb-website/Server_Main.py
 ```
 
 and then
