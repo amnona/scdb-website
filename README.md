@@ -6,7 +6,7 @@ The live version is running at [http://dbbact.org](http://dbbact.org)
 - create the [conda](http://conda.pydata.org/docs/install/quick.html) environment
 
 ```
-conda create --name dbbact-web python=3 numpy flask requests matplotlib
+conda create --name dbbact-web python=3 numpy flask requests matplotlib numpy scipy
 ```
 
 - activate it
