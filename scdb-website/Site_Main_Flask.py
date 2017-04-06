@@ -79,7 +79,8 @@ def enrichment_results():
         seqs2 = get_fasta_seqs(textfile2)
         if seqs2 is None:
             return('Error: Uploaded file1 not recognized as fasta', 400)
-    webpage = render_template('info_header.html')
+    webpage = render_template('header.html')
+    # webpage = render_template('info_header.html')
     for term_type in ['term', 'annotation']:
         webpage += "<h2>%s enrichment</h2>" % term_type
         webpage += render_template('enrichment_results.html')
@@ -171,12 +172,8 @@ def search_results():
         err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
-        message = Markup('Keyword <b>%s</b> was not found in dbBact ontology '
-                         'or taxonomy.' % sequence)
-        return(render_template('header.html', title='Not found') +
-               render_template('error.html', title='Not found',
-                               message=message) +
-               render_template('footer.html'))
+        return error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
+                             'or taxonomy.' % sequence)
 
     if len(sequence) < 100:
         return('Sequences must be at least 100bp long.', 400)
@@ -1216,3 +1213,12 @@ def about():
     """
     webpage = render_template('about.html')
     return webpage
+
+
+def error_message(title, message):
+    '''
+    '''
+    return(render_template('header.html', title=title) +
+           render_template('error.html', title=title,
+                           message=Markup(message)) +
+           render_template('footer.html'))
