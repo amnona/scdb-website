@@ -5,7 +5,9 @@ from io import TextIOWrapper
 import os
 import requests
 import operator
-from utils import debug
+from utils import debug, get_fasta_seqs
+
+import enrichment
 
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
 
@@ -44,6 +46,58 @@ def get_db_address():
 
 
 scbd_server_address = get_db_address()
+
+
+@Site_Main_Flask_Obj.route('/enrichment', methods=['POST', 'GET'])
+def test_enrichment():
+    '''
+    Redirect to the main search page
+    '''
+    # TODO: fix to non hard-coded
+    webPage = render_template('enrichment.html')
+    return webPage
+
+
+@Site_Main_Flask_Obj.route('/enrichment_results', methods=['POST', 'GET'])
+def enrichment_results():
+    """
+    Title: Search results page
+    URL: site/search_results
+    Method: POST
+    """
+    if 'seqs1' in request.files:
+        debug(1, 'Fasta file uploaded, processing it')
+        file1 = request.files['seqs1']
+        textfile1 = TextIOWrapper(file1)
+        seqs1 = get_fasta_seqs(textfile1)
+        if seqs1 is None:
+            return('Error: Uploaded file1 not recognized as fasta', 400)
+    if 'seqs2' in request.files:
+        debug(1, 'Fasta file uploaded, processing it')
+        file2 = request.files['seqs2']
+        textfile2 = TextIOWrapper(file2)
+        seqs2 = get_fasta_seqs(textfile2)
+        if seqs2 is None:
+            return('Error: Uploaded file1 not recognized as fasta', 400)
+    webpage = render_template('info_header.html')
+    for term_type in ['term', 'annotation']:
+        webpage += "<h2>%s enrichment</h2>" % term_type
+        webpage += render_template('enrichment_results.html')
+        err, terms, pval, odif = enrichment.enrichment(seqs1, seqs2, term_type=term_type)
+        if err:
+            return err
+        for idx, cterm in enumerate(terms):
+            if odif[idx] < 0:
+                ccolor = 'red'
+            else:
+                ccolor = 'blue'
+            webpage += '<tr><td><span style="color:%s">%s</span></td>' % (ccolor, cterm)
+            webpage += '<td>%f</td>' % odif[idx]
+            webpage += '<td>%f</td>' % pval[idx]
+            webpage += "</tr>"
+            webpage += '</span>'
+        webpage += "</table>"
+    return webpage
 
 
 @Site_Main_Flask_Obj.route('/', methods=['POST', 'GET'])
@@ -110,7 +164,7 @@ def search_results():
             return webpage
 
     # if it is short, try if it is an ontology term
-    if len(sequence) < 80:
+    if len(sequence) < 50:
         err, webPage = get_ontology_info(sequence)
         if not err:
             return webPage
@@ -124,6 +178,8 @@ def search_results():
                                message=message) +
                render_template('footer.html'))
 
+    if len(sequence) < 100:
+        return('Sequences must be at least 100bp long.', 400)
     webPage = sequence_annotations(sequence)
     return webPage
 
@@ -143,9 +199,11 @@ def sequence_annotations(sequence):
     else:
         annotations = httpRes.json().get('annotations')
         if len(annotations) == 0:
-            message = 'No annotations for the sequence were found in dbBact.'
-            webPage += render_template('error.html', title='Not found',
-                                       message=message)
+            webPage += '<br><br><h1>No annotations for sequence found in dbBact</h1>'
+            webPage += '<h2>Are you using >100bp sequences?</h2>'
+            webPage += 'Note dbBact is populated mostly with V4 (EMP primer) based sequences<br>'
+            webPage += 'so no results could mean you are not using a EMP-V4 derived sequence<br>'
+            webPage += 'These sequences usually begin with a "TACG"'
         else:
             for cannotation in annotations:
                 cannotation['website_sequences'] = [0]
@@ -1136,45 +1194,6 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
     figdata_png = base64.b64encode(figfile.getvalue())
     figfile.close()
     return figdata_png
-
-
-def get_fasta_seqs(file):
-    '''Get sequences from a fasta file
-
-    Parameters
-    ----------
-    file : text file
-        the text fasta file to process
-
-    Returns
-    -------
-    seqs : list of str sequences (ACGT)
-        the sequences in the fasta file
-    '''
-    debug(1, 'reading fasta file')
-    seqs = []
-    cseq = ''
-    isfasta = False
-    for cline in file:
-        cline = cline.strip()
-        if cline[0] == '>':
-            isfasta = True
-            if cseq:
-                seqs.append(cseq)
-            cseq = ''
-        else:
-            cseq += cline
-    # process the last sequence
-    if cseq:
-        seqs.append(cseq)
-
-    # test if we encountered '>'
-    if not isfasta:
-        debug(2, 'not a fasta file')
-        return None
-
-    debug(1, 'read %d sequences' % len(seqs))
-    return seqs
 
 
 @Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
