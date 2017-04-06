@@ -1,10 +1,22 @@
+<style>
+  #seq-list-tbl tr td:first-child {
+    width: 200px;
+    overflow: auto;
+  }
+  #seq-list-tbl tr td:nth-child(2) {
+    overflow: auto;
+  }
+  #seq-list-tbl tr td:last-child {
+    width: 100px;
+  }
+</style>
 <h2>Sequences</h2>
-<table>
-<col width='40%'>
-<col width='40%'>
-<col width='20%'>
-<tr>
-<th>Taxonomy</th>
-<th>Sequence</th>
-<th>Num. Annotations</th>
-</tr>
+<table id="seq-list-tbl" style="width: calc(100vh - 40px); table-layout: fixed;">
+  <col width="200px">
+  <col>
+  <col width="75px">
+  <tr>
+    <th>Taxonomy</th>
+    <th>Sequence</th>
+    <th>No. annots</th>
+  </tr>
