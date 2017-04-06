@@ -1,0 +1,20 @@
+<style>
+  #err-panel {
+    margin-left: 100px;
+    margin-right: 100px;
+  }
+  #err-box {
+    padding: 20px;
+    overflow: auto;
+  }
+</style>
+<div id="err-panel" class="panel panel-warning">
+  <div class="panel-heading">
+    <i class="glyphicon glyphicon-exclamation-sign"></i>&nbsp;
+    {{title}}
+    <span style="float: right;"><button class="btn btn-default btn-xs" title="Go back" onclick="window.history.back();"><i class="glyphicon glyphicon glyphicon-arrow-left"></i></button></span>
+  </div>
+  <div id="err-box" class="panel-body">
+    {{message}}
+  </div>
+</div>
