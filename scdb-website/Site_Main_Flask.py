@@ -324,7 +324,7 @@ def annotation_info(annotationid):
     rdata = {}
     expid = annotation['expid']
     rdata['expId'] = expid
-    webPage = render_template('header.html')
+    webPage = render_template('header.html', title='Annotation %s' % annotationid)
     webPage += render_template('annotationinfo.html', annotationid=annotationid)
     res = requests.get(scbd_server_address + '/experiments/get_details', json=rdata)
     if res.status_code == 200:
@@ -365,12 +365,15 @@ def annotation_info(annotationid):
     else:
         parents = res.json().get('parents')
         debug(1, 'found %d parent groups for annotationid %d' % (len(parents), annotationid))
+    webPage += '<div style="margin: 20px"><blockquote style="font-size: 1em;">'
     for ctype, cparents in parents.items():
         cparents = list(set(cparents))
-        webPage += ctype + ':'
+        webPage += '<p>%s: ' % ctype
         for cparentname in cparents:
             webPage += '<a href=' + urllib.parse.quote('../ontology_info/' + str(cparentname)) + '>' + cparentname + '</a> '
-        webPage += '<br>'
+        webPage += '</p>'
+    webPage += '</blockquote></div>'
+    webPage += render_template('footer.html')
     return webPage
 
 
@@ -388,7 +391,7 @@ def draw_download_fasta_button(annotationid):
     webPage : str
         html for the download button with the link to the fasta file download page
     '''
-    webPage = '<input type="button" onclick="location.href=\'%s\';" value="Download fasta" />' % url_for('.annotation_seq_download', annotationid=annotationid)
+    webPage = '<div style="margin: 20px"><button class="btn btn-default" onclick="location.href=\'%s\';"><i class="glyphicon glyphicon-download-alt"></i> Download FASTA</button></div>' % url_for('.annotation_seq_download', annotationid=annotationid)
     return webPage
 
 
@@ -442,7 +445,7 @@ def annotations_list():
         debug(6, msg)
         return msg, msg
     webPage = render_template('header.html', title='dbBact annotation list')
-    webPage += '<h3 style="margin-left: 20px;">dbBact Annotations List</h3>'
+    webPage += '<h2>dbBact Annotation List</h2>'
     annotations = res.json()['annotations']
     for cannotation in annotations:
         cannotation['website_sequences'] = [-1]
@@ -654,7 +657,7 @@ def annotation_seqs(annotationid):
     shortdesc = getannotationstrings(annotation)
     webPage = render_template('header.html')
     webPage += render_template('annotationsequences.html', annotationid=annotationid)
-    webPage += shortdesc
+    webPage += '<div style="margin: 20px;"><blockquote style="font-size: 1em;"><p>%s</p></blockquote></div>\n' % shortdesc
 
     webPage += '<h2>Download</h2>'
     webPage += draw_download_fasta_button(annotationid)
@@ -768,7 +771,7 @@ def user_info(userid):
         desc = userInfo.get('description', '')
         email = userInfo.get('email', '-')
 
-        webPage = render_template('header.html')
+        webPage = render_template('header.html', title=username)
         webPage += render_template('userinfo.html', userid=userid, name=name, username=username, desc=desc, email=email)
 
         # get user annotation
@@ -776,11 +779,15 @@ def user_info(userid):
         httpRes = requests.get(scbd_server_address + '/users/get_user_annotations', json=forUserId)
         if httpRes.status_code == 200:
             webPage += draw_annotation_details(httpRes.json().get('userannotations'))
-        webPage += "</body></html>"
+        webPage += render_template('footer.html')
+        return webPage
     else:
-        webPage = "Failed to get user information<br>"
-        webPage += '%s' % httpRes.content
-    return webPage
+        message = Markup('Failed to get user information:<br><br><blockquote><code>%s</code></blockquote>'
+                         % httpRes.content)
+        return(render_template('header.html', title='Not found') +
+               render_template('error.html', title='Not found',
+                               message=message) +
+               render_template('footer.html'))
 
 
 def draw_annotation_details(annotations, term_info=None):
