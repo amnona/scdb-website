@@ -730,7 +730,7 @@ def recover_user_password():
     json_user['user']=usermail
     json_user['recoverycode']=recoverycode
     json_user['newpassword']=newpassword
-    
+
     httpRes=requests.post(scbd_server_address +'/users/recover_password',json=json_user)
     if httpRes.status_code==200:
         webpage = render_template('done_success.html')
@@ -805,14 +805,21 @@ def draw_annotation_details(annotations, term_info=None):
     # draw the annotations table
     wpart += draw_annotations_table(annotations)
 
+    wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
+
     # draw the ontlogy terms list
     common_terms = get_common_terms(annotations)
+    wpart += '<table style="width: 100%;">\n'
+    wpart += '<col><col width="75px">\n'
     for cterm in common_terms:
-        wpart += '<a href=%s>%s</a>: %d<br>' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
+        wpart += '<tr><td><a href=%s>%s</a></td><td>%d</td></tr>\n' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
         # wpart += '<a href=' + urllib.parse.quote(relpath + 'ontology_info/' + cterm[0]) + '>%s</a>: %d <br>' % (cterm[0], cterm[1])
+    wpart += '</table>\n'
+    wpart += '</div>\n'
 
     # draw the ontology term relative frequencies
     if term_info is not None:
+        wpart += '<table>\n'
         for cterm, cinfo in term_info.items():
             if cinfo['total_annotations'] is None:
                 debug(4, 'missing info total_annotations for %s' % cterm)
@@ -820,8 +827,8 @@ def draw_annotation_details(annotations, term_info=None):
             if cinfo['total_sequences'] is None:
                 debug(4, 'missing info total_sequences for %s' % cterm)
                 continue
-            wpart += '%s : %d, %d<br>' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
-
+            wpart += '<tr><td>%s : %d, %d</td></tr>\n' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
+        wpart += '</table>\n'
     return wpart
 
 
@@ -895,7 +902,7 @@ def draw_annotations_table(annotations):
     # the table header and css
     wpart += render_template('annotations_table.html')
     for dataRow in annotations:
-        wpart += "<tr>"
+        wpart += '  <tr>'
         # add the experimentid info+link
         expid = dataRow.get('expid', 'not found')
         wpart += "<td><a href=%s>%s</a></td>" % (url_for('.experiment_info', expid=expid), expid)
@@ -923,8 +930,8 @@ def draw_annotations_table(annotations):
             observed_sequences = '?'
             sequences_string = '%s' % num_sequences
         wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_seqs', annotationid=annotationid), sequences_string)
-        wpart += '</tr>'
-    wpart += "</table>"
+        wpart += '</tr>\n'
+    wpart += '</table>\n'
     return wpart
 
 

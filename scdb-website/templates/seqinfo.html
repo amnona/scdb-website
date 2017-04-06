@@ -1,4 +1,39 @@
-<br>
-Search results for sequence: {{sequence}}<br>
-Taxonomy: {{taxonomy}}<br>
-
+<style>
+  #seq-panel {
+    margin-left: 100px;
+    margin-right: 100px;
+  }
+  #seq-box {
+    padding: 20px;
+    overflow: auto;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 20px;
+  }
+</style>
+<div id="seq-panel" class="panel panel-default">
+  <div class="panel-heading">
+    Search result for sequence:
+  </div>
+  <div id="seq-box" class="panel-body">
+    {{sequence}}
+  </div>
+  <div class="panel-footer">
+    Taxonomy: {{taxonomy}}
+  </div>
+</div>
+<script>
+  var nt2rgb = {
+    'A': '#15c015',
+    'T': '#f01505',
+    'C': '#80a0f0',
+    'G': '#c0c000'
+  };
+  $('#seq-box').html($('#seq-box').html().split('').map(function(nt) {
+    if (nt in nt2rgb) {
+      return '<span style="color: ' + nt2rgb[nt] + ';">' + nt + '</span>';
+    } else {
+      return nt;
+    }
+  }).join(''));
+</script>
