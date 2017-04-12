@@ -25,7 +25,10 @@ def get_db_address():
     server_address : str
         the supercooldb server web address based on the env. variable
     '''
-    if 'SCDB_WEBSITE_TYPE' in os.environ:
+    if 'OPENU_FLAG' in os.environ:
+            debug(1, 'servertype is openu')
+            server_address = 'http://0.0.0.0:5001'
+    elif 'SCDB_WEBSITE_TYPE' in os.environ:
         servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
         if servertype == 'local':
             debug(1, 'servertype is local')
