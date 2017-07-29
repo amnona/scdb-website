@@ -59,9 +59,13 @@ def getannotationstrings2(cann):
 
 
 def get_seq_annotations_fast(sequences):
+    import os
     rdata = {}
     rdata['sequences'] = sequences
-    res = requests.get('http://dbbact.org/REST-API/sequences/get_fast_annotations', json=rdata)
+    if 'OPENU_FLAG' in os.environ:
+        res = requests.get('http://0.0.0.0:5001/sequences/get_fast_annotations', json=rdata)
+    else:
+        res = requests.get('http://dbbact.org/REST-API/sequences/get_fast_annotations', json=rdata)
     if res.status_code != 200:
         debug(5, 'error getting fast annotations for sequence list')
         return None, None, None
