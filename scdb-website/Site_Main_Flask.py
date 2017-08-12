@@ -1225,3 +1225,36 @@ def error_message(title, message):
            render_template('error.html', title=title,
                            message=Markup(message)) +
            render_template('footer.html'))
+
+
+"""
+Auto complete tests
+"""
+@Site_Main_Flask_Obj.route('/auto_complete_test', methods=['POST', 'GET'])
+def auto_complete_test():
+    """
+    Title: About us
+    URL: /about
+    Method: POST
+    """
+    
+    res = requests.get(get_db_address() + '/ontology/get_all_descriptions')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of ontologies')
+           parents = []
+    else:
+           import json
+           list_of_ont = json.dumps(res.json())
+           
+    
+    webpage = render_template('demo-autocomplete.html',ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
+    return webpage
+
+
+def error_message(title, message):
+    '''
+    '''
+    return(render_template('header.html', title=title) +
+           render_template('error.html', title=title,
+                           message=Markup(message)) +
+           render_template('footer.html'))
