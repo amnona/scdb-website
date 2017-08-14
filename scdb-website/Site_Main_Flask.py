@@ -1245,9 +1245,16 @@ def auto_complete_test():
     else:
            import json
            list_of_ont = json.dumps(res.json())
-           
     
-    webpage = render_template('demo-autocomplete.html',ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
+    res = requests.get(get_db_address() + '/ontology/get_all_synonyms')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of synonyms')
+           parents = []
+    else:
+           import json
+           list_of_synonym = json.dumps(res.json())
+    
+    webpage = render_template('demo-autocomplete.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
     return webpage
 
 

@@ -47,7 +47,8 @@
     <script>
 
         var data = {
-            ontologies: {{ont_list|safe}}
+            ontologies: {{ont_list|safe}},
+            synonym:     {{syn_list|safe}}
         };
 
         typeof $.typeahead === 'function' && $.typeahead({
@@ -55,7 +56,7 @@
             minLength: 1,
             order: "asc",
             group: true,
-            maxItemPerGroup: 10,
+            maxItemPerGroup: 3,
             groupOrder: function () {
 
                 var scope = this,
@@ -90,6 +91,9 @@
             source: {
                 ontology: {
                     data: data.ontologies
+                },
+                synonym: {
+                    data: data.synonym
                 }
             },
             callback: {
