@@ -791,6 +791,7 @@ def forgot_password_submit():
         webpage = render_template('done_fail.html', mes='Failed to reset password', error=httpRes.text)
     return webpage
 
+
 @Site_Main_Flask_Obj.route('/recover_user_password',methods=['POST','GET'])
 def recover_user_password():
     """
@@ -980,6 +981,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
             # but we have 1 fish annotation)
             if term_info[cterm]['total_annotations'] < 4:
                 debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotations']))
+                continue
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
         # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
