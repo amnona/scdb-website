@@ -304,8 +304,9 @@ def draw_sequences_annotations_compact(seqs):
     annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
 
     webPage = render_template('header.html')
-    webPage += '<h2>Annotations for sequence list:</h2>'
-    webPage += draw_annotation_details(annotations, term_info=term_info)
+    webPage += '<h2>Annotations for sequence list relative freq:</h2>'
+    # webPage += draw_annotation_details(annotations, term_info=term_info)
+    webPage += draw_annotation_details(annotations, term_info=term_info, show_relative_freqs=True)
     webPage += render_template('footer.html')
     return '', webPage
 
@@ -823,6 +824,7 @@ def recover_user_password():
         webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
     return webpage
 
+
 @Site_Main_Flask_Obj.route('/user_info/<int:userid>')
 def user_info(userid):
     """
@@ -867,11 +869,12 @@ def user_info(userid):
                render_template('footer.html'))
 
 
-def draw_annotation_details(annotations, term_info=None):
+def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False):
     '''
-    create table entries for a list of annotations
+    Create table entries for a list of annotations
 
-    input:
+    Parameters
+    ----------
     annotations : list of dict of annotation details (from REST API)
     term_info : dict of dict or None (optional)
         None (default) to skip relative word cloud.
@@ -881,8 +884,14 @@ def draw_annotation_details(annotations, term_info=None):
             dict: pairs of:
                 'total_annotations' : int
                 'total_sequences' : int
+    show_relative_freqs: bool (optional)
+        False to draw absolute term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations)
+        True to draw relative term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
 
-    output:
+    Returns
+    -------
     wpart : str
         html code for the annotations table
     '''
@@ -890,7 +899,7 @@ def draw_annotation_details(annotations, term_info=None):
     wpart = ''
 
     # draw the wordcloud
-    wpart += draw_wordcloud(annotations, term_info)
+    wpart += draw_wordcloud(annotations, term_info, show_relative_freqs=show_relative_freqs)
 
     wpart += render_template('tabs.html')
 
@@ -907,7 +916,7 @@ def draw_annotation_details(annotations, term_info=None):
     return wpart
 
 
-def draw_wordcloud(annotations, term_info=None):
+def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
     '''
     draw the wordcloud (image embedded in the html)
 
@@ -917,6 +926,11 @@ def draw_wordcloud(annotations, term_info=None):
         The list of annotations to process for annotation ontology terms
     term_info: dict or None
         a dict with the total annotations per ontology term or None to skip relative abundance word cloud
+    show_relative_freqs: bool (optional)
+        False to draw absolute term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations)
+        True to draw relative term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
 
     Returns
     -------
@@ -949,6 +963,8 @@ def draw_wordcloud(annotations, term_info=None):
                 if 'website_sequences' in cannotation:
                     num_low_term[orig_term] += len(cannotation['website_sequences'])
                     num_term[orig_term] += len(cannotation['website_sequences'])
+
+    # calculate the relative enrichment of each term (if term_info is supplied)
     term_frac = None
     if term_info is not None:
         debug(1, 'drawing relative frequencies wordcloud')
@@ -958,14 +974,26 @@ def draw_wordcloud(annotations, term_info=None):
             if cterm not in term_info:
                 debug(2, 'term %s not in term_info!' % cterm)
                 continue
+            # if we don't have enough statistics about the term, ignore it
+            # so we need at least 4 annotations with this term.
+            # Otherwise we get a lot of discretization effect (i.e. 100% of the times we observe this term are fish,
+            # but we have 1 fish annotation)
+            if term_info[cterm]['total_annotations'] < 4:
+                debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotationsl']))
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
         # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
         # wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
 
-    # do the absolute number word cloud
-    debug(1, 'drawing absolute count wordcloud')
-    wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+    if show_relative_freqs:
+        debug(1, 'drawing relative freq. wordcloud')
+        # draw relative frequencies
+        wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+    else:
+        debug(1, 'drawing absolute count wordcloud')
+        # draw absolute frequencies
+        wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+
     wordcloudimage=urllib.parse.quote(wordcloud_image)
     if wordcloudimage:
         wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
@@ -1117,7 +1145,34 @@ def get_common_terms(annotations):
     return common_terms
 
 
-def get_color(word, font_size, position, orientation, font_path, random_state, num_high_term=None, num_low_term=None, term_frac=None):
+def _get_color(word, font_size, position, orientation, font_path, random_state, num_high_term=None, num_low_term=None, term_frac=None):
+    '''Get the color for a given ontology term in the word cloud
+    The color depends on whether the term was observed in 'higher in' or 'lower in' (or both or none)
+    if only higher in - green
+    if only lower in - red
+    if both - yellow
+    if none (i.e. all annotations with this term in our annotation set are 'all') - black
+
+    Intensity depends on the tern_frac for this tern
+
+    This function is used by WordCloud
+
+    Parameters
+    ----------
+    word : str
+        The term (word) to determine the color for
+    num_high_term : dict of {str: int} (optional)
+        The number of times the term (key) was observed as 'higher in'
+    num_low_term : dict of {str: int} (optional)
+        The number of times the term (key) was observed as 'lower in'
+    term_frac : dict of {str: float} (optional)
+        The fraction of times we observed this term (key) in our annotations
+        out of total annotations containing the term (key) in the database
+
+    Returns
+    -------
+    str of hex formatted color (i.e. '#00FFAC')
+    '''
     # debug(1,**kwargs)
     clevel = hex(200)[2:]
     if term_frac is not None:
@@ -1125,22 +1180,22 @@ def get_color(word, font_size, position, orientation, font_path, random_state, n
             clevel = format(int(155 + 100 * term_frac[word]), '02x')
     if num_high_term is None:
         return '#0000' + clevel
-        return '#0000ff'
+        # return '#0000ff'
     if num_low_term is None:
         return '#0000' + clevel
-        return '#0000ff'
+        # return '#0000ff'
     if word in num_high_term:
         if word in num_low_term:
             return '#' + clevel + clevel + '00'
-            return '#999900'
+            # return '#999900'
         return '#00' + clevel + '00'
-        return '#00ff00'
+        # return '#00ff00'
     else:
         if word in num_low_term:
             return '#' + clevel + '0000'
-            return '#ff0000'
+            # return '#ff0000'
         return '#0000' + clevel
-        return '#0000ff'
+        # return '#0000ff'
 
 
 def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
@@ -1151,7 +1206,14 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
     ----------
     words : str or dict
         If str, the terms (each replicated according to it's frequency).
-        If dict, key is term and value is the frequency.
+        If dict, key is term and value is the number of times we observed this term (or relative frequency)
+    num_high_term : dict of {str: int} (optional)
+        The number of times the term (key) was observed as 'higher in'
+    num_low_term : dict of {str: int} (optional)
+        The number of times the term (key) was observed as 'lower in'
+    term_frac : dict of {str: float} (optional)
+        The fraction of times we observed this term (key) in our annotations
+        out of total annotations containing the term (key) in the database
 
     Returns
     -------
@@ -1174,7 +1236,7 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
         for ckey, cval in term_frac.items():
             term_frac[ckey] = term_frac[ckey] / maxval
 
-    wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
+    wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
     if isinstance(words, str):
         debug(1, 'generating from words list')
         wordcloud = wc.generate(words)
