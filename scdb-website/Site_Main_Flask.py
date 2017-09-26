@@ -979,7 +979,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
             # Otherwise we get a lot of discretization effect (i.e. 100% of the times we observe this term are fish,
             # but we have 1 fish annotation)
             if term_info[cterm]['total_annotations'] < 4:
-                debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotationsl']))
+                debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotations']))
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
         # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
