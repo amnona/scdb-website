@@ -1010,7 +1010,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
                 debug(4,'numterm for %s is 0' % cterm)
                 continue
             # we use -2 to give lower weight to low. num
-            term_frac[cterm] = (num_term[cterm] - 2) / term_info[cterm]['total_annotations']
+            term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
         # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
         # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
         # wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
