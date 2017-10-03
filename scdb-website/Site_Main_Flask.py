@@ -1298,9 +1298,10 @@ def get_term_info_for_annotations(annotations):
     '''
     terms = get_annotations_terms(annotations)
     res = requests.get(get_db_address() + '/ontology/get_term_stats', json={'terms': terms})
-    ans = res.json()
-    term_info = ans.get('term_info')
-    return term_info
+    # ans = res.json()
+    # term_info = ans.get('term_info')
+    # return term_info
+    return None
 
 
 @Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
