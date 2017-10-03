@@ -1297,7 +1297,10 @@ def get_term_info_for_annotations(annotations):
     The statistics about each term
     '''
     terms = get_annotations_terms(annotations)
-    return None
+    res = requests.get(get_db_address() + '/ontology/get_term_stats', json={'terms': terms})
+    ans = res.json()
+    term_info = ans.get('term_info')
+    return term_info
 
 
 @Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
