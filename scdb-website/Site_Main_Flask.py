@@ -966,6 +966,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
     # draw the wordcloud
     # termstr = ''
     # total frequencies of each term (not only leaves) in dbbact
+
     num_term = defaultdict(int)
     num_low_term = defaultdict(int)
     num_high_term = defaultdict(int)
@@ -1021,6 +1022,8 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
             debug(4, 'not enough info for relative freq - switching to absolute')
             wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
         else:
+            print('term frac:')
+            print(term_frac)
             wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
     else:
         debug(1, 'drawing absolute count wordcloud')
