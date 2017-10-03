@@ -1023,6 +1023,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
             wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
         else:
             print('term frac:')
+            print(num_term)
             print(term_frac)
             wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
     else:
