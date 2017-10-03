@@ -209,7 +209,7 @@ def sequence_annotations(sequence):
                 cannotation['website_sequences'] = [0]
             annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
             term_info = get_term_info_for_annotations(annotations)
-            webPage += draw_annotation_details(annotations, term_info)
+            webPage += draw_annotation_details(annotations, term_info, show_relative_freqs=True)
     webPage += render_template('footer.html')
     return webPage
 
