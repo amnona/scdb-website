@@ -1302,10 +1302,7 @@ def get_term_info_for_annotations(annotations):
     if res.status_code != 200:
         debug(6, 'error encountered in get_term_stats: %s' % res.reason)
         return []
-    print('res is')
-    print(res)
     ans = res.json()
-    print(ans)
     term_info = ans.get('term_info')
     return term_info
 
