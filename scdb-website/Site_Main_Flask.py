@@ -1014,7 +1014,11 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
     if show_relative_freqs:
         debug(1, 'drawing relative freq. wordcloud')
         # draw relative frequencies
-        wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+        if len(term_frac) == 0:
+            debug(4, 'not enough info for relative freq - switching to absolute')
+            wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+        else:
+            wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
     else:
         debug(1, 'drawing absolute count wordcloud')
         # draw absolute frequencies
