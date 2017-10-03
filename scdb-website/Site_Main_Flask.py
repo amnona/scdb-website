@@ -208,9 +208,31 @@ def sequence_annotations(sequence):
             for cannotation in annotations:
                 cannotation['website_sequences'] = [0]
             annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
-            webPage += draw_annotation_details(annotations)
+            term_info = get_term_info_for_annotations(annotations)
+            webPage += draw_annotation_details(annotations, term_info)
     webPage += render_template('footer.html')
     return webPage
+
+
+def get_annotations_terms(annotations):
+    '''
+    Get a list of terms present in the annotations
+
+    Parameters
+    ----------
+    annotations : list of annotations
+
+    Returns
+    -------
+    terms : list of str
+    list of terms from all annotations (each term appears once)
+    '''
+    terms = set()
+    for cannotation in annotations:
+        details = cannotation['details']
+        for cdetail in details:
+            terms.add(cdetail[1])
+    terms = list(terms)
 
 
 def draw_sequences_annotations(seqs):
@@ -1259,6 +1281,23 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
     figdata_png = base64.b64encode(figfile.getvalue())
     figfile.close()
     return figdata_png
+
+
+def get_term_info_for_annotations(annotations):
+    '''
+    Get the statistics about each term in annotations
+
+    Parameters
+    ----------
+    annotations: list of annotations
+
+    Returns
+    -------
+    term_info: dict of XXX
+    The statistics about each term
+    '''
+    terms = get_annotations_terms(annotations)
+    return None
 
 
 @Site_Main_Flask_Obj.route('/reset_password', methods=['POST', 'GET'])
