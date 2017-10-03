@@ -233,6 +233,7 @@ def get_annotations_terms(annotations):
         for cdetail in details:
             terms.add(cdetail[1])
     terms = list(terms)
+    return terms
 
 
 def draw_sequences_annotations(seqs):
