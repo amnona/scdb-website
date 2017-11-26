@@ -1,0 +1,455 @@
+<!doctype html>
+
+<html lang="en">
+    
+    
+<head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="{{url_for('static', filename = 'jquery.typeahead.css')}}">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <!--script src="../dist/jquery.typeahead.min.js"></script-->
+    <script src="{{url_for('static', filename = 'jquery.typeahead.js')}}"></script>
+
+    <script>
+    
+    var expNameArray = new Array();
+    var expValueArray = new Array();
+    var ontNameArray = new Array();
+    var ontDetTypeArray = new Array();
+        
+    function validateForm(){
+        var expLb = document.getElementById('expList');
+        var ontLb = document.getElementById('ontList');
+        
+        var hiddenExpNameInfo = document.getElementById('hiddenExpNameId');
+        var hiddenExpValueInfo = document.getElementById('hiddenExpValueId');
+        var hiddenOntNameInfo = document.getElementById('hiddenOntNameId');
+        var hiddenOntTypeInfo = document.getElementById('hiddenOntTypeId');
+        var hiddenOntDetTypeInfo = document.getElementById('hiddenOntDetTypeId');
+        
+        if( expLb.options.length <= 0 )
+        {
+            alert('Experience details are missing');
+            return false;
+        }
+        
+        if( ontLb.options.length <= 0 )
+        {
+            alert('Ontology details are missing');
+            return false;
+        }
+        
+        if( expNameArray.length != expValueArray.length )
+        {
+            alert('Wrong experience list');
+            return false;
+        }
+        
+        //if( ontNameArray.length != ontTypeArray.length || ontNameArray.length != ontDetTypeArray.length )
+        if( ontNameArray.length != ontDetTypeArray.length )
+        {
+            alert('Wrong ontology list');
+            return false;
+        }
+        
+        for (var i=0; i < expNameArray.length; i++) {
+            if( i == 0 )
+            {
+                hiddenExpNameInfo.value = expNameArray[i];
+                hiddenExpValueInfo.value = expValueArray[i];
+            }
+            else
+            {
+                hiddenExpNameInfo.value = hiddenExpNameInfo.value + ";" + expNameArray[i];
+                hiddenExpValueInfo.value = hiddenExpValueInfo.value + ";" + expValueArray[i];
+            }
+        }    
+
+        for (var i=0; i < ontNameArray.length; i++) {
+            if( i == 0 )
+            {
+                hiddenOntNameInfo.value = ontNameArray[i];
+                hiddenOntDetTypeInfo.value = ontDetTypeArray[i];
+            }
+            else
+            {
+                hiddenOntNameInfo.value = hiddenOntNameInfo.value + ";" + ontNameArray[i];
+                hiddenOntDetTypeInfo.value = hiddenOntDetTypeInfo.value + ";" + ontDetTypeArray[i];
+            }
+        }    
+        
+        //Differential or is a
+        var typeVal;
+        var cbValue1;
+        var stringRb1;
+        var isARb=document.getElementById('isARb');
+        var diffRb=document.getElementById('diffRb');
+        var isALb=document.getElementById('isAList');
+        if(isARb.checked)
+        {
+            cbValue1 = 0 ; //is A
+            stringRb1 = 'Is a ' + isALb.options[isALb.selectedIndex].text;
+            if( isALb.selectedIndex == 0 )
+                typeVal = "contamination";
+            else if( isALb.selectedIndex == 1 )
+                typeVal = "common";
+            else if( isALb.selectedIndex == 2 )
+                typeVal = "highfreq";
+            else if( isALb.selectedIndex == 3 )
+                typeVal = "other";
+        }
+        else if (diffRb.checked)
+        {
+            cbValue1 = 1 ; //Differetial presence
+            stringRb1 = 'Differetial presence';
+            typeVal = "diffexp";
+        }
+        else
+        {
+            alert('Please check one of the radio buttons: \'Is A\' or \'Differetial presence\'');
+            return false;
+        }
+        hiddenOntTypeInfo.value = typeVal;
+        return true;
+        
+        //ontTypeArray.push(typeVal);
+
+        /*
+        for (var i=0; i < ontLb.options.length; i++) {
+            if( i == 0 )
+                hiddenOntInfo.value = ontLb.options[i].value;
+            else
+                hiddenOntInfo.value = hiddenOntInfo.value + ";" + ontLb.options[i].value;
+        }
+        */
+        
+        
+        //var fastaFile = document.getElementById('fastaFileTb');
+        //alert(fastaFile.text);
+        //check if fast file exist
+        //File file = new File(fastaFile.text);
+        //if(file.exists() == false)
+        //{
+        //    alert('Fasta file doesn\'t exist');
+        //    return false;
+        //}
+        /*
+        var expLb = document.getElementById('expList');
+        var ontLb = document.getElementById('ontList');
+        var hiddenExpInfo = document.getElementById('hiddenExpId');
+        var hiddenOntInfo = document.getElementById('hiddenOntId');
+        
+        
+        if( expLb.options.length <= 0 )
+        {
+            alert('Experience details are missing');
+            return false;
+        }
+        
+        if( ontLb.options.length <= 0 )
+        {
+            alert('Ontology details are missing');
+            return false;
+        }
+        
+        for (var i=0; i < expLb.options.length; i++) {
+            if( i == 0 )
+                hiddenExpInfo.value = expLb.options[i].value;
+            else
+                hiddenExpInfo.value = hiddenExpInfo.value + ";" + expLb.options[i].value;
+        }
+        
+        for (var i=0; i < ontLb.options.length; i++) {
+            if( i == 0 )
+                hiddenOntInfo.value = ontLb.options[i].value;
+            else
+                hiddenOntInfo.value = hiddenOntInfo.value + ";" + ontLb.options[i].value;
+        }
+        */
+    }
+        
+    function addExpToList(){
+        var expName=document.getElementById('expNameTb').value.toLowerCase();
+        var expValue=document.getElementById('expValueTb').value.toLowerCase();
+        
+        
+        if (expName.length < 1 && expValue.length < 1)
+        {
+            alert('Experience name and value can\'t be empty');
+            return;
+        }
+        
+        document.getElementById('expNameTb').value = '';
+        document.getElementById('expValueTb').value = '';
+        
+        var selectLb = document.getElementById('expList');
+        selectLb.options[selectLb.options.length] = new Option(expName + ": " + expValue , expName + ";" + expValue );
+        
+        expNameArray.push(expName);
+        expValueArray.push(expValue);
+    }
+    
+    //Add it ot the list
+    //var hiddenExpName = document.getElementById('hiddenExpNameId[]');        
+    //var hiddenExpValue = document.getElementById('hiddenExpValueId[]');
+        
+    //hiddenExpName.add(expName);
+    //hiddenExpName.add(expValue);
+        
+    function ontRemoveSelected(){
+        var selectLb = document.getElementById('ontList');
+        lbSelectedIndex = selectLb.selectedIndex;
+            
+        if( lbSelectedIndex < 0 )
+        {
+            alert('Item need to be selected first');
+        }
+        selectLb.removeChild(selectLb[lbSelectedIndex]);
+        
+        //Remove from array
+        ontNameArray.splice(lbSelectedIndex,1);
+        ontDetTypeArray.splice(lbSelectedIndex,1);
+    }
+    
+    function expRemoveSelected(){
+        
+        var selectLb = document.getElementById('expList');
+        lbSelectedIndex = selectLb.selectedIndex;
+            
+        if( lbSelectedIndex < 0 )
+        {
+            alert('Item need to be selected first');
+        }
+        selectLb.removeChild(selectLb[lbSelectedIndex]);
+        
+        
+        //Remove from array
+        expNameArray.splice(lbSelectedIndex,1);
+        expValueArray.splice(lbSelectedIndex,1);
+    }
+        
+    function addOntToList(){
+        var ontName=document.getElementById('ontTb').value;
+        var ontNameObj=document.getElementById('ontTb');
+        if (ontName.length < 1)
+        {
+            alert('Ontology can\'t be empty');
+            return;
+        }
+        
+        var allRb=document.getElementById('allRb');
+        var highRb=document.getElementById('highRb');
+        var lowRb=document.getElementById('lowRb');
+        
+        var isALb=document.getElementById('isAList');
+        
+        var stringRb1;
+        var stringRb2;
+        var typeVal;
+        var detTypeVal;
+        
+        var cbValue2;
+        var cbValue1;
+        
+        if(allRb.checked)
+        {
+            cbValue2 = 0 ; //all
+            stringRb2 = "All";
+            detTypeVal = "all";
+        }
+        else if (highRb.checked)
+        {
+            cbValue2 = 1 ; //high
+            stringRb2 = "High";
+            detTypeVal = "high";
+        }
+        else if (lowRb.checked )
+        {
+            cbValue2 = 2 ; //low
+            stringRb2 = "Low";
+            detTypeVal = "low";
+        }
+        else
+        {
+            alert('on of the radio buttons: \'All\' , \'High\' or \'Low\' , High or ');
+            return;
+        }
+        
+        var isARb=document.getElementById('isARb');
+        var diffRb=document.getElementById('diffRb');
+
+        if(isARb.checked)
+        {
+            cbValue1 = 0 ; //is A
+            stringRb1 = 'Is a ' + isALb.options[isALb.selectedIndex].text;
+            if( isALb.selectedIndex == 0 )
+                typeVal = "contamination";
+            else if( isALb.selectedIndex == 1 )
+                typeVal = "common";
+            else if( isALb.selectedIndex == 2 )
+                typeVal = "highfreq";
+            else if( isALb.selectedIndex == 3 )
+                typeVal = "other";
+        }
+        else if (diffRb.checked)
+        {
+            cbValue1 = 1 ; //Differetial presence
+            stringRb1 = 'Differetial presence';
+            typeVal = "diffexp";
+        }
+        else
+        {
+            alert('Please check one of the radio buttons: \'Is A\' or \'Differetial presence\'');
+            return;
+        }
+        
+        var ontLb = document.getElementById('ontList');
+        ontLb.options[ontLb.options.length] = new Option(stringRb2 + ": " + ontName );
+        
+        //Remove from array
+        ontNameArray.push(ontName);
+        ontDetTypeArray.push(detTypeVal);
+        
+        //Clear the text box
+        ontNameObj.value = '';
+
+    }
+</script>
+</head>
+<body>
+
+<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+    <form onsubmit="return validateForm()" action="add_data_results" method='post' enctype = "multipart/form-data">
+        
+        <input type = "hidden" name = "hiddenExpName" id="hiddenExpNameId" />
+        <input type = "hidden" name = "hiddenExpValue" id="hiddenExpValueId" />
+        
+        <input type = "hidden" name = "hiddenOntName" id="hiddenOntNameId" />
+        <input type = "hidden" name = "hiddenOntType" id="hiddenOntTypeId" />
+        <input type = "hidden" name = "hiddenOntDetType" id="hiddenOntDetTypeId" />
+
+        
+        <center><img src="static/add_data_label.png"></center>
+        <hr>
+        <h1>Fasta File</h1>    
+        <input type = "file" name = "fastaFileTb" />
+        <hr>
+        <h1>Experience Details</h1>
+        Name: <input type = "text" id = "expNameTb" /><br>
+        Value: <input type = "text" id = "expValueTb" /><br><br>
+        <select name="expList1" id="expList" size="6" style="width: 500px; font-size: 17px;" multiple>
+        </select><br>
+        <img src="static/add_but.png" onclick="addExpToList();" id = "expPlus" style="margin:0px; padding:5px;" />
+        <img src="static/remove_but.png" onclick="expRemoveSelected();" id = "expMinus" style="margin:0px; padding:5px;"/>
+        <hr>
+        <h1>Annotations</h1>
+        <div class="js-result-container"></div>
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+            <span class="typeahead__query">
+                <input class="js-typeahead"
+                       id ="ontTb"
+                       name="q"
+                       type="search"
+                       autofocus
+                       autocomplete="off">
+            </span>
+            </div>
+        </div><br>
+    
+        <input type="radio" name="ontType" id="isARb" checked="True">
+        <label>Is A</label>
+        <select id="isAList" style="width: 220px; font-size: 14px;">
+        <option value="contaminant">Contaminant</option>
+        <option value="common">Common (>0.5 samples)</option>
+        <option value="high">High freq (>1% reads)</option>
+        <option value="other">Other</option>
+        </select><br>
+        <input type="radio" name="ontType" id="diffRb">
+        <label>Differetial presence</label><br>    
+        <br>
+        
+        <input type="radio" name="groupRb1" id="allRb" checked="True">
+        <label>All</label>
+        <input type="radio" name="groupRb1" id="highRb">
+        <label>High</label>
+        <input type="radio" name="groupRb1" id="lowRb">
+        <label>Low</label>
+        <br>
+        
+        <select id="ontList" size="8" style="width: 500px; font-size: 17px;">
+        </select><br>
+        <img src="static/add_but.png" onclick="addOntToList();" id = "ontPlus" style="margin:0px; padding:5px;" />
+        <img src="static/remove_but.png" onclick="ontRemoveSelected();" id = "ontMinus" style="margin:0px; padding:5px;"/>
+        <br><br>
+        <hr>
+        
+        <input type="image" src="static/submit_but.png" alt="Submit Form" style="max-width: 20%; height:auto;" />
+    </form>
+
+    <script>
+
+        var data = {
+            ontologies: {{ont_list|safe}},
+            synonym:     {{syn_list|safe}}
+        };
+
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead",
+            minLength: 1,
+            order: "asc",
+            group: true,
+            maxItemPerGroup: 3,
+            groupOrder: function () {
+
+                var scope = this,
+                    sortGroup = [];
+
+                for (var i in this.result) {
+                    sortGroup.push({
+                        group: i,
+                        length: this.result[i].length
+                    });
+                }
+
+                sortGroup.sort(
+                    scope.helper.sort(
+                        ["length"],
+                        false, // false = desc, the most results on top
+                        function (a) {
+                            return a.toString().toUpperCase()
+                        }
+                    )
+                );
+
+                return $.map(sortGroup, function (val, i) {
+                    return val.group
+                });
+            },
+            hint: true,
+            dropdownFilter: "All",
+            template: "{{display}}, <small><em>{{group}}</em></small>",
+            emptyTemplate: "no result for {{query}}",
+            source: {
+                ontology: {
+                    data: data.ontologies
+                },
+                synonym: {
+                    data: data.synonym
+                }
+            },
+            debug: true
+        });
+
+    </script>
+
+</div>
+    
+</body>
+</html>
