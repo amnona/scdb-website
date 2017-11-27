@@ -133,7 +133,7 @@ def add_data_results():
                 for i in range(len(expDataNameArr)):
                     test.append((expDataNameArr[i],expDataValueArr[i]))
                 
-                rdataExp = {'expId': 0, 'private': False, 'details' : test}
+                rdataExp = {'expId': -1, 'private': False, 'details' : test}
 
                 httpRes = requests.post(scbd_server_address + '/experiments/add_details',json=rdataExp)
                 if httpRes.status_code == 200:
@@ -172,7 +172,6 @@ def add_data_results():
         webpage += "<br><a href=\'main\'>Back to main page</a></html>"
         return webpage
     #####################################################      
-    print("222");
     
     #####################################################      
     # Get ontologies list
@@ -181,7 +180,6 @@ def add_data_results():
     rdata['ontologies'] = ontDataNameArr
     
     httpRes = requests.post(scbd_server_address + '/ontology/get',json=rdata)
-    print("555");
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         ontList = jsonRes.get("ontIds")    
@@ -194,11 +192,9 @@ def add_data_results():
         webpage += "<br><a href=\'main\'>Back to main page</a></html>"
         return webpage
     #####################################################      
-    print("223");
     
     for i in range(len(ontList)):
         webpage += str(ontList[i]) + "<br>" 
-    print("224");
 
     #"annotationList" : list of
     #{
@@ -228,7 +224,6 @@ def add_data_results():
     rannotation['agentType'] = 'DBBact website submission'
     rannotation['description'] = ''
     rannotation['annotationList'] = annotationListArr    
-    print("225");
     #Everything is ready to add the data
     httpRes = requests.post(scbd_server_address + '/annotations/add',json=rannotation)
     if httpRes.status_code == 200:
