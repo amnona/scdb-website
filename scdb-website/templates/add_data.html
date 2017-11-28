@@ -349,6 +349,19 @@
         <img src="static/remove_but.png" onclick="expRemoveSelected();" id = "expMinus" style="margin:0px; padding:5px;"/>
         <hr>
         <h1>Annotations</h1>
+        <input type="radio" name="ontType" id="isARb" checked="True">
+        <label>Is A</label>
+        <select id="isAList" style="width: 220px; font-size: 14px;">
+        <option value="contaminant">Contaminant</option>
+        <option value="common">Common (>0.5 samples)</option>
+        <option value="high">High freq (>1% reads)</option>
+        <option value="other">Other</option>
+        </select><br>
+        <input type="radio" name="ontType" id="diffRb">
+        <label>Differetial presence</label><br>    
+        <br>
+        Method: <input type = "text" name = "methodNameTb" id = "methodNameTbId" style="width: 433px;" /><br>
+        <br>
         <div class="js-result-container"></div>
         <div class="typeahead__container">
             <div class="typeahead__field">
@@ -363,18 +376,6 @@
             </div>
         </div><br>
     
-        <input type="radio" name="ontType" id="isARb" checked="True">
-        <label>Is A</label>
-        <select id="isAList" style="width: 220px; font-size: 14px;">
-        <option value="contaminant">Contaminant</option>
-        <option value="common">Common (>0.5 samples)</option>
-        <option value="high">High freq (>1% reads)</option>
-        <option value="other">Other</option>
-        </select><br>
-        <input type="radio" name="ontType" id="diffRb">
-        <label>Differetial presence</label><br>    
-        <br>
-        
         <input type="radio" name="groupRb1" id="allRb" checked="True">
         <label>All</label>
         <input type="radio" name="groupRb1" id="highRb">

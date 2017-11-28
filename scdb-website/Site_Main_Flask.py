@@ -82,6 +82,11 @@ def add_data_results():
             return webpage    
     
     #Prepare all exp data in array
+    methodName = request.form.get('methodNameTb')
+    if methodName is None or len(methodName.strip()) == 0:
+        methodName = 'na'
+    #print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
+    
     hiddenExpName = request.form.get('hiddenExpName')
     hiddenExpValue = request.form.get('hiddenExpValue')
     hiddenOntName = request.form.get('hiddenOntName')
@@ -195,24 +200,10 @@ def add_data_results():
     
     for i in range(len(ontList)):
         webpage += str(ontList[i]) + "<br>" 
-
-    #"annotationList" : list of
-    #{
-    #    "detail" : str
-    #        the type of detail (i.e. ALL/HIGH/LOW)
-    #        (description from AnnotationDetailsTypeTable)
-    #    "term" : str
-    #        the ontology term for this detail (i.e. feces/ibd/homo sapiens)
-    #        (description from OntologyTable)
-    #}
     
     annotationListArr = []
                 
     for i in range(len(ontDataNameArr)):
-        #robj = {}
-        #robj['detail'] = ontDataDetTypeArr[i]
-        #robj['term'] = ontDataNameArr[i]
-        #annotationListArr.append(robj)
         annotationListArr.append((ontDataDetTypeArr[i],ontDataNameArr[i]))
     
     rannotation = {}
@@ -220,6 +211,7 @@ def add_data_results():
     rannotation['sequences'] = seqs1
     rannotation['region'] = 'V4'
     rannotation['annotationType'] = ontDataTypeArr[0]
+    #rannotation['method'] = methodName
     rannotation['method'] = 'na'
     rannotation['agentType'] = 'DBBact website submission'
     rannotation['description'] = ''
