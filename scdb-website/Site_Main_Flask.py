@@ -211,8 +211,7 @@ def add_data_results():
     rannotation['sequences'] = seqs1
     rannotation['region'] = 'V4'
     rannotation['annotationType'] = ontDataTypeArr[0]
-    #rannotation['method'] = methodName
-    rannotation['method'] = 'na'
+    rannotation['method'] = methodName
     rannotation['agentType'] = 'DBBact website submission'
     rannotation['description'] = ''
     rannotation['annotationList'] = annotationListArr    
