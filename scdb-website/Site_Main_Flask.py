@@ -3,6 +3,7 @@ import urllib.parse
 from collections import defaultdict
 from io import TextIOWrapper
 import os
+import json
 import requests
 import operator
 from utils import debug, get_fasta_seqs
@@ -60,7 +61,174 @@ def test_enrichment():
     webPage = render_template('enrichment.html')
     return webPage
 
+@Site_Main_Flask_Obj.route('/add_data_results', methods=['POST', 'GET'])
+def add_data_results():
+    """
+    Title: Add data processing
+    URL: site/add_data_results
+    Method: POST
+    """
+    
+    webpage = "<html></br>"
+    
+    if 'fastaFileTb' in request.files:
+        debug(1, 'Fasta file uploaded, processing it')
+        file1 = request.files['fastaFileTb']
+        textfile1 = TextIOWrapper(file1)
+        seqs1 = get_fasta_seqs(textfile1)
+        if seqs1 is None:
+            webpage += "<h2>Error: Invalid fasta file</h2><br>"
+            webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+            return webpage    
+    
+    #Prepare all exp data in array
+    methodName = request.form.get('methodNameTb')
+    if methodName is None or len(methodName.strip()) == 0:
+        methodName = 'na'
+    #print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
+    
+    hiddenExpName = request.form.get('hiddenExpName')
+    hiddenExpValue = request.form.get('hiddenExpValue')
+    hiddenOntName = request.form.get('hiddenOntName')
+    hiddenOntType = request.form.get('hiddenOntType')
+    hiddenOntDetType = request.form.get('hiddenOntDetType')
+    
+    if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
+        webpage += "<h2>Error: Invalid input 111</h2><br>"
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    
+    #in case one of the parameters is missing
+    if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
+        webpage += "<h2>Error: Invalid input 222</h2><br>"
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    
+    expDataNameArr = hiddenExpName.split(';') #split string into a list
+    expDataValueArr = hiddenExpValue.split(';') #split string into a list
+    ontDataNameArr = hiddenOntName.split(';') #split string into a list
+    ontDataTypeArr = hiddenOntType.split(';') #split string into a list
+    ontDataDetTypeArr = hiddenOntDetType.split(';') #split string into a list
+    
+    #####################################################      
+    # Get expirement id or -1 if doesn't exist
+    #####################################################      
+    rdata = {}
+    rdata['nameStrArr'] = expDataNameArr
+    rdata['valueStrArr'] = expDataValueArr    
+    httpRes = requests.get(scbd_server_address + '/experiments/get_id_by_list',json=rdata)
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        expId = jsonRes.get("expId")
+        errorCode = jsonRes.get("errorCode")
+        errorText = jsonRes.get("errorText")
+        if expId >= 0 : 
+            webpage += "<h2>Existing expirement ID : " + str(expId) + "</h2><br>" 
+        else:
+            # identification appears in more than one expirement 
+            if errorCode == -2 :
+                webpage += "<h2>Error : More than one experiments was found</h2><br>" 
+                webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+                return webpage
+            # expirement was not found, try to find
+            elif errorCode == -1:
+                rdataExp = {}
+                test = []
+                
+                for i in range(len(expDataNameArr)):
+                    test.append((expDataNameArr[i],expDataValueArr[i]))
+                
+                rdataExp = {'expId': -1, 'private': False, 'details' : test}
 
+                httpRes = requests.post(scbd_server_address + '/experiments/add_details',json=rdataExp)
+                if httpRes.status_code == 200:
+                    jsonRes = httpRes.json()
+                    expId = jsonRes.get("expId")
+                    webpage += "<h2>Created new expirement ID : " + str(expId) + "</h2><br>" 
+                else: 
+                    webpage += "<h2>Failed to get expirement</h2><br>" 
+                    webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+                    return webpage
+    else:
+        webpage += "<h2>Failed to get expirement id</h2><br>" 
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    #####################################################      
+    
+    #####################################################      
+    # Add sequences if they are missing
+    #####################################################      
+    rdata = {}
+    rdata['sequences'] = seqs1
+    rdata['primer'] = 'V4'
+    
+    httpRes = requests.post(scbd_server_address + '/sequences/add',json=rdata)
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        seqList = jsonRes.get("seqIds")    
+        if len(seqList) != len(seqs1):
+            webpage += "<h2>Error : Failed to retrieve all sequneces IDs</h2><br>" 
+            webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+            return webpage
+        webpage += "number of sequences: " + str(len(seqs1)) + "<br>"
+        webpage += "number of ids: " + str(len(seqs1)) + "<br>"
+    else:
+        webpage += "<h2>Failed to retrieve sequneces IDs</h2><br>" 
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    #####################################################      
+    
+    #####################################################      
+    # Get ontologies list
+    #####################################################      
+    rdata = {}
+    rdata['ontologies'] = ontDataNameArr
+    
+    httpRes = requests.post(scbd_server_address + '/ontology/get',json=rdata)
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        ontList = jsonRes.get("ontIds")    
+        if len(ontDataNameArr) != len(ontList):
+            webpage += "<h2>Failed to get ontologies IDs</h2><br>" 
+            return webpage
+        webpage += "number of ontologies: " + str(len(ontList)) + "<br>"
+    else:
+        webpage += "<h2>Failed to retrieve ontologies IDs</h2><br>" 
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    #####################################################      
+    
+    for i in range(len(ontList)):
+        webpage += str(ontList[i]) + "<br>" 
+    
+    annotationListArr = []
+                
+    for i in range(len(ontDataNameArr)):
+        annotationListArr.append((ontDataDetTypeArr[i],ontDataNameArr[i]))
+    
+    rannotation = {}
+    rannotation['expId'] = expId
+    rannotation['sequences'] = seqs1
+    rannotation['region'] = 'V4'
+    rannotation['annotationType'] = ontDataTypeArr[0]
+    rannotation['method'] = methodName
+    rannotation['agentType'] = 'DBBact website submission'
+    rannotation['description'] = ''
+    rannotation['annotationList'] = annotationListArr    
+    #Everything is ready to add the data
+    httpRes = requests.post(scbd_server_address + '/annotations/add',json=rannotation)
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        annotId = jsonRes.get("annotationId")    
+        webpage += "Added annotations with id: " + str(annotId) + "<br>"
+    else:
+        webpage += "<h2>Failed to add annotations</h2><br>" 
+        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        return webpage
+    
+    webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+    return webpage
+    
 @Site_Main_Flask_Obj.route('/enrichment_results', methods=['POST', 'GET'])
 def enrichment_results():
     """
@@ -1342,6 +1510,38 @@ def about():
     """
     webpage = render_template('about.html')
     return webpage
+
+
+"""
+Auto complete tests
+"""
+@Site_Main_Flask_Obj.route('/add_data', methods=['POST', 'GET'])
+def add_data():
+    """
+    Title: About us
+    URL: /about
+    Method: POST
+    """
+    
+    res = requests.get(get_db_address() + '/ontology/get_all_descriptions')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of ontologies')
+           parents = []
+    else:
+           import json
+           list_of_ont = json.dumps(res.json())
+    
+    res = requests.get(get_db_address() + '/ontology/get_all_synonyms')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of synonyms')
+           parents = []
+    else:
+           import json
+           list_of_synonym = json.dumps(res.json())
+    
+    webpage = render_template('add_data.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
+    return webpage
+
 
 
 def error_message(title, message):
