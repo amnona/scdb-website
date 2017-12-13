@@ -339,6 +339,7 @@ def search_results():
     if len(sequence) < 50:
         # if number assume it is a greengenes id
         if sequence.isdigit():
+            debug(1,'get info for greengenesid %s' % sequence)
             webPage = sequence_annotations(sequence)
             return webPage
         # try is it an ontology term
@@ -368,7 +369,7 @@ def sequence_annotations(sequence):
     webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy='na')
 
     if httpRes.status_code != requests.codes.ok:
-        debug(6, "Error code:" + str(httpRes.status_code))
+        debug(6, "sequence annotations Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for sequence:\n%s" % sequence
     else:
         annotations = httpRes.json().get('annotations')
