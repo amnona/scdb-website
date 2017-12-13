@@ -169,9 +169,15 @@ def search_results():
 
     # if it is short, try if it is an ontology term
     if len(sequence) < 50:
+        # if number assume it is a greengenes id
+        if sequence.isdigit():
+            webPage = sequence_annotations(sequence)
+            return webPage
+        # try is it an ontology term
         err, webPage = get_ontology_info(sequence)
         if not err:
             return webPage
+        # or maybe a taxonomy term
         err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
