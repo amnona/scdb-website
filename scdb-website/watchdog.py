@@ -40,7 +40,7 @@ def isFileExist(fileName):
 def isProcessExist(processId):
     """ Check For the existence of a unix pid. """
     try:
-        c=requests.post('http://127.0.0.1:5000/main')
+        c=requests.post('http://0.0.0.0:5000/main')
     except:
         return False
     else:
@@ -49,12 +49,12 @@ def isProcessExist(processId):
 if __name__ == '__main__':
     
     removeFile("stop")
-    sleep_time = 5
+    sleep_time = 120
     sleep_after_load = 10
     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d--%H:%M:%S")
     count_execution = 0
     
-    proc  = subprocess.Popen(["python","/Users/admin/scdb-website/scdb-website/Server_Main.py"])
+    proc  = subprocess.Popen(["python","Server_Main.py"])
     process_to_watch = proc.pid
     count_execution = count_execution + 1
     summary_str = "count_execution = %s\nprocess_id = %s\n" % (count_execution,process_to_watch)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     
     while isFileExist("stop") == False:
         if isProcessExist(process_to_watch) == False :
-            proc  = subprocess.Popen(["python","/Users/admin/scdb-website/scdb-website/Server_Main.py"])
+            proc  = subprocess.Popen(["python","Server_Main.py"])
             process_to_watch = proc.pid
             count_execution = count_execution + 1
             summary_str = "count_execution = %s\nprocess_id = %s\n" % (count_execution,process_to_watch)
