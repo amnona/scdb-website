@@ -75,29 +75,54 @@
     </script>
   </head>
   <body>
-    <div id="main">
-      <div id="menu">
-        <a href='reset_password'>Reset password</a><br>
-        <a href='about'>About us</a><br>
-        <a href='REST-API/docs'>REST-API documentation</a>
-      </div>
-      <div id="search-title">
-        <center><img src='static/dbBact.png'></center>
-      </div>
-      <div id="statistics">
-        {{numSeqAnnot}}<br>
-        <a href={{ url_for('.annotations_list') }}>{{numAnnot}}</a><br>
-        {{numSeq}}<br>
-        <a href={{ url_for('.experiments_list') }}>{{numExp}}</a>
-      </div>
-      <div id="statistics-title">
+    <table style="padding:0;width:100%;background-color:#006e98;margin-right:8px;margin-left:8px;">
+    <tr height="10">
+    <td colspan="4"></td>
+    </tr>
+    <tr height="10">
+        <td width="17%"><img src='static/opLogo.png'></td>
+        <td width="66%"><center><img src='static/dbBact.png'></center></td> 
+        
+        <td width="10%">
+        <font color="white">
         Total annotated sequences:<br>
         Total annotations:<br>
         Total sequences:<br>
-        Total experiments:
-      </div>
-
-    </head> 
+        Total experiments:<br>
+        </font>
+        </td>
+        <td width="7%">
+        <font color="white">
+        {{numSeqAnnot}}<br>
+        <a style="color:white" href={{ url_for('.annotations_list') }}>{{numAnnot}}</a><br>
+        {{numSeq}}<br>
+        <a style="color:white"  href={{ url_for('.experiments_list') }}>{{numExp}}</a>
+        </font>
+        </td>
+    </tr>
+    <tr height="10">
+    <td colspan="4"></td>
+    </tr>
+    </table>
+    <font color="black">
+    <b>
+    
+    <table style="width:100%;background-color:#d3e5ef;margin-right:8px;margin-left:8px;">
+    <tr height="5"></tr>
+    <tr>
+    <td style="width:1%;background-color:#d3e5ef" height="20" colspan="1"></td>
+    <td style="width:8%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='reset_password'>Reset password</a></td>
+    <td style="width:6%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='about'>About Us</a></td>
+    <td style="width:15%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='REST-API/docs'>REST-API documentation</a></td>
+    <td style="width:70%;background-color:#d3e5ef" height="20" colspan="1"></td>    
+    </tr>
+    <tr height="5"></tr>
+    </table>
+    
+    </b>
+    </font>
+        
+    <div id="main">
         <div id="search-form" class="panel panel-default">
             <form action="search_results" method="post" enctype="multipart/form-data">
               <p><big>Enter an amplicon sequence, ontology term or taxonomic name to search for:</big></p>
