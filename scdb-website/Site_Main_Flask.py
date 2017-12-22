@@ -1592,3 +1592,20 @@ def error_message(title, message):
            render_template('error.html', title=title,
                            message=Markup(message)) +
            render_template('footer.html'))
+
+
+# Handle old dbbact rest-api requests (which are now supposed to go to api.dbbact.org instead)
+@Site_Main_Flask_Obj.route('/REST-API/<path:path>', methods=['POST', 'GET'])
+def old_dbbact(path):
+    res = {}
+    annotation1 = {}
+    annotation1['description'] = 'ERROR - please update dbbact-calour client'
+    annotation1['annotationtype'] = 'other'
+    annotation1['details'] = ['all','na']
+    annotation2 = {}
+    annotation2['description'] = 'use pip install --upgrade --force-reinstall --no-deps git+git://github.com/amnona/dbbact-calour'
+    annotation2['annotationtype'] = 'other'
+    annotation2['details'] = ['all','na']
+    res['annotations'] = [annotation1, annotation2]
+    res['term_info'] = {'error': {'total_sequences': 1, 'total_annotations': 1}}
+    return json.dumps(res)
