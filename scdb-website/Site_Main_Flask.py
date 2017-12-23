@@ -309,6 +309,34 @@ def main_html():
                               numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
+@Site_Main_Flask_Obj.route('/main2', methods=['POST', 'GET'])
+def main2_html():
+    """
+    Title: the main dbBact page and search tool
+    URL: site/main_html
+    Method: GET
+    """
+    httpRes = requests.get(scbd_server_address + '/stats/stats')
+    # NumOntologyTerms = 0
+    NumAnnotation = 0
+    NumSequences = 0
+    NumSequenceAnnotation = 0
+    NumExperiments = 0
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        # NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
+        NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
+        NumSequences = jsonRes.get("stats").get('NumSequences')
+        NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
+        NumExperiments = jsonRes.get("stats").get('NumExperiments')
+
+    webPage = render_template('searchpage2.html',
+                              numAnnot=(str(NumAnnotation).replace('.0', '')),
+                              numSeq=(str(NumSequences).replace('.0', '')),
+                              numExp=(str(NumExperiments).replace('.0', '')),
+                              numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
+    return webPage
+
 
 @Site_Main_Flask_Obj.route('/search_results', methods=['POST', 'GET'])
 def search_results():
