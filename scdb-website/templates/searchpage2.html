@@ -84,12 +84,10 @@
      function alertFilename()
      {
         var thefile = document.getElementById('fastaFile');
-        alert(thefile.value);
-        textObj.value = "bbb";
-        //textObj.value = thefile.value.toString();
-        textObj.value = "aaa"; 
-        alert(thefile.value);
-     }    
+        var textObj = document.getElementById('fastaFileDisplayTb'); 
+        textObj.value = thefile.value.split(/(\\|\/)/g).pop();
+     }
+        
     </script>
   </head>
   <body>
