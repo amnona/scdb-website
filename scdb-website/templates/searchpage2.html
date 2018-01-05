@@ -70,24 +70,8 @@
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
       })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-        
       ga('create', 'UA-91412701-1', 'auto');
       ga('send', 'pageview');
-        
-     function fileBrowse()
-     {
-         var textObj = document.getElementById('fastaFileDisplayTb');
-         var hiddenObj = document.getElementById('fastaFile');
-         hiddenObj.click();
-     }
-        
-     function alertFilename()
-     {
-        var thefile = document.getElementById('fastaFile');
-        var textObj = document.getElementById('fastaFileDisplayTb'); 
-        textObj.value = thefile.value.split(/(\\|\/)/g).pop();
-     }
-        
     </script>
   </head>
   <body>
@@ -99,7 +83,7 @@
         <td width="17%"><img src='static/opLogo.png'></td>
         <td width="66%"><center><img src='static/dbBact.png'></center></td> 
         
-        <td style="min-width:200px;width: auto !important;width:200px;" width="10%">
+        <td width="10%">
         <font color="white">
         Total annotated sequences:<br>
         Total annotations:<br>
@@ -120,89 +104,24 @@
     <td colspan="4"></td>
     </tr>
     </table>
-    
     <font color="black">
     <b>
+    
     <table style="width:100%;background-color:#d3e5ef;margin-right:8px;margin-left:8px;">
-    <tr height="5"><td colspan="5"></td></tr>
+    <tr height="5"></tr>
     <tr>
     <td style="width:1%;background-color:#d3e5ef" height="20" colspan="1"></td>
-        
-    
-    <td style="min-width:180px;width: auto !important;width:180px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='reset_password'>Reset password</a></td>
-    <td style="min-width:140px;width: auto !important;width:140px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='about'>About Us</a></td>
-    <td style="min-width:190px;width: auto !important;width:190px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='http://api.dbbact.org/docs'>REST-API documentation</a></td>
+    <td style="width:8%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='reset_password'>Reset password</a></td>
+    <td style="width:6%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='about'>About Us</a></td>
+    <td style="width:15%;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='http://api.dbbact.org/docs'>REST-API documentation</a></td>
     <td style="width:70%;background-color:#d3e5ef" height="20" colspan="1"></td>    
     </tr>
     <tr height="5"></tr>
     </table>
+    
     </b>
     </font>
-      
-    <font size="5">
-    <form action="search_results" method="post" enctype="multipart/form-data">
-    <table style="width:90%;margin-right:5%;margin-left:5%;">
-        <tr height="70px" style="background-color:white">
-            <td colspan="1"></td>
-        </tr>
-        <tr style="height:100%;width:100%;border: 3px solid #A1BCD1;background-color:#EAF0F8;">
-            <td colspan="1">
-                <table border=0 style="height:100%;width:100%;" >
-                    <tr style="height:30px">
-                        <td colspan="5"></td>
-                    </tr>
-                    <tr style="height:60px">
-                        <td width="5%"></td>
-                        <td colspan="3" width="90%">Enter an amplicon sequence, ontology term or taxonomic name to search for:</td>
-                        <td width="5%"></td>
-                    </tr>
-                    <tr style="height:70px">
-                        <td width="5%"></td>
-                        <td colspan="3" width="90%"><input type='text' name='sequence' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
-                        <td width="5%"></td>
-                    </tr>
-                    <tr style="height:100px">
-                        <td width="5%"></td>
-                        <td width="25%">Or upload a FASTA file:
-                        </td>
-                        <td width="45%"><input type='text' id='fastaFileDisplayTb' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
-                        
-                        <td width="5%">
-                            <input type="file" id="fastaFile" name="fasta file" style="display:none;" onchange="alertFilename()" />
-                            <input type="button" id="fileBrowseBut" value="browse"  onClick="fileBrowse();"/></td>
-                        <td width="5%"></td>
-                    </tr>
-                    <tr style="height:70px">
-                        <td width="5%"></td>
-                        <td width="90%" colspan="3">
-                            <center><input type="image" src="static/searchBut.png" alt="Submit Form" style="width:auto ; height:40;" /></center>
-                        </td>
-                        <td width="5%"></td>
-                    </tr>
-                    <tr style="height:70px">
-                        <td width="5%"></td>
-                        <td width="90%" colspan="3">
-                            <center><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'>Or click here for an example</a></center>
-                        </td>
-                        <td width="5%"></td>
-                    </tr>
-                    <tr style="height:30px">
-                        <td colspan="5"></td>
-                    </tr>
-                </table>    
-            </td>
-        </tr>
-        <tr height="50" style="background-color:white">
-            <td colspan="1"></td>
-        </tr>
-        <tr height="100" style="background-color:white">
-            <td colspan="1"><center><a href="https://www.openu.ac.il/home/shental/indexGroup.html"><img src='static/misdarLogo.jpg' /></a></center></td>
-        </tr>
-    </table>
-    </form>
-    </font>
-    
-    <!-- =======    
+        
     <div id="main">
         <div id="search-form" class="panel panel-default">
             <form action="search_results" method="post" enctype="multipart/form-data">
@@ -225,7 +144,6 @@
         </form>
             </div>
         </div>
--->
     </body>
 </html>
 <!-- =======
