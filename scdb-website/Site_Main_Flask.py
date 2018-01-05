@@ -1460,6 +1460,8 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
     import matplotlib.pyplot as plt
     from io import BytesIO
 
+    plt.hold(False)
+
     debug(1, 'draw_cloud for %d words' % len(words))
     if len(words) == 0:
         debug(2, 'no words for wordcloud')
@@ -1493,6 +1495,7 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
     import base64
     figdata_png = base64.b64encode(figfile.getvalue())
     figfile.close()
+    plt.close()
     return figdata_png
 
 
