@@ -330,7 +330,7 @@ def main2_html():
         NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
         NumExperiments = jsonRes.get("stats").get('NumExperiments')
 
-    webPage = render_template('searchpage2.html',
+    webPage = render_template('searchpage.html',
                               numAnnot=(str(NumAnnotation).replace('.0', '')),
                               numSeq=(str(NumSequences).replace('.0', '')),
                               numExp=(str(NumExperiments).replace('.0', '')),
