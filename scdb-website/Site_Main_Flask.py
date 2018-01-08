@@ -63,6 +63,7 @@ def test_enrichment():
     webPage = render_template('enrichment.html')
     return webPage
 
+
 @Site_Main_Flask_Obj.route('/add_data_results', methods=['POST', 'GET'])
 def add_data_results():
     """
@@ -70,9 +71,9 @@ def add_data_results():
     URL: site/add_data_results
     Method: POST
     """
-    
+
     webpage = "<html></br>"
-    
+
     if 'fastaFileTb' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
         file1 = request.files['fastaFileTb']
@@ -81,37 +82,37 @@ def add_data_results():
         if seqs1 is None:
             webpage += "<h2>Error: Invalid fasta file</h2><br>"
             webpage += "<br><a href=\'main\'>Back to main page</a></html>"
-            return webpage    
-    
-    #Prepare all exp data in array
+            return webpage
+
+    # Prepare all exp data in array
     methodName = request.form.get('methodNameTb')
     if methodName is None or len(methodName.strip()) == 0:
         methodName = 'na'
-    #print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
-    
+    # print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
+
     hiddenExpName = request.form.get('hiddenExpName')
     hiddenExpValue = request.form.get('hiddenExpValue')
     hiddenOntName = request.form.get('hiddenOntName')
     hiddenOntType = request.form.get('hiddenOntType')
     hiddenOntDetType = request.form.get('hiddenOntDetType')
-    
+
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
         webpage += "<h2>Error: Invalid input 111</h2><br>"
         webpage += "<br><a href=\'main\'>Back to main page</a></html>"
         return webpage
-    
-    #in case one of the parameters is missing
+
+    # in case one of the parameters is missing
     if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
         webpage += "<h2>Error: Invalid input 222</h2><br>"
         webpage += "<br><a href=\'main\'>Back to main page</a></html>"
         return webpage
-    
-    expDataNameArr = hiddenExpName.split(';') #split string into a list
-    expDataValueArr = hiddenExpValue.split(';') #split string into a list
-    ontDataNameArr = hiddenOntName.split(';') #split string into a list
-    ontDataTypeArr = hiddenOntType.split(';') #split string into a list
-    ontDataDetTypeArr = hiddenOntDetType.split(';') #split string into a list
-    
+
+    expDataNameArr = hiddenExpName.split(';')  # split string into a list
+    expDataValueArr = hiddenExpValue.split(';')  # split string into a list
+    ontDataNameArr = hiddenOntName.split(';')  # split string into a list
+    ontDataTypeArr = hiddenOntType.split(';')  # split string into a list
+    ontDataDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
+
     #####################################################      
     # Get expirement id or -1 if doesn't exist
     #####################################################      
