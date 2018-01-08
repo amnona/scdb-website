@@ -17,6 +17,6 @@ if __name__ == '__main__':
     SetDebugLevel(0)
     debug(2, 'starting server')
     if 'OPENU_FLAG' in os.environ:
-        app.run(debug=True,host='0.0.0.0',port=5000)
+        app.run(debug=False,host='0.0.0.0',port=5000,use_reloader=False)
     else:
-        app.run(debug=True)
+        app.run(debug=False,use_reloader=False)
