@@ -36,14 +36,16 @@ def get_db_address():
             server_address = 'http://127.0.0.1:5000'
         elif servertype == 'main':
             debug(1, 'servertype is main')
-            server_address = 'http://amnonim.webfactional.com/scdb_main'
+            # server_address = 'http://amnonim.webfactional.com/scdb_main'
+            server_address = 'http://api.dbbact.org'
         elif servertype == 'develop':
             debug(1, 'servertype is develop')
             server_address = 'http://amnonim.webfactional.com/scdb_develop'
         else:
             raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
     else:
-        server_address = 'http://amnonim.webfactional.com/scdb_main'
+        # server_address = 'http://amnonim.webfactional.com/scdb_main'
+        server_address = 'http://api.dbbact.org'
         debug(1, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
 
     return server_address
