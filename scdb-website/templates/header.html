@@ -29,7 +29,7 @@
         background-color: #f2f2f2;
       }
       th {
-        background-color: #4CAF50;
+        background-color: #006e98;
         color: white;
         margin-top: 100px;
       }
@@ -47,7 +47,45 @@
     </script>
   </head>
   <body>
-    <nav class="navbar navbar-default">
+  <table style="padding:0;width:100%;background-color:#006e98;margin-right:8px;margin-left:8px;">
+    <tr style="background-color:#006e98;height=2px">
+    <td colspan="7"></td>
+    </tr>
+    <tr style="background-color:#006e98;height:30px;height:10px">
+        <td width="1%"></td>
+        <td width="1%"><a class="navbar-brand" href="{{ url_for('.main_html') }}"><i class="glyphicon glyphicon-home" style="color:white"></i></a></td>
+        <td width="4%"><img src='static/dbBact_small.png' width="210"></td>
+        <td width="85%">
+        <form action="search_results" method="post" enctype="multipart/form-data">
+        <input type="text" name="sequence" class="form-control" placeholder="Search amplicon sequence, ontology term or taxonomic name...">
+        </td> 
+        <td width="2%">
+        <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+        </form>
+        </td>
+        <td width="6%" style="min-width:80px;width: auto !important;width:80px;">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#" style="color:white"><i class="glyphicon glyphicon-th-list" style="color:white"></i><span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="http://api.dbbact.org/docs"><i class="glyphicon glyphicon-question-sign"></i> Help</a></li>
+              <li><a href="about"><i class="glyphicon glyphicon-education"></i> About</a></li>
+            </ul>
+          </li>
+        </ul>    
+        </td>
+        <td width="1%"></td>
+        
+    </tr>
+    <tr height="1">
+    <td colspan="7"></td>
+    </tr>
+    <tr style="background-color:white" height="1">
+    <td colspan="7"></td>
+    </tr>
+    </table>
+    <!--
+    <nav style="background-color:#006e98;height:30px" class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
           <img src={{ url_for('static', filename='dbBact.png') }} style="width: 120px; margin-top: 6px; margin-left: 10px; margin-right: 40px;">
@@ -57,7 +95,7 @@
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="glyphicon glyphicon-th-list"></i><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="REST-API/docs"><i class="glyphicon glyphicon-question-sign"></i> Help</a></li>
+              <li><a href="http://api.dbbact.org/docs"><i class="glyphicon glyphicon-question-sign"></i> Help</a></li>
               <li><a href="about"><i class="glyphicon glyphicon-education"></i> About</a></li>
             </ul>
           </li>
@@ -74,3 +112,4 @@
         </form>
       </div>
     </nav>
+    -->

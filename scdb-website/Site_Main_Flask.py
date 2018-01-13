@@ -1478,6 +1478,7 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
         for ckey, cval in term_frac.items():
             term_frac[ckey] = term_frac[ckey] / maxval
 
+    #wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
     wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
     if isinstance(words, str):
         debug(1, 'generating from words list')
@@ -1574,7 +1575,8 @@ def add_data():
            import json
            list_of_synonym = json.dumps(res.json())
     
-    webpage = render_template('add_data.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
+    webpage = render_template('header.html')
+    webpage += render_template('add_data.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
     return webpage
 
 
