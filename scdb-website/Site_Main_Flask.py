@@ -92,6 +92,10 @@ def add_data_results():
     methodName = request.form.get('methodNameTb')
     if methodName is None or len(methodName.strip()) == 0:
         methodName = 'na'
+    
+    descName = request.form.get('descNameTb')
+    if descName is None or len(descName.strip()) == 0:
+        descName = 'na'
     # print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
 
     hiddenExpName = request.form.get('hiddenExpName')
@@ -220,7 +224,7 @@ def add_data_results():
     rannotation['annotationType'] = ontDataTypeArr[0]
     rannotation['method'] = methodName
     rannotation['agentType'] = 'DBBact website submission'
-    rannotation['description'] = ''
+    rannotation['description'] = descName
     rannotation['annotationList'] = annotationListArr    
     #Everything is ready to add the data
     httpRes = requests.post(scbd_server_address + '/annotations/add',json=rannotation)
