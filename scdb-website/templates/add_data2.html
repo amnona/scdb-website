@@ -11,13 +11,26 @@
     <script src="{{url_for('static', filename = 'jquery.typeahead.js')}}"></script>
 
     <script>
-    
+    window.addEventListener('keydown',function(e){if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13)         {
+        if(true){e.preventDefault();return false;}}},true
+    );
+
     var expNameArray = new Array();
     var expValueArray = new Array();
     var ontNameArray = new Array();
     var ontDetTypeArray = new Array();
         
     function validateForm(){
+        
+        if (confirm('Are you sure you want to add new annotations to the database?')) 
+        {
+            // Save it!
+        } 
+        else 
+        {
+            return false;
+        }
+        
         var expLb = document.getElementById('expList');
         var ontLb = document.getElementById('ontList');
         
