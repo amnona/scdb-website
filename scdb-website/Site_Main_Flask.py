@@ -81,8 +81,12 @@ def add_data_results():
         seqs1 = get_fasta_seqs(textfile1)
         if seqs1 is None:
             webpage += "<h2>Error: Invalid fasta file</h2><br>"
-            webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+            webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
             return webpage
+    else:
+        webpage += "<h2>Error: Invalid fasta file</h2><br>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
+        return webpage
 
     # Prepare all exp data in array
     methodName = request.form.get('methodNameTb')
@@ -97,14 +101,14 @@ def add_data_results():
     hiddenOntDetType = request.form.get('hiddenOntDetType')
 
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
-        webpage += "<h2>Error: Invalid input 111</h2><br>"
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<h2>Error: Invalid input</h2><br>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
 
     # in case one of the parameters is missing
     if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
         webpage += "<h2>Error: Invalid input 222</h2><br>"
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
@@ -131,7 +135,7 @@ def add_data_results():
             # identification appears in more than one expirement 
             if errorCode == -2 :
                 webpage += "<h2>Error : More than one experiments was found</h2><br>" 
-                webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+                webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
                 return webpage
             # expirement was not found, try to find
             elif errorCode == -1:
@@ -150,11 +154,11 @@ def add_data_results():
                     webpage += "<h2>Created new expirement ID : " + str(expId) + "</h2><br>" 
                 else: 
                     webpage += "<h2>Failed to get expirement</h2><br>" 
-                    webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+                    webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
                     return webpage
     else:
         webpage += "<h2>Failed to get expirement id</h2><br>" 
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
     #####################################################      
     
@@ -171,13 +175,13 @@ def add_data_results():
         seqList = jsonRes.get("seqIds")    
         if len(seqList) != len(seqs1):
             webpage += "<h2>Error : Failed to retrieve all sequneces IDs</h2><br>" 
-            webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+            webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
             return webpage
         webpage += "number of sequences: " + str(len(seqs1)) + "<br>"
         webpage += "number of ids: " + str(len(seqs1)) + "<br>"
     else:
         webpage += "<h2>Failed to retrieve sequneces IDs</h2><br>" 
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
     #####################################################      
     
@@ -197,7 +201,7 @@ def add_data_results():
         webpage += "number of ontologies: " + str(len(ontList)) + "<br>"
     else:
         webpage += "<h2>Failed to retrieve ontologies IDs</h2><br>" 
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
     #####################################################      
     
@@ -226,10 +230,10 @@ def add_data_results():
         webpage += "Added annotations with id: " + str(annotId) + "<br>"
     else:
         webpage += "<h2>Failed to add annotations</h2><br>" 
-        webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
         return webpage
     
-    webpage += "<br><a href=\'main\'>Back to main page</a></html>"
+    webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
     return webpage
     
 @Site_Main_Flask_Obj.route('/enrichment_results', methods=['POST', 'GET'])
@@ -904,7 +908,7 @@ def experiment_info(expid):
         cannotation['website_sequences'] = [-1]
     annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=True)
     webPage += '<h2>Annotations for experiment:</h2>'
-    webPage += draw_annotation_details(annotations)
+    webPage += draw_annotation_details(annotations, include_word_cloud = False)
     webPage += render_template('footer.html')
     return webPage
 
@@ -925,11 +929,26 @@ def draw_experiment_info(expid, exp_details):
     webPage : str
         the html of the experiment info table
     '''
-    webPage = render_template('expinfo.html', expid=expid)
+    webPage = ""
+    webPageTemp = render_template('expinfo.html', expid=expid)
+    
+    lastExp = ""
+    firstExp = ""
+    lastExp = ""
     for cres in exp_details:
-        webPage += "<tr>"
-        webPage += '<td>' + cres[0] + '</td>'
-        webPage += '<td>' + cres[1] + '</td><tr>'
+        if cres[0].upper() == "NAME":
+            firstExp += "<tr>"
+            firstExp += '<td>' + cres[0] + '</td>'
+            firstExp += '<td>' + cres[1] + '</td><tr>'
+        elif cres[0].upper().find("MD5") > -1:
+            lastExp += "<tr>"
+            lastExp += '<td>' + cres[0] + '</td>'
+            lastExp += '<td>' + cres[1] + '</td><tr>'
+        else:
+            webPage += "<tr>"
+            webPage += '<td>' + cres[0] + '</td>'
+            webPage += '<td>' + cres[1] + '</td><tr>'
+    webPage = webPageTemp + firstExp + webPage + lastExp
     webPage += '</table>'
     return webPage
 
@@ -1099,7 +1118,7 @@ def user_info(userid):
                render_template('footer.html'))
 
 
-def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False):
+def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud = True):
     '''
     Create table entries for a list of annotations
 
@@ -1129,7 +1148,8 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
     wpart = ''
 
     # draw the wordcloud
-    wpart += draw_wordcloud(annotations, term_info, show_relative_freqs=show_relative_freqs)
+    if include_word_cloud == True:  
+        wpart += draw_wordcloud(annotations, term_info, show_relative_freqs=show_relative_freqs)
 
     wpart += render_template('tabs.html')
 
@@ -1577,6 +1597,37 @@ def add_data():
     
     webpage = render_template('header.html')
     webpage += render_template('add_data.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
+    return webpage
+
+"""
+Auto complete tests
+"""
+@Site_Main_Flask_Obj.route('/add_data2', methods=['POST', 'GET'])
+def add_data2():
+    """
+    Title: About us
+    URL: /about
+    Method: POST
+    """
+    
+    res = requests.get(get_db_address() + '/ontology/get_all_descriptions')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of ontologies')
+           parents = []
+    else:
+           import json
+           list_of_ont = json.dumps(res.json())
+    
+    res = requests.get(get_db_address() + '/ontology/get_all_synonyms')
+    if res.status_code != 200:
+           debug(6, 'failed to get list of synonyms')
+           parents = []
+    else:
+           import json
+           list_of_synonym = json.dumps(res.json())
+    
+    webpage = render_template('header.html')
+    webpage += render_template('add_data2.html',syn_list=list_of_synonym,ont_list=list_of_ont,display='{{display}}',group='{{group}}',query='{{query}}')
     return webpage
 
 
