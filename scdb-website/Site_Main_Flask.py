@@ -403,10 +403,18 @@ def sequence_annotations(sequence):
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
+    
+    taxStr = "na"
+    httpResTax = requests.get(scbd_server_address + '/sequences/get_taxonomy_str', json=rdata)
+    if httpResTax.status_code == requests.codes.ok:
+        jsonRes = httpResTax.json().get('taxonomy')
+        taxStr = jsonRes.get('taxonomy')
+    
+        
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
     webPage = render_template('header.html', title='dbBact sequence annotation')
-    webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy='na')
-
+    webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy=taxStr)
+    
     if httpRes.status_code != requests.codes.ok:
         debug(6, "sequence annotations Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for sequence:\n%s" % sequence
