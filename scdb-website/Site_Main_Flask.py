@@ -92,7 +92,7 @@ def add_data_results():
     methodName = request.form.get('methodNameTb')
     if methodName is None or len(methodName.strip()) == 0:
         methodName = 'na'
-    
+
     descName = request.form.get('descNameTb')
     if descName is None or len(descName.strip()) == 0:
         descName = 'na'
@@ -239,7 +239,8 @@ def add_data_results():
     
     webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
     return webpage
-    
+
+
 @Site_Main_Flask_Obj.route('/enrichment_results', methods=['POST', 'GET'])
 def enrichment_results():
     """
@@ -320,6 +321,7 @@ def main_html():
                               numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
+
 @Site_Main_Flask_Obj.route('/main2', methods=['POST', 'GET'])
 def main2_html():
     """
@@ -374,7 +376,7 @@ def search_results():
             err, webpage = draw_sequences_annotations_compact(seqs)
             return webpage
 
-    # if it is short, try if it is an ontology term
+    # if it is short, try if it is a greengenesID/ontology term/taxonomy
     if len(sequence) < 50:
         # if number assume it is a greengenes id
         if sequence.isdigit():
@@ -828,7 +830,7 @@ def taxonomy_info(taxonomy):
     Parameters
     ----------
     taxonomy : str
-        the ontology term to look for
+        the partial taxonomy string to look for
 
     Returns
     -------
@@ -848,7 +850,7 @@ def get_taxonomy_info(taxonomy):
     Parameters
     ----------
     taxonomy : str
-        the ontology term to look for
+        the partial taxonomy string to look for
 
     Returns
     -------
@@ -863,6 +865,7 @@ def get_taxonomy_info(taxonomy):
         msg = 'error getting taxonomy annotations for %s: %s' % (taxonomy, res.content)
         debug(6, msg)
         return msg, msg
+    tax_seqs = res.json()['seqids']
     annotations_counts = res.json()['annotations']
     if len(annotations_counts) == 0:
         msg = 'no annotations found for taxonomy %s' % taxonomy
@@ -880,7 +883,7 @@ def get_taxonomy_info(taxonomy):
     annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
 
     webPage = render_template('header.html', title='dbBact ontology')
-    webPage += render_template('taxinfo.html', taxonomy=taxonomy)
+    webPage += render_template('taxinfo.html', taxonomy=taxonomy, seq_count=len(tax_seqs))
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
