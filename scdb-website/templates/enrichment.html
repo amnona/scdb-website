@@ -1,82 +1,88 @@
-<html>
-    <head>
-        <style>
-            #main{    
-            }
-            #menu {
-            width: 20%;
-            height: 100px;
-            margin: 0;
-            float:left;
-            overflow:auto;
-            display: inline-block;
-            }
-            #searchtitle {
-            width: 60%;
-            height: 100px;
-            /*margin-left: auto; margin-right: auto;*/
-            margin: 0px;
-            clear: both;
-            overflow:auto;
-            display: inline-block;
-            }
-            #searchform {
-            width: 100%;
-            height: 400px;
-            margin: 0;
-            clear: both;
-            overflow:auto;
-            }
-            #botMenu {
-            width: 100%;
-            height: 100px;
-            margin: 0;
-            clear: both;
-            overflow:auto;
-            }
-            #searchBut {
-            height: 40px; 
-            width: 140px; 
-            font-size:20px;
-            text-align: center;
-            }
-        </style>
-
-<!-- google analytics tracking code -->
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-91412701-1', 'auto');
-  ga('send', 'pageview');
+function fileBrowse1()
+{
+    var textObj = document.getElementById('fastaFileDisplayTb1');
+    var hiddenObj = document.getElementById('seqs1');
+    hiddenObj.click();
+}
+        
+function alertFilename1()
+{
+    var thefile = document.getElementById('seqs1');
+    var textObj = document.getElementById('fastaFileDisplayTb1'); 
+    textObj.value = thefile.value.split(/(\\|\/)/g).pop();
+}
+
+function fileBrowse2()
+{
+    var textObj = document.getElementById('fastaFileDisplayTb2');
+    var hiddenObj = document.getElementById('seqs2');
+    hiddenObj.click();
+}
+        
+function alertFilename2()
+{
+    var thefile = document.getElementById('seqs2');
+    var textObj = document.getElementById('fastaFileDisplayTb2'); 
+    textObj.value = thefile.value.split(/(\\|\/)/g).pop();
+}
+    
 </script>
 
-    </head> 
-    <body>
-        <div id="main">
-            <div id="menu">
-            </div>
-            <div id="searchtitle">
-                <center><img src='static/dbBact.png'></center>
-            </div>
-            <div id="searchform">
-                <center><h2>Enrichment Analysis</h2></center>
-                <center>Check for enriched terms in a fasta file compared to a background fasta file</center>
-                <form action='enrichment_results' method='post' enctype = "multipart/form-data">
-                    <h3><br><center>Sequences of interest fasta file:</center></h3>
-                    <center><input type = "file" name = "seqs1" /></center>
-                    <h3><br><center>Background (compare to) fasta file:</center></h3>
-                    <center><input type = "file" name = "seqs2" /></center>
-                    <br>
-                    <center>
-                    <input id='searchBut' type='submit' align='center'></center>
-                    <br> 
-                </form>
-            </div>
-            <div id="botMenu">
-            </div>
-        </div>
-    </body>
+<font face="arial" size="5">
+    <form action='enrichment_results' method='post' enctype = "multipart/form-data">
+    <table style="width:90%;margin-right:5%;margin-left:5%;">
+        <tr height="70px" style="background-color:white">
+            <td colspan="1"></td>
+        </tr>
+        <tr style="height:60px;background-color:white">
+            <td colspan="1"><font face="arial" color="black" size="6"><b><center>Enrichment Analysis</center></b></font></td> 
+        </tr>
+        <tr style="height:60px;background-color:white">
+            <td colspan="1"><font face="arial" color="black" size="4"><center>Check for enriched terms in a fasta file compared to a background fasta file</center></font></td>
+        </tr>
+        <tr height="10px" style="background-color:white">
+            <td colspan="1"></td>
+        </tr>
+    </table>
+    <table border=0 style="width:90%;margin-right:5%;margin-left:5%;border: 3px solid #A1BCD1;background-color:#EAF0F8;" >
+        <tr style="height:20px">
+            <td colspan="5"></td>
+        </tr>
+        <tr style="height:100px;background-color:#EAF0F8;">
+            <td width="5%"></td>
+            <td width="40%">Sequences of interest fasta file:</td>
+            <td width="50%"><input type='text' id='fastaFileDisplayTb1' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
+            <td width="5%">
+                <input type="file" id="seqs1" name="seqs1" style="display:none;" onchange="alertFilename1()" />
+                <input type="button" id="fileBrowseBut1" value="browse"  onClick="fileBrowse1();"/></td>
+            <td width="5%"></td>
+        </tr>
+        <tr style="height:30px;background-color:#EAF0F8;">
+            <td colspan="5"></td>
+        </tr>
+        <tr style="height:100px;background-color:#EAF0F8;">
+            <td width="5%"></td>
+            <td width="40%">Background (compare to) fasta file:</td>
+            <td width="50%"><input type='text' id='fastaFileDisplayTb2' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
+            <td width="5%">
+                <input type="file" id="seqs2" name="seqs2" style="display:none;" onchange="alertFilename2()" />
+                <input type="button" id="fileBrowseBut2" value="browse"  onClick="fileBrowse2();"/></td>
+            <td width="5%"></td>
+        </tr>
+        <tr style="height:30px;background-color:#EAF0F8;">
+            <td colspan="5"></td>
+        </tr>
+        <tr style="height:70px;background-color:#EAF0F8;">
+            <td width="5%"></td>
+            <td width="90%" colspan="3">
+                <center><input type="image" src="static/submitBut.png" alt="Submit Form" style="width:auto ; height:40;" /></center>
+            </td>
+            <td width="5%"></td>
+        </tr>
+    </table>
+    </form>
+    </font>
+</body>
 </html>

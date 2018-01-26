@@ -60,7 +60,10 @@ def test_enrichment():
     Redirect to the main search page
     '''
     # TODO: fix to non hard-coded
-    webPage = render_template('enrichment.html')
+    webPage = ''
+    webPage = render_template('header.html')
+    
+    webPage += render_template('enrichment.html')
     return webPage
 
 
