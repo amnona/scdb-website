@@ -1367,7 +1367,7 @@ def draw_annotation_table(annotations):
     return wpart
 
 
-def draw_ontology_list(annotations, term_info=None):
+def draw_ontology_list(annotations, term_info=None, term_scores=None):
     '''
     create table entries for a list of ontology terms
 
@@ -1381,6 +1381,9 @@ def draw_ontology_list(annotations, term_info=None):
             dict: pairs of:
                 'total_annotations' : int
                 'total_sequences' : int
+    term_scores: dict of {term(str): score(float)} (optional)
+        if not none, sort terms according to the score and show the score in the table.
+        None to sort by number annotations*seqs the term appears in.
 
     output:
     wpart : str
@@ -1390,12 +1393,16 @@ def draw_ontology_list(annotations, term_info=None):
     wpart = '<div id="onto-list" class="tab-pane" style="margin-top: 20px; margin-bottom: 20px;">\n'
 
     # draw the ontology terms list
-    common_terms = get_common_terms(annotations)
+    if term_scores:
+        common_terms = [(k,v) for k,v in term_scores.items()]
+        common_terms = sorted(common_terms, key=lambda x: x[1], reverse=True)
+    else:
+        common_terms = get_common_terms(annotations)
     wpart += '<table style="width: 100%;">\n'
     wpart += '<col><col width="100px">\n'
     wpart += '<tr><th>Term</th><th>No.</th></tr>\n'
     for cterm in common_terms:
-        wpart += '<tr><td><a href=%s>%s</a></td><td>%d</td></tr>\n' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
+        wpart += '<tr><td><a href=%s>%s</a></td><td>%f</td></tr>\n' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
         # wpart += '<a href=' + urllib.parse.quote(relpath + 'ontology_info/' + cterm[0]) + '>%s</a>: %d <br>' % (cterm[0], cterm[1])
     wpart += '</table>\n'
 
@@ -1563,7 +1570,7 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None):
         for ckey, cval in term_frac.items():
             term_frac[ckey] = term_frac[ckey] / maxval
 
-    #wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
+    # wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
     wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
     if isinstance(words, str):
         debug(1, 'generating from words list')
@@ -1859,11 +1866,20 @@ def get_annotation_term_counts(annotations, exp_annotations=None, score_method='
     return term_count
 
 
-def draw_group_wordcloud(annotations, seqannotations, term_info):
+def draw_group_wordcloud(term_scores, annotations, seqannotations, term_info):
+    '''Draw the wordcloud for sequences
+
+    Parameters
+    ----------
+    term_scores : dict of {term(str):score(float)}
+        from calculate_score(annotations, seqannotations, term_info)
+
+    Returns
+    -------
+    str: html part encoding the wordcloud image
+    '''
     wpart = ''
 
-    debug(1, 'calculating score')
-    term_scores = calculate_score(annotations, seqannotations, term_info)
     debug(1, 'drawing group wordcloud')
     wordcloud_image = draw_cloud(term_scores, num_high_term=None, num_low_term=None, term_frac=None)
 
@@ -1905,9 +1921,11 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     # The output webpage part
     wpart = ''
 
+    debug(1, 'calculating score')
+    term_scores = calculate_score(annotations, seqannotations, term_info)
     # draw the wordcloud
     if include_word_cloud is True:
-        wpart += draw_group_wordcloud(annotations, seqannotations, term_info)
+        wpart += draw_group_wordcloud(term_scores, annotations, seqannotations, term_info)
 
     wpart += render_template('tabs.html')
 
@@ -1929,7 +1947,7 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
 
     # draw the ontology term list
-    wpart += draw_ontology_list(sorted_annotations, term_info)
+    wpart += draw_ontology_list(sorted_annotations, term_info, term_scores)
 
     wpart += '    </div>\n'
     wpart += '  </div>\n'
