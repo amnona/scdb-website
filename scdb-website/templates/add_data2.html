@@ -350,7 +350,7 @@
         style="BORDER: #714938 0px solid; BORDER-COLLAPSE: collapse;">
         <TBODY><TR><TD colSpan=2><h1><b>Add Data</b></h1></TD></TR></TBODY>
     </TABLE>
-    <TABLE id="GridView2" border="0" cellSpacing="0"
+    <TABLE id="mainTable" border="0" cellSpacing="0"
         style="font-weight:bold; table-layout: fixed; width:80% ; BORDER: #A1BCD1 3px solid; BORDER-COLLAPSE: collapse; background-color:#EAF0F8">
         <TBODY>
             <TR style="background-color:#EAF0F8">
@@ -360,8 +360,14 @@
                 <TD colspan="5"><font color="#006e98">Step 1:</font> select fasta file</TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="4" style="width:80%">
+                <TD colspan="3">
                 <input type='text' id='fastaFileTbDisp' name='fastaFileTbDisp' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'>
+                </TD>
+                <TD colspan="1">
+                    Region: 
+                    <select id="hiddenRegion" style="width:160px" >
+                        <option value="V4">V4</option>
+                    </select>
                 </TD>
                 <TD style="width:33%">
                 <input type="file" id="fastaFileTb" name="fastaFileTb" style="display:none;" onchange="alertFilename()" />
@@ -372,16 +378,29 @@
                 <TD style="height: 30px" colspan="5"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5"><font color="#006e98">Step 2:</font> select expirement identifiactions</TD>
+                <TD colspan="5"><font color="#006e98">Step 2:</font> select an ID for the data (For a new experiment a new ID will be created)</TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5">In case it doesn't exist new expirment will be created</TD>
-            </TR>
-            <TR style="background-color:#EAF0F8">
-                <TD style="5%" >Name:</TD>
-                <TD width="35%"><input width="600px" type = "text" class="form-control input-lg" id="expNameTb" /></TD>
-                <TD width="5%">Value:</TD>
-                <TD width="35%"><input type = "text" class="form-control input-lg" id = "expValueTb" /></TD>
+                <TD tyle="white-space: nowrap;" width="45%" >Type: 
+                <!--</TD>
+                <TD width="35%">-->
+                    <!--<input width="600px" type = "text" class="form-control input-lg" id="expNameTb" />-->
+                    <select id="expNameTb" style="width: 160" >
+                        <option value="name">name</option>
+                        <option value="http">http</option>
+                        <option value="doi">doi</option>
+                        <option value="mgrast">mgrast</option>
+                        <option value="dryad">dryad</option>
+                        <option value="sra">sra</option>
+                        <option value="pubmed">pubmed</option>
+                        <option value="qiita">qiita</option>
+                    </select>
+                </TD>
+                <TD width="10%"></TD>
+                <TD style="white-space: nowrap;" colspan="2" width="45%">Value: <input type = "text" id = "expValueTb" /></TD>
+                <!--</TD>
+                <TD width="35%">-->
+                
                 <TD width="10%"><input type="button" onclick="addExpToList();" id="expPlus" value="add" style="width:100px"/></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
@@ -422,7 +441,7 @@
                             <option value="other">Other</option>
                         </select><br>
                         <input type="radio" name="ontType" id="diffRb" onchange="diffRbChange();">
-                        <label>Differetial presence</label>
+                        <label>Differential presence</label>
                 </TD>
                 <TD valign="bottom" style="width: 80%" colspan="3">
                     <input type="radio" name="groupRb1" id="allRb" checked="True" disabled="True">
@@ -490,20 +509,23 @@
             </TR>
             <TR style="background-color:#EAF0F8">
                 <TD style="height: 30px" colspan="5">
-                    <input type="submit" alt="Submit Form" style="margin:0px; padding:5px; width:250px" value="Submit"/>
+                    <center><input type="image" src="static/submitBut.png" alt="Submit Form" style="width:auto ; height:40;" /></center>
+                    <!--<input type="submit" alt="Submit Form" style="margin:0px; padding:5px; width:250px" value="Submit"/>-->
                 </TD>
             </TR>
         </TBODY>
     </TABLE>
-    <TABLE id="GridView1" border="0" cellSpacing="0"
-        style="BORDER: #714938 0px solid; BORDER-COLLAPSE: collapse;">
-        <TBODY>
-            <TR style="height: 80px">
-                <TD>
-                </TD>
-            </TR>
-        </TBODY>
-    </TABLE>
+    <table style="width:90%;margin-right:5%;margin-left:5%;background-color:white">
+        <tr height="70px" style="background-color:white">
+            <td colspan="1"></td>
+        </tr>
+        <tr height="30px" style="background-color:white">
+            <td colspan="1" align="right"><font face="arial" size="5"><center><a href='main'><u>Back to main page</u></a></center></font></td>
+        </tr>
+        <tr height="70px" style="background-color:white">
+            <td colspan="1"></td>
+        </tr>
+    </table>
     </center>
 </form>
         
