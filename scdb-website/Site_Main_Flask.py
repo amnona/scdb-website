@@ -2024,3 +2024,15 @@ def _get_exp_annotations(annotations):
                 cterm = '-' + cterm
             exp_annotations[cexpid][cterm]+=1
     return exp_annotations
+
+@Site_Main_Flask_Obj.route('/sleep_test_30')
+def sleep_test_30():
+    import time
+    time.sleep(30)
+    return "sleep test 30"
+
+@Site_Main_Flask_Obj.route('/sleep_test_1')
+def sleep_test_1():
+    import time
+    time.sleep(1)
+    return "sleep test 1"
