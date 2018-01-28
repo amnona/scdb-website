@@ -42,7 +42,7 @@
         
         if( expLb.options.length <= 0 )
         {
-            alert('Experience details are missing');
+            alert('Experiment details are missing');
             return false;
         }
         
@@ -352,39 +352,62 @@
     </TABLE>
     <TABLE id="mainTable" border="0" cellSpacing="0"
         style="font-weight:bold; table-layout: fixed; width:80% ; BORDER: #A1BCD1 3px solid; BORDER-COLLAPSE: collapse; background-color:#EAF0F8">
+        <THEAD>
+            <tr height="0" style="display: none; ">
+                <th></th>
+                <th></th> 
+                <th></th>
+                <th></th>
+                <th></th> 
+                <th></th>
+                <th></th>
+                <th></th> 
+                <th></th>
+                <th></th>
+            </tr>
+        </THEAD>
         <TBODY>
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5"></TD>
+                <TD></TD>
+                <TD style="height: 30px" colspan="9"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5"><font color="#006e98">Step 1:</font> select fasta file</TD>
+                <TD></TD>
+                <TD colspan="9"><font color="#006e98">Step 1:</font> select fasta file</TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="3">
+                <TD colspan="1"></TD>
+                <TD colspan="4" colspan="1">
                 <input type='text' id='fastaFileTbDisp' name='fastaFileTbDisp' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'>
-                </TD>
-                <TD colspan="1">
-                    Region: 
-                    <select id="hiddenRegion" style="width:160px" >
-                        <option value="V4">V4</option>
-                    </select>
                 </TD>
                 <TD style="width:33%">
                 <input type="file" id="fastaFileTb" name="fastaFileTb" style="display:none;" onchange="alertFilename()" />
                 <input type="button" id="fileBrowseBut" value="browse"  onClick="fileBrowse();" style="width:100px"/>
                 </TD>
+                <TD  colspan="1"></TD>
+                <TD colspan="1">
+                    Region: 
+                </TD>
+                <TD  colspan="2">
+                    <select name="hiddenRegion" id="hiddenRegion" style="width:160px" >
+                        <option value="V4">V4</option>
+                    </select>
+                </TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5"></TD>
+                <TD style="height: 30px" colspan="10"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5"><font color="#006e98">Step 2:</font> select an ID for the data (For a new experiment a new ID will be created)</TD>
+                <TD></TD>
+                <TD colspan="9"><font color="#006e98">Step 2:</font> select an ID for the data (For a new experiment a new ID will be created)</TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD tyle="white-space: nowrap;" width="45%" >Type: 
+                <TD  colspan="1"></TD>
+                <TD tyle="white-space: nowrap;" width="45%" >Type:</TD> 
                 <!--</TD>
                 <TD width="35%">-->
                     <!--<input width="600px" type = "text" class="form-control input-lg" id="expNameTb" />-->
+                <TD>    
                     <select id="expNameTb" style="width: 160" >
                         <option value="name">name</option>
                         <option value="http">http</option>
@@ -396,42 +419,50 @@
                         <option value="qiita">qiita</option>
                     </select>
                 </TD>
-                <TD width="10%"></TD>
-                <TD style="white-space: nowrap;" colspan="2" width="45%">Value: <input type = "text" id = "expValueTb" /></TD>
+                <TD></TD>
+                <TD style="white-space: nowrap;" width="45%">Value:</TD> 
+                <TD colspan="2" ><input type = "text" id = "expValueTb" /></TD>
                 <!--</TD>
                 <TD width="35%">-->
-                
+                <TD></TD>
                 <TD width="10%"><input type="button" onclick="addExpToList();" id="expPlus" value="add" style="width:100px"/></TD>
+                <TD></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
+                <TD></TD>
                 <TD colspan="5" style="width:50%">
                     <select name="expList1" id="expList" size="6" style="width: 500px; font-size: 17px;" multiple></select>
                 </TD>
+                <TD colspan="4"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="1" style="width:40%">
+                <TD colspan="1" ></TD>
+                <TD colspan="2" >
                     <font face="arial" size="3" color="black">    
                     <input type="button" onclick="expRemoveSelected();" id = "expMinus" value="Remove Selected" style="margin:0px; padding:5px; width:150px"/>
                     </font>
                 </TD>
-                <TD colspan="1" style="width:40%">
+                <TD colspan="2">
                     <font face="arial" size="3" color="black">    
                     <input type="button" onclick="expRemoveAll();" id = "expMinusAll" value="Remove All" style="margin:0px; padding:5px; width:150px"/>
                     </font>
                 </TD>
-                <TD colspan="3" style="width:20%">
+                <TD colspan="5">
                     
                 </TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5"></TD>
+                <TD></TD>
+                <TD style="height: 30px" colspan="9"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5"><font color="#006e98">Step 3:</font> add annotations</TD>
+                <TD colspan="1"></TD>
+                <TD colspan="9"><font color="#006e98">Step 3:</font> add annotations</TD>
             </TR>
             
             <TR style="background-color:#EAF0F8">
-                <TD style="width: 20%" colspan="2">
+                <TD colspan="1"></TD>
+                <TD colspan="3">
                     <input type="radio" name="ontType" id="isARb" checked="True" onchange="diffRbChange();">
                     <label>Is A </label>
                         <select id="isAList" style="width: 320px" >
@@ -443,7 +474,7 @@
                         <input type="radio" name="ontType" id="diffRb" onchange="diffRbChange();">
                         <label>Differential presence</label>
                 </TD>
-                <TD valign="bottom" style="width: 80%" colspan="3">
+                <TD valign="bottom" colspan="3">
                     <input type="radio" name="groupRb1" id="allRb" checked="True" disabled="True">
                         <label>All</label>
                     <input type="radio" name="groupRb1" id="highRb" disabled="True">
@@ -451,10 +482,12 @@
                     <input type="radio" name="groupRb1" id="lowRb" disabled="True">
                         <label>Low</label>
                 </TD>
+                <TD colspan="3"></TD>
             </TR>
             
             <TR style="background-color:#EAF0F8">
-                <TD width="90%" colspan="4">
+                <TD colspan="1"></TD>
+                <TD colspan="7">
                 <div class="js-result-container"></div>
                 <div class="typeahead__container">
                     <div class="typeahead__field">
@@ -470,48 +503,58 @@
                     </div>
                 </TD>
                 <TD width="10%"><input type="button" onclick="addOntToList();" id = "ontPlus" value="add" style="width:100px"/></TD>
+                <TD colspan="1"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
+                <TD colspan="1"></TD>
                 <TD colspan="5">
                     <select id="ontList" size="8" style="width: 500px; font-size: 17px;"></select>
                 </TD>
+                <TD colspan="4"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="1" style="width:20%">
+                <TD></TD>
+                <TD colspan="2">
                     <font face="arial" size="3" color="black">    
                     <input type="button" id = "ontMinus" onclick="ontRemoveSelected();" id = "ontPlus" value="Remove Selected" style="margin:0px; padding:5px; width:150px"/>
                     </font>
                 </TD>
-                <TD colspan="1" style="width:20%">
+                <TD colspan="2">
                     <font face="arial" size="3" color="black">    
                     <input type="button" onclick="ontRemoveAll();" id = "ontPlus" value="Remove All" style="margin:0px; padding:5px; width:150px"/>
                     </font>
                 </TD>
-                <TD colspan="3" style="width:60%">
+                <TD colspan="5">
                     
                 </TD>
             </TR>
             
         
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5"></TD>
+                <TD style="height: 30px" colspan="10"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD colspan="5"><font color="#006e98">Step 4:</font> description</TD>
+                <TD></TD>
+                <TD colspan="9"><font color="#006e98">Step 4:</font> description</TD>
             </TR>
             <TR style="background-color:#EAF0F8">
+                <TD></TD>
                 <TD colspan="5">
                     <input type = "text" name = "descNameTb" id = "descNameTbId" style="width: 433px;" class="form-control input-lg"/>
                 </TD>
+                <TD colspan="4">
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5"></TD>
+                <TD style="height: 30px" colspan="10"></TD>
             </TR>
             <TR style="background-color:#EAF0F8">
-                <TD style="height: 30px" colspan="5">
+                <TD style="height: 30px" colspan="10">
                     <center><input type="image" src="static/submitBut.png" alt="Submit Form" style="width:auto ; height:40;" /></center>
                     <!--<input type="submit" alt="Submit Form" style="margin:0px; padding:5px; width:250px" value="Submit"/>-->
                 </TD>
+            </TR>
+            <TR style="background-color:#EAF0F8">
+                <TD style="height: 30px" colspan="10"></TD>
             </TR>
         </TBODY>
     </TABLE>
