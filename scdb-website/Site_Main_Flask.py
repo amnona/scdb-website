@@ -1106,7 +1106,8 @@ def forgot_password_submit():
     json_user={'user':usermail}
     httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
     if httpRes.status_code==200:
-        webpage = render_template('recover_form.html')
+        webpage = render_template('header.html', title='Password Recovery')
+        webpage += render_template('recover_form.html')
     else:
         webpage = render_template('done_fail.html', mes='Failed to reset password', error=httpRes.text)
     return webpage
@@ -1655,9 +1656,9 @@ def reset_password():
     URL: /reset password
     Method: POST
     """
-    webpage = render_template('reset_password.html')
+    webpage = render_template('header.html',title='Reset Password')
+    webpage += render_template('reset_password.html') 
     return webpage
-
 
 @Site_Main_Flask_Obj.route('/about', methods=['POST', 'GET'])
 def about():
@@ -1666,9 +1667,9 @@ def about():
     URL: /about
     Method: POST
     """
-    webpage = render_template('about.html')
+    webpage = render_template('header.html',title='About Us')
+    webpage += render_template('about.html') 
     return webpage
-
 
 """
 Auto complete tests
