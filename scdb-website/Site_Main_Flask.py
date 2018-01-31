@@ -57,13 +57,28 @@ scbd_server_address = get_db_address()
 @Site_Main_Flask_Obj.route('/enrichment', methods=['POST', 'GET'])
 def test_enrichment():
     '''
-    Redirect to the main search page
+    Redirect to enrichment page
     '''
     # TODO: fix to non hard-coded
-    webPage = ''
-    webPage = render_template('header.html')
-    
-    webPage += render_template('enrichment.html')
+    httpRes = requests.get(scbd_server_address + '/stats/stats')
+    # NumOntologyTerms = 0
+    NumAnnotation = 0
+    NumSequences = 0
+    NumSequenceAnnotation = 0
+    NumExperiments = 0
+    if httpRes.status_code == 200:
+        jsonRes = httpRes.json()
+        # NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
+        NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
+        NumSequences = jsonRes.get("stats").get('NumSequences')
+        NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
+        NumExperiments = jsonRes.get("stats").get('NumExperiments')
+
+    webPage = render_template('enrichment.html',
+                              numAnnot=(str(NumAnnotation).replace('.0', '')),
+                              numSeq=(str(NumSequences).replace('.0', '')),
+                              numExp=(str(NumExperiments).replace('.0', '')),
+                              numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
 
