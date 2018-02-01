@@ -160,7 +160,7 @@
             return;
         }
         
-        document.getElementById('expNameTb').value = '';
+        //document.getElementById('expNameTb').value = '';
         document.getElementById('expValueTb').value = '';
         
         var selectLb = document.getElementById('expList');
@@ -391,6 +391,7 @@
                 <TD  colspan="2">
                     <select name="hiddenRegion" id="hiddenRegion" style="width:160px" >
                         <option value="V4">V4</option>
+                        <option value="V4">ITS1</option>
                     </select>
                 </TD>
             </TR>
@@ -431,7 +432,7 @@
             <TR style="background-color:#EAF0F8">
                 <TD></TD>
                 <TD colspan="5" style="width:50%">
-                    <select name="expList1" id="expList" size="6" style="width: 500px; font-size: 17px;" multiple></select>
+                    <select name="expList1" id="expList" size="6" style="width: 500px; font-family: Arial; font-size: 25px;" multiple></select>
                 </TD>
                 <TD colspan="4"></TD>
             </TR>
@@ -466,10 +467,10 @@
                     <input type="radio" name="ontType" id="isARb" checked="True" onchange="diffRbChange();">
                     <label>Is A </label>
                         <select id="isAList" style="width: 320px" >
-                            <option value="contaminant">Contaminant</option>
-                            <option value="common">Common (>0.5 samples)</option>
-                            <option value="high">High freq (>1% reads)</option>
-                            <option value="other">Other</option>
+                            <option value="contaminant">contaminant</option>
+                            <option value="common">common (>50% of samples)</option>
+                            <option value="high">high freq (>1% of reads)</option>
+                            <option value="other">other</option>
                         </select><br>
                         <input type="radio" name="ontType" id="diffRb" onchange="diffRbChange();">
                         <label>Differential presence</label>
@@ -508,7 +509,7 @@
             <TR style="background-color:#EAF0F8">
                 <TD colspan="1"></TD>
                 <TD colspan="5">
-                    <select id="ontList" size="8" style="width: 500px; font-size: 17px;"></select>
+                    <select id="ontList" size="6" style="width: 500px; font-family: Arial; font-size: 25px;"></select>
                 </TD>
                 <TD colspan="4"></TD>
             </TR>
@@ -540,7 +541,7 @@
             <TR style="background-color:#EAF0F8">
                 <TD></TD>
                 <TD colspan="5">
-                    <input type = "text" name = "descNameTb" id = "descNameTbId" style="width: 433px;" class="form-control input-lg"/>
+                    <input type = "textarea" rows = "6" name = "descNameTb" id = "descNameTbId" style="width: 500px;height: 200px;border: 1px solid black;" class="form-control input-lg"/>
                 </TD>
                 <TD colspan="4">
             </TR>
