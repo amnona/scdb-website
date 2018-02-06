@@ -124,17 +124,17 @@ def add_data_results():
 
     hiddenRegionStr = request.form.get('hiddenRegion')
     if hiddenRegionStr is None or len(hiddenRegionStr.strip()) == 0:
-        webPageTemp = render_template('error_page.html', error_str='Invalid region value')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid region value')
         return(webPageTemp, 400)
         
     
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
-        webPageTemp = render_template('error_page.html', error_str='Invalid Input (error code: -1)')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid Input (error code: -1)')
         return(webPageTemp, 400)
 
     # in case one of the parameters is missing
     if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
-        webPageTemp = render_template('error_page.html', error_str='Invalid Input (error code: -2)')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid Input (error code: -2)')
         return(webPageTemp, 400)
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
@@ -179,10 +179,10 @@ def add_data_results():
                     expId = jsonRes.get("expId")
                     webpage += "<h2>Created new expirement ID : " + str(expId) + "</h2><br>" 
                 else: 
-                    webPageTemp = render_template('error_page.html', error_str='Failed to create new expirement')
+                    webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to create new expirement')
                     return(webPageTemp, 400)
     else:
-        webPageTemp = render_template('error_page.html', error_str='Failed to get expirement id')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to get expirement id')
         return(webPageTemp, 400)
     #####################################################      
     
@@ -198,12 +198,12 @@ def add_data_results():
         jsonRes = httpRes.json()
         seqList = jsonRes.get("seqIds")    
         if len(seqList) != len(seqs1):
-            webPageTemp = render_template('error_page.html', error_str='Failed to retrieve all sequneces IDs')
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve all sequneces IDs')
             return(webPageTemp, 400)
         webpage += "number of sequences: " + str(len(seqs1)) + "<br>"
         webpage += "number of ids: " + str(len(seqs1)) + "<br>"
     else:
-        webPageTemp = render_template('error_page.html', error_str='Failed to retrieve sequneces IDs')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve sequneces IDs')
         return(webPageTemp, 400)
     #####################################################      
     
@@ -218,11 +218,11 @@ def add_data_results():
         jsonRes = httpRes.json()
         ontList = jsonRes.get("ontIds")    
         if len(ontDataNameArr) != len(ontList):
-            webPageTemp = render_template('error_page.html', error_str='Failed to get ontologies IDs')
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to get ontologies IDs')
             return(webPageTemp, 400)
         webpage += "number of ontologies: " + str(len(ontList)) + "<br>"
     else:
-        webPageTemp = render_template('error_page.html', error_str='Failed to retrieve ontologies IDs')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve ontologies IDs')
         return(webPageTemp, 400)
     #####################################################      
     
@@ -250,7 +250,7 @@ def add_data_results():
         annotId = jsonRes.get("annotationId")    
         webpage += "Added annotations with id: " + str(annotId) + "<br>"
     else:
-        webPageTemp = render_template('error_page.html', error_str='Failed to add annotations')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to add annotations')
         return(webPageTemp, 400)
     
     webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
@@ -271,7 +271,7 @@ def enrichment_results():
         textfile1 = TextIOWrapper(file1)
         seqs1 = get_fasta_seqs(textfile1)
         if seqs1 is None:
-            webPageTemp = render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
             return(webPageTemp, 400)
     if 'seqs2' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
@@ -279,7 +279,7 @@ def enrichment_results():
         textfile2 = TextIOWrapper(file2)
         seqs2 = get_fasta_seqs(textfile2)
         if seqs2 is None:
-            webPageTemp = render_template('error_page.html', error_str='Error: Uploaded file2 not recognized as fasta')
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file2 not recognized as fasta')
             return(webPageTemp, 400)
     webpage = render_template('header.html')
     # webpage = render_template('info_header.html')
@@ -288,7 +288,7 @@ def enrichment_results():
         webpage += render_template('enrichment_results.html')
         err, terms, pval, odif = enrichment.enrichment(seqs1, seqs2, term_type=term_type)
         if err:
-            webPageTemp = render_template('error_page.html', error_str=err)
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str=err)
             return(webPageTemp, 400)
         for idx, cterm in enumerate(terms):
             if odif[idx] < 0:
@@ -392,7 +392,7 @@ def search_results():
             textfile = TextIOWrapper(file)
             seqs = get_fasta_seqs(textfile)
             if seqs is None:
-                webPageTemp = render_template('error_page.html', error_str='Error: Uploaded file not recognized as fasta')
+                webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file not recognized as fasta')
                 return(webPageTemp, 400)
             err, webpage = draw_sequences_annotations_compact(seqs)
             return webpage
@@ -412,11 +412,11 @@ def search_results():
         err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
-        return error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
+        return render_template('header.html', title='Error') + error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
                              'or taxonomy.' % sequence)
 
     if len(sequence) < 100:
-        webPageTemp = render_template('error_page.html', error_str='Sequences must be at least 100bp long.')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Sequences must be at least 100bp long.')
         return(webPageTemp, 400)
     webPage = sequence_annotations(sequence)
     return webPage
@@ -683,7 +683,7 @@ def annotation_info(annotationid):
     res = requests.get(get_db_address() + '/annotations/get_annotation', params=rdata)
     if res.status_code != 200:
         message = Markup('Annotation ID <b>%d</b> was not found.' % annotationid)
-        webPageTemp = render_template('error_page.html', error_str='Not found')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Not found')
         return(webPageTemp, 400)
 
     annotation = res.json()
@@ -829,7 +829,7 @@ def annotations_list():
 def experiments_list():
     err, webpage = get_experiments_list()
     if err:
-        webPageTemp = render_template('error_page.html', error_str=err)
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str=err)
         return(webPageTemp, 400)
     return webpage
 
@@ -1463,7 +1463,7 @@ def annotation_seq_download(annotationid):
     seqs = annotation.get('sequences')
     if seqs is None:
         debug(6, 'No sequences found')
-        webPageTemp = render_template('error_page.html', error_str='No sequences found')
+        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='No sequences found')
         return(webPageTemp, 400)
     output = ''
     for idx, cseq in enumerate(seqs):
