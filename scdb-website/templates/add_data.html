@@ -17,8 +17,11 @@
 
     var expNameArray = new Array();
     var expValueArray = new Array();
+    
     var ontNameArray = new Array();
+    var ontTypeArray = new Array();
     var ontDetTypeArray = new Array();
+    
         
     var isOptionDirty = false;
     var expNameCount = 0;
@@ -30,13 +33,38 @@
         
     function validateForm(){
         
-        if (confirm('NOTE: this annotation will be added to dbBact and may be used by other users. Please proceed only if this is a real observation?')) 
-        {
-            // Save it!
-        } 
-        else 
+        //General confirmation
+        if (confirm('NOTE: this annotation will be added to dbBact and may be used by other users. Please proceed only if this is a real observation?') == false) 
         {
             return false;
+        }
+        
+        //Check fasta file is not empty
+        var fastaFilehiddenObj = document.getElementById('fastaFileTb');
+        if(fastaFilehiddenObj.value.trim().length  < 1)
+        {
+            alert('Fasta file name can\'t be empty');
+            return false;
+        }
+        
+        
+        //If exp list doesnt exist, dont submit
+        if( expNameCount == 0 )
+        {
+            if (confirm('Experiment name is missing, would you like to continue?') == false) 
+            {
+                return false;
+            }
+        }
+        
+        
+        //We prefer to have at least one repo record
+        if( expRepoCount == 0 )
+        {
+            if (confirm('No data repository detailes, would you like to continue?') == false) 
+            {
+                return false;
+            }
         }
         
         //If is diff. Abundance, need at least 1 high, 1 low. Otherwise reject: “Differential abundance requires at least one term for high group and one term for low group”
@@ -46,58 +74,30 @@
             return false;
         }
         
-        if( expNameCount == 0 )
-        {
-            if (confirm('Experiment name is missing, would you like to continue?')) 
-            {
-            }
-            else
-            {
-                return false;
-            }
-        }
-        
-        if( expRepoCount == 0 )
-        {
-            if (confirm('No data repository detailes, would you like to continue?')) 
-            {
-            }
-            else
-            {
-                return false;
-            }
-        }
-        
         //Less than 3 “all” details - ask are you sure - less than 3 “all” terms provided (usually should contain material/country/host)
         if( diffAllCount < 3)
         {
-            if (confirm('Less than 3 \"all\" terms provided (usually should contain material/country/host), are you sure you would like to continue?')) 
-            {
-            }
-            else
+            if (confirm('Less than 3 \"all\" terms provided (usually should contain material/country/host), are you sure you would like to continue?') == false) 
             {
                 return false;
             }
         }
     
         
+        //All confirmation passed successfully
+        
         var expLb = document.getElementById('expList');
         var ontLb = document.getElementById('ontList');
         
+        //Expirment list
         var hiddenExpNameInfo = document.getElementById('hiddenExpNameId');
         var hiddenExpValueInfo = document.getElementById('hiddenExpValueId');
+        
+        //Ontology list
         var hiddenOntNameInfo = document.getElementById('hiddenOntNameId');
         var hiddenOntTypeInfo = document.getElementById('hiddenOntTypeId');
         var hiddenOntDetTypeInfo = document.getElementById('hiddenOntDetTypeId');
-        
-        var fastFilehiddenObj = document.getElementById('fastaFileTb');
-        
-        //Check fasta file is not empty
-        if(fastFilehiddenObj.value.trim().length  < 1)
-        {
-            alert('Fasta file name can\'t be empty');
-            return false;
-        }
+    
         
         if( expLb.options.length <= 0 )
         {
@@ -111,19 +111,21 @@
             return false;
         }
         
-        if( expNameArray.length != expValueArray.length )
+        //Check that the number of values is valid
+        if( hiddenExpNameInfo.length != hiddenExpValueInfo.length )
         {
-            alert('Wrong experience list');
+            alert('Invalid experience list');
             return false;
         }
-        
-        //if( ontNameArray.length != ontTypeArray.length || ontNameArray.length != ontDetTypeArray.length )
-        if( ontNameArray.length != ontDetTypeArray.length )
+        if( hiddenExpNameInfo.length != hiddenOntTypeInfo.length || hiddenOntTypeInfo.length != hiddenOntDetTypeInfo.length )
         {
-            alert('Wrong ontology list');
+            alert('Invalid ontology list');
             return false;
         }
+        ///////////////////////////////////////////////
+    
         
+        //Create the list of exp
         for (var i=0; i < expNameArray.length; i++) {
             if( i == 0 )
             {
@@ -136,57 +138,31 @@
                 hiddenExpValueInfo.value = hiddenExpValueInfo.value + ";" + expValueArray[i];
             }
         }    
-
+        
+        //Create the list of ontologies
         for (var i=0; i < ontNameArray.length; i++) {
             if( i == 0 )
             {
                 hiddenOntNameInfo.value = ontNameArray[i];
+                hiddenOntTypeInfo.value = ontTypeArray[i];
                 hiddenOntDetTypeInfo.value = ontDetTypeArray[i];
             }
             else
             {
                 hiddenOntNameInfo.value = hiddenOntNameInfo.value + ";" + ontNameArray[i];
+                hiddenOntTypeInfo.value = hiddenOntTypeInfo.value + ";" + ontTypeArray[i];
                 hiddenOntDetTypeInfo.value = hiddenOntDetTypeInfo.value + ";" + ontDetTypeArray[i];
             }
         }    
         
-        //Differential or is a
-        var typeVal;
-        var cbValue1;
-        var stringRb1;
-        var isARb=document.getElementById('isARb');
-        var diffRb=document.getElementById('diffRb');
-        var isALb=document.getElementById('isAList');
-        if(isARb.checked)
-        {
-            cbValue1 = 0 ; //is A
-            stringRb1 = 'Is a ' + isALb.options[isALb.selectedIndex].text;
-            if( isALb.selectedIndex == 0 )
-                typeVal = "contamination";
-            else if( isALb.selectedIndex == 1 )
-                typeVal = "common";
-            else if( isALb.selectedIndex == 2 )
-                typeVal = "highfreq";
-            else if( isALb.selectedIndex == 3 )
-                typeVal = "other";
-        }
-        else if (diffRb.checked)
-        {
-            cbValue1 = 1 ; //Differetial presence
-            stringRb1 = 'differential presence';
-            typeVal = "diffexp";
-        }
-        else
-        {
-            alert('Please check one of the radio buttons: \'Is A\' or \'Differetial presence\'');
-            return false;
-        }
+        alert(hiddenOntNameInfo.value);
+        alert(hiddenOntTypeInfo.value);
+        alert(hiddenOntDetTypeInfo.value);
         
-        hiddenOntTypeInfo.value = typeVal;
         
-        //alert('debug mode, validation completed successfully');
-        //return false;
-        return true;
+        alert('debug mode, validation completed successfully');
+        return false;
+        //return true;
     }
     
     function diffRbChange()
@@ -218,18 +194,15 @@
         var expValue=document.getElementById('expValueTb').value.trim().toLowerCase();
         var selectLb = document.getElementById('expList');
         
+        //Hidden objects 
+        var hiddenExpNameInfo = document.getElementById('hiddenExpNameId');
+        var hiddenExpValueInfo = document.getElementById('hiddenExpValueId');        
+        
         if (expName.length < 1 || expValue.length  < 1)
         {
             alert('Experience name and value can\'t be empty');
             return;
         }
-            
-        //Added repo
-        if(expName == 'sra' || expName == 'qiita' || expName == 'dryad' || expName == 'mgrast')
-        {
-            expRepoCount = expRepoCount + 1;
-        }    
-        
         //If first time, clean all
         if( isOptionDirty == false)
         {
@@ -239,6 +212,11 @@
             expRemoveAll(); 
         }
         
+        //Added repo
+        if(expName == 'sra' || expName == 'qiita' || expName == 'dryad' || expName == 'mgrast')
+        {
+            expRepoCount = expRepoCount + 1;
+        }    
         //Added name
         if(expName == 'name')
         {
@@ -247,21 +225,13 @@
         
         //document.getElementById('expNameTb').value = '';
         document.getElementById('expValueTb').value = '';
-        
-        
         selectLb.options[selectLb.options.length] = new Option(expName + ": " + expValue , expName + ";" + expValue );
         
         expNameArray.push(expName);
         expValueArray.push(expValue);
     }
     
-    //Add it ot the list
-    //var hiddenExpName = document.getElementById('hiddenExpNameId[]');        
-    //var hiddenExpValue = document.getElementById('hiddenExpValueId[]');
-        
-    //hiddenExpName.add(expName);
-    //hiddenExpName.add(expValue);
-        
+    //Ont remove selected 
     function ontRemoveSelected(){
         var selectLb = document.getElementById('ontList');
         lbSelectedIndex = selectLb.selectedIndex;
@@ -273,28 +243,34 @@
         }
         else
         {
+            ontType = ontTypeArray[lbSelectedIndex];
             ontDet = ontDetTypeArray[lbSelectedIndex];
-        
-            if(ontDet == 'all')
+            
+            if( ontType == 'diffexp' )
             {
-                diffAllCount = diffAllCount - 1;
-            }
-            else if(ontDet == 'high' )
-            {
-                diffHighCount = diffHighCount - 1;
-            }
-            else if(ontDet == 'low')
-            {
-                diffLowCount = diffLowCount - 1;
+                if(ontDet == 'all')
+                {
+                    diffAllCount = diffAllCount - 1;
+                }
+                else if(ontDet == 'high' )
+                {
+                    diffHighCount = diffHighCount - 1;
+                }
+                else if(ontDet == 'low')
+                {
+                    diffLowCount = diffLowCount - 1;
+                }
             }
         }
         selectLb.removeChild(selectLb[lbSelectedIndex]);
         
         //Remove from array
         ontNameArray.splice(lbSelectedIndex,1);
+        ontTypeArray.splice(lbSelectedIndex,1);
         ontDetTypeArray.splice(lbSelectedIndex,1);
     }
     
+    //Exp removed from list
     function expRemoveSelected(){
         
         var selectLb = document.getElementById('expList');
@@ -324,6 +300,7 @@
         expValueArray.splice(lbSelectedIndex,1);
     }
         
+    //Exp remove all
     function expRemoveAll(){
         
         var selectLb = document.getElementById('expList');
@@ -347,6 +324,7 @@
         //Remove from array
         ontNameArray.length = 0;
         ontDetTypeArray.length = 0;
+        ontTypeArray.length = 0;
         
             
         diffAllCount = 0;
@@ -441,12 +419,17 @@
             }
             stringEle = stringEle + detTypeVal
         }
+        else
+        {
+            detTypeVal = "all";
+        }
         
         var ontLb = document.getElementById('ontList');
         ontLb.options[ontLb.options.length] = new Option(stringEle);
         
         //Remove from array
         ontNameArray.push(ontName);
+        ontTypeArray.push(typeVal);
         ontDetTypeArray.push(detTypeVal);
         
         //Clear the text box

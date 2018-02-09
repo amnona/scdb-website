@@ -150,9 +150,11 @@ def add_data_results():
     if descName is None or len(descName.strip()) == 0:
         descName = 'na'
     # print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
-
+    
+    #Exp list
     hiddenExpName = request.form.get('hiddenExpName')
     hiddenExpValue = request.form.get('hiddenExpValue')
+    #Ont list
     hiddenOntName = request.form.get('hiddenOntName')
     hiddenOntType = request.form.get('hiddenOntType')
     hiddenOntDetType = request.form.get('hiddenOntDetType')
@@ -173,9 +175,10 @@ def add_data_results():
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
     expDataValueArr = hiddenExpValue.split(';')  # split string into a list
+    
     ontDataNameArr = hiddenOntName.split(';')  # split string into a list
-    ontDataTypeArr = hiddenOntType.split(';')  # split string into a list
-    ontDataDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
+    annotationTypeArr = hiddenOntType.split(';')  # split string into a list
+    annotationDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
 
     #### Strings to return
     #{{title_str}} - Operation failed / Operation completed successfully 
@@ -255,8 +258,8 @@ def add_data_results():
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         ontList = jsonRes.get("ontIds")    
-        if len(ontDataNameArr) != len(ontList):
-            webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to get ontologies IDs')
+        if len(ontDataNameArr) != len(ontList) :
+            webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve ontologies IDs')
             return(webpage, 400)
     else:
         webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve ontologies IDs')
@@ -269,13 +272,13 @@ def add_data_results():
     annotationListArr = []
                 
     for i in range(len(ontDataNameArr)):
-        annotationListArr.append((ontDataDetTypeArr[i],ontDataNameArr[i]))
+        annotationListArr.append((annotationDetTypeArr[i],ontDataNameArr[i]))
     
     rannotation = {}
     rannotation['expId'] = expId
     rannotation['sequences'] = seqs1
     rannotation['region'] = hiddenRegionStr
-    rannotation['annotationType'] = ontDataTypeArr[0]
+    rannotation['annotationType'] = annotationTypeArr
     rannotation['method'] = methodName
     rannotation['agentType'] = 'DBBact website submission'
     rannotation['description'] = descName
@@ -302,22 +305,56 @@ def enrichment_results():
     Method: POST
     """
     webPageTemp = ''
-    if 'seqs1' in request.files:
-        debug(1, 'Fasta file uploaded, processing it')
-        file1 = request.files['seqs1']
-        textfile1 = TextIOWrapper(file1)
-        seqs1 = get_fasta_seqs(textfile1)
-        if seqs1 is None:
-            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
+    
+    if request.method == 'GET':
+        exampleStr = request.args['example']
+    else:
+        exampleStr = request.form['example']
+    
+    #first file
+    if exampleStr != 'true':
+        if 'seqs1' in request.files:
+            debug(1, 'Fasta file uploaded, processing it')
+            file1 = request.files['seqs1']
+            textfile1 = TextIOWrapper(file1)
+            seqs1 = get_fasta_seqs(textfile1)
+            if seqs1 is None:
+                webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
+                return(webPageTemp, 400)
+        else:
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Missing fasta file name 1')
             return(webPageTemp, 400)
-    if 'seqs2' in request.files:
-        debug(1, 'Fasta file uploaded, processing it')
-        file2 = request.files['seqs2']
-        textfile2 = TextIOWrapper(file2)
-        seqs2 = get_fasta_seqs(textfile2)
-        if seqs2 is None:
-            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file2 not recognized as fasta')
-            return(webPageTemp, 400)
+    else:
+        #only used for example query
+        with open ("enrichment_example/seqs-fec.fa", "r") as myfile:
+            textfile1=myfile.readlines()
+            seqs1 = get_fasta_seqs(textfile1)
+            if seqs1 is None:
+                webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
+                return(webPageTemp, 400)
+    
+    #second file
+    if exampleStr != 'true':
+        if 'seqs2' in request.files:
+            debug(1, 'Fasta file uploaded, processing it')
+            file2 = request.files['seqs2']
+            textfile2 = TextIOWrapper(file2)
+            seqs2 = get_fasta_seqs(textfile2)
+            if seqs2 is None:
+                webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file2 not recognized as fasta')
+                return(webPageTemp, 400)
+        else:
+            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Missing fasta file name')
+    else:
+        #only used for example query
+        with open ("enrichment_example/seqs-sal.fa", "r") as myfile:
+            textfile2=myfile.readlines()
+            seqs2 = get_fasta_seqs(textfile2)
+            if seqs2 is None:
+                webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
+                return(webPageTemp, 400)
+        
+        
     webpage = render_template('header.html')
     # webpage = render_template('info_header.html')
     for term_type in ['term', 'annotation']:
@@ -858,7 +895,7 @@ def annotations_list():
     for cannotation in annotations:
         cannotation['website_sequences'] = [-1]
     annotations = sorted(annotations, key=lambda x: x.get('date', 0), reverse=True)
-    webPage += draw_annotation_details(annotations)
+    webPage += draw_annotation_details(annotations,include_ratio=False)
     return webPage
 
 
@@ -1017,7 +1054,7 @@ def experiment_info(expid):
         cannotation['website_sequences'] = [-1]
     annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=True)
     webPage += '<h2>Annotations for experiment:</h2>'
-    webPage += draw_annotation_details(annotations, include_word_cloud=False)
+    webPage += draw_annotation_details(annotations, include_word_cloud=False, include_ratio=False)
     webPage += render_template('footer.html')
     return webPage
 
@@ -1228,7 +1265,7 @@ def user_info(userid):
                render_template('footer.html'))
 
 
-def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True):
+def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True,  include_ratio=True):
     '''
     Create table entries for a list of annotations
 
@@ -1264,7 +1301,7 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
     wpart += render_template('tabs.html')
 
     # draw the annotation table
-    wpart += draw_annotation_table(annotations)
+    wpart += draw_annotation_table(annotations,include_ratio)
 
     # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
 
@@ -1372,7 +1409,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
     return wpart
 
 
-def draw_annotation_table(annotations):
+def draw_annotation_table(annotations, include_ratio=True):
     '''Draw the annotations list table. Note annotations are written according to the list order
 
     It uses the annottable.html template for the table.
@@ -1416,7 +1453,10 @@ def draw_annotation_table(annotations):
         num_sequences = dataRow.get('num_sequences', '?')
         if 'website_sequences' in dataRow:
             observed_sequences = len(dataRow['website_sequences'])
-            sequences_string = '%s / %s' % (observed_sequences, num_sequences)
+            if include_ratio == True:
+                sequences_string = '%s / %s' % (observed_sequences, num_sequences)
+            else:
+                sequences_string =  '%s' % (num_sequences)
         else:
             observed_sequences = '?'
             sequences_string = '%s' % num_sequences
