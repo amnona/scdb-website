@@ -137,7 +137,7 @@
   </head>
   <body>
     <table style="padding:0;width:100%;background-color:#006e98;margin-right:8px;margin-left:8px;">
-    <tr height="10">
+    <tr height="20">
     <td colspan="4"></td>
     </tr>
     <tr height="10">
@@ -145,7 +145,7 @@
         <td width="66%"><center><img src='static/dbBact.png'></center></td> 
         
         <td style="min-width:200px;width: auto !important;width:200px;" width="10%">
-        <font face="arial" color="white">
+        <font face="arial" size=4 color="white">
         Associations:<br>
         Annotations:<br>
         Sequences:<br>
@@ -153,7 +153,7 @@
         </font>
         </td>
         <td width="7%">
-        <font face="arial" color="white">
+        <font face="arial" size=4 color="white">
         {{numSeqAnnot}}<br>
         <a style="color:white" href={{ url_for('.annotations_list') }}>{{numAnnot}}</a><br>
         {{numSeq}}<br>
@@ -161,7 +161,13 @@
         </font>
         </td>
     </tr>
-    <tr height="10">
+    <tr height="20">
+    <td colspan="4"></td>
+    </tr>
+    <tr height="20">
+    <td colspan="4"><font face="arial" size=4 color="white"><center>dbBact is still under development. We would value your comments and suggestions. Please email us at info@dbbact.org</center></font></td>
+    </tr>
+    <tr height="20">
     <td colspan="4"></td>
     </tr>
     </table>
@@ -178,7 +184,7 @@
     <td style="min-width:165px;width: auto !important;width:165px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='main'>Sequence Search</a></td>
     <td style="min-width:206px;width: auto !important;width:206px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='http://api.dbbact.org/docs'>REST-API Documentation</a></td>
     <td style="min-width:110px;width: auto !important;width:110px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='about'>About Us</a></td>
-    <td style="min-width:140px;width: auto !important;width:140px;background-color:#d3e5ef" height="20" colspan="1"><a style="color:black" href='add_data'>Add Data</a></td>
+    <td style="min-width:140px;width: auto !important;width:140px;background-color:#d3e5ef" height="20" colspan="1"></td>
     <td style="width:70%;background-color:#d3e5ef" height="20" colspan="1"></td>    
     </tr>
     <tr height="5"></tr>
@@ -188,6 +194,8 @@
       
    <font face="arial" size="5">
     <form action='enrichment_results' method='post' enctype = "multipart/form-data">
+      <input type = "hidden" name = "example" id="exampleId" value=""/>  
+    
       <table style="width:90%;margin-right:5%;margin-left:5%;">
         <tr height="70px" style="background-color:white">
             <td colspan="1"></td>
@@ -255,7 +263,7 @@
         <tr style="height:70px">
             <td colspan="1"></td>
             <td colspan="8" colspan="3">
-            <center><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'><u>Or click here for an example</u></a></center>
+            <center><a href='enrichment_results?example=true'><u>Or click here for an example</u></a></center>
             </td>
             <td colspan="1"></td>
             </tr>
