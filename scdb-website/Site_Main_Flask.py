@@ -81,6 +81,39 @@ def test_enrichment():
                               numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
+def build_res_html(success, expId, isNewExp, annotId, additional = None):
+    successStr = ''
+    expIdStr = ''
+    existingStr = ''
+    annotIdStr = ''
+    debugStr = ''
+    
+    if success == True:
+        successStr = 'Operation succeed'
+    else:
+        successStr = 'Operation failed'
+        
+    if expId == -1:
+        expIdStr = 'NA'
+        existingStr = ''
+    else:
+        expIdStr = "<a href='http://127.0.0.1:5000/exp_info/" + str(expId) + "'>" + str(expId) + "</a>"
+            
+        if isNewExp == True:
+            existingStr = '(new)'
+        else:
+            existingStr = '(existing)'
+        
+    if annotId == -1:
+        annotIdStr = 'NA'
+    else:
+        annotIdStr = str(annotId)
+        
+    if additional != None:
+        debugStr = "Error information : " + additional
+    
+    webStr = render_template('header.html', title='Error') + render_template('add_data_results.html', title_str=successStr, new_or_existing_str=existingStr, annotation_id=annotIdStr,exp_id=expIdStr, debug_info=debugStr)
+    return webStr
 
 @Site_Main_Flask_Obj.route('/add_data_results', methods=['POST', 'GET'])
 def add_data_results():
@@ -90,26 +123,28 @@ def add_data_results():
     Method: POST
     """
     webPageTemp = ''
-    webpage = "<html></br>"
+    webpage = ''
 
     if 'fastaFileTb' in request.files:
         debug(1, 'Fasta file uploaded, processing it')
-        file1 = request.files['fastaFileTb']
-        textfile1 = TextIOWrapper(file1)
-        seqs1 = get_fasta_seqs(textfile1)
+        try:
+            file1 = request.files['fastaFileTb']
+            textfile1 = TextIOWrapper(file1)
+            seqs1 = get_fasta_seqs(textfile1)
+        except:
+            webpage = build_res_html(False, -1, isNewExp, annotId ,'Could not open fasta file')
+            return(webpage, 400)
         if seqs1 is None:
-            webpage += "<h2>Error: Invalid fasta file</h2><br>"
-            webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
-            return webpage
+            webpage = build_res_html(False, -1, False, -1 , 'Invalid fasta file')
+            return(webpage, 400)
     else:
-        webpage += "<h2>Error: Invalid fasta file</h2><br>"
-        webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
-        return webpage
+        webpage = build_res_html(False, -1, False, -1 , 'Missing fasta file')
+        return(webpage, 400)
 
     # Prepare all exp data in array
     methodName = request.form.get('methodNameTb')
     if methodName is None or len(methodName.strip()) == 0:
-        methodName = 'na'
+        methodName = 'website'
 
     descName = request.form.get('descNameTb')
     if descName is None or len(descName.strip()) == 0:
@@ -124,18 +159,17 @@ def add_data_results():
 
     hiddenRegionStr = request.form.get('hiddenRegion')
     if hiddenRegionStr is None or len(hiddenRegionStr.strip()) == 0:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid region value')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, -1, False, -1 , 'Invalid region value')
+        return(webpage, 400)
         
-    
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid Input (error code: -1)')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, -1, False, -1 , 'Invalid Input (error code: -1)')
+        return(webpage, 400)
 
     # in case one of the parameters is missing
     if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Invalid Input (error code: -2)')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, -1, False, -1 , 'Invalid Input (error code: -2)')
+        return(webpage, 400)
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
     expDataValueArr = hiddenExpValue.split(';')  # split string into a list
@@ -143,6 +177,15 @@ def add_data_results():
     ontDataTypeArr = hiddenOntType.split(';')  # split string into a list
     ontDataDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
 
+    #### Strings to return
+    #{{title_str}} - Operation failed / Operation completed successfully 
+    #{{exp_str}}
+    #{{anot_str}}
+    resTitleStr = ''
+    resExpStr = ''
+    resAnotStr = ''
+    newExpFlag = False
+    
     #####################################################      
     # Get expirement id or -1 if doesn't exist
     #####################################################      
@@ -155,14 +198,11 @@ def add_data_results():
         expId = jsonRes.get("expId")
         errorCode = jsonRes.get("errorCode")
         errorText = jsonRes.get("errorText")
-        if expId >= 0 : 
-            webpage += "<h2>Existing expirement ID : " + str(expId) + "</h2><br>" 
-        else:
+        if expId < 0 : 
             # identification appears in more than one expirement 
             if errorCode == -2 :
-                webpage += "<h2>Error : More than one experiments was found</h2><br>" 
-                webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
-                return webpage
+                webpage = build_res_html(False, -1, False, -1 , 'More than one experiments was found')
+                return(webpage, 400)
             # expirement was not found, try to find
             elif errorCode == -1:
                 rdataExp = {}
@@ -176,14 +216,14 @@ def add_data_results():
                 httpRes = requests.post(scbd_server_address + '/experiments/add_details',json=rdataExp)
                 if httpRes.status_code == 200:
                     jsonRes = httpRes.json()
-                    expId = jsonRes.get("expId")
-                    webpage += "<h2>Created new expirement ID : " + str(expId) + "</h2><br>" 
+                    expId = jsonRes.get("expId")    
+                    newExpFlag = True
                 else: 
-                    webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to create new expirement')
-                    return(webPageTemp, 400)
+                    webpage = build_res_html(False, -1, False, -1 , 'Failed to create new expirement')
+                    return(webpage, 400)
     else:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to get expirement id')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, -1, False, -1 , 'Failed to get expirement id')
+        return(webpage, 400)
     #####################################################      
     
     #####################################################      
@@ -191,20 +231,18 @@ def add_data_results():
     #####################################################      
     rdata = {}
     rdata['sequences'] = seqs1
-    rdata['primer'] = 'V4'
+    rdata['primer'] = hiddenRegionStr
     
     httpRes = requests.post(scbd_server_address + '/sequences/add',json=rdata)
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         seqList = jsonRes.get("seqIds")    
         if len(seqList) != len(seqs1):
-            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve all sequneces IDs')
-            return(webPageTemp, 400)
-        webpage += "number of sequences: " + str(len(seqs1)) + "<br>"
-        webpage += "number of ids: " + str(len(seqs1)) + "<br>"
+            webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve all sequneces IDs')
+            return(webpage, 400)
     else:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve sequneces IDs')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve sequneces IDs')
+        return(webpage, 400)
     #####################################################      
     
     #####################################################      
@@ -218,16 +256,15 @@ def add_data_results():
         jsonRes = httpRes.json()
         ontList = jsonRes.get("ontIds")    
         if len(ontDataNameArr) != len(ontList):
-            webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to get ontologies IDs')
-            return(webPageTemp, 400)
-        webpage += "number of ontologies: " + str(len(ontList)) + "<br>"
+            webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to get ontologies IDs')
+            return(webpage, 400)
     else:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to retrieve ontologies IDs')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve ontologies IDs')
+        return(webpage, 400)
     #####################################################      
     
-    for i in range(len(ontList)):
-        webpage += str(ontList[i]) + "<br>" 
+    #for i in range(len(ontList)):
+    #    webpage += str(ontList[i]) + "<br>" 
     
     annotationListArr = []
                 
@@ -248,13 +285,13 @@ def add_data_results():
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         annotId = jsonRes.get("annotationId")    
-        webpage += "Added annotations with id: " + str(annotId) + "<br>"
+        webpage = build_res_html(True, expId, newExpFlag, annotId )
+        return(webpage, 400)
     else:
-        webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Failed to add annotations')
-        return(webPageTemp, 400)
+        webpage = build_res_html(False, expId, newExpFlag, -1,  'Failed to add annotations')
+        return(webpage, 400)
     
-    webpage += "<br><a href=\'add_data\'>Back to \'add data\' page</a></html>"
-    return webpage
+    return ''
 
 
 @Site_Main_Flask_Obj.route('/enrichment_results', methods=['POST', 'GET'])
