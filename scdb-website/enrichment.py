@@ -250,6 +250,9 @@ def enrichment(seqs1, seqs2, term_type="term"):
     odif : list of float
         the effect size for each term
     '''
+    # set the same seed (since we use a random permutation test)
+    np.random.seed(2018)
+
     all_seqs = set(seqs1).union(set(seqs2))
     seqs2 = list(all_seqs - set(seqs1))
     if len(seqs2) == 0:
