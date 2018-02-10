@@ -102,14 +102,26 @@
         //remove spaces
         searchTbId.value = searchTbId.value.trim();
          
+        loadingFunc(); 
         return true;
-    }
+    }       
+        
+    function loadingFunc(){
+        document.getElementById("divContId").style.display = "none";
+        document.getElementById("divWaitId").style.display = "block";
+    }//preloader
         
     </script>
   </head>
   <body>
+    <div id="divWaitId" style="display: none; cursor: wait;">
+        <img style="position: absolute;top: 50%;left: 50%;width: 200px;height: 200px;margin-top: -100px;margin-left: -100px;" src='static/loading.gif'>        
+    </div>                      
+    </div>                    
+    <div id="divContId">
+  
     <table style="padding:0;width:100%;background-color:#006e98;margin-right:8px;margin-left:8px;">
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"></td>
     </tr>
     <tr height="10">
@@ -136,10 +148,10 @@
     <tr height="20">
     <td colspan="4"></td>
     </tr>
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"><font face="arial" size=4 color="white"><center>dbBact is still under development. We would value your comments and suggestions. Please email us at info@dbbact.org</center></font></td>
     </tr>
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"></td>
     </tr>
     </table>
@@ -206,7 +218,7 @@
             <td colspan="1"></td>
             <td colspan="3">Or upload a FASTA file:
             </td>
-            <td colspan="4"><input type='text' id='fastaFileDisplayTb' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
+            <td colspan="4"><input type='text' id='fastaFileDisplayTb' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;' readonly></td>
                         
             <td colspan="1">
                 <input type="file" id="fastaFile" name="fasta file" style="display:none;" onchange="alertFilename()" />
@@ -222,14 +234,14 @@
         <tr style="height:70px">
             <td colspan="1"></td>
             <td colspan="8">
-            <center><input type="image" src="static/searchBut.png" alt="Submit Form" style="width:auto ; height:40;" /></center>
+            <center><input type="image" src="static/searchBut.png" alt="Submit Form" style="width:auto ; height:40;"/></center>
             </td>
             <td colspan="1"></td>
         </tr>
         <tr style="height:70px">
             <td colspan="1"></td>
             <td colspan="8" colspan="3">
-            <center><a href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'><u>Or click here for an example</u></a></center>
+            <center><a onclick="loadingFunc();" href='search_results?sequence=tacggagggtgcgagcgttaatcggaataactgggcgtaaagggcacgcaggcggtgacttaagtgaggtgtgaaagccccgggcttaacctgggaattgcatttcatactgggtcgctagagtactttagggaggggtagaattccacg'><u>Or click here for an example</u></a></center>
             </td>
             <td colspan="1"></td>
             </tr>
@@ -274,6 +286,7 @@
             </div>
         </div>
 -->
+    </div>
     </body>
 </html>
 <!-- =======

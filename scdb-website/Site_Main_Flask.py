@@ -486,7 +486,7 @@ def search_results():
         err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
-        return render_template('header.html', title='Error') + error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
+        return error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
                              'or taxonomy.' % sequence)
 
     if len(sequence) < 100:
