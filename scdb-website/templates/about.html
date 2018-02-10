@@ -1,3 +1,44 @@
+<h1>Introduction to dbBact</h1>
+dbBact is a community knowledge base for information about mircobial ecology. It tries to answer the question "where have I seen this bacterial sequence before", summarizing manual observations from multiple amplicon sequencing experiments. <br>
+<h2>Sequences</h2>
+Each microbe in dbBact is identified by its' amplicon sequence. Following the development of subOTU methods (DADA2, UNoise2, Deblur), we can identify the actual amplicon sequences present in each sample in an objective, repeatable method, without the need for databases. dbBact utilizes these subOTU sequences as the identified for the microbes present. Note that since dbBact does not rely on a specific primer set/region, the same microbe can be present as multiple sequences arising from multiple primers/regions. However, currently dbBact is mostly using the Earth Microbiome Project V4 (515f) region for bacteria. <br>
+* Note that sequences must be at least 100bp longs. Longer sequences are supported (we recommend at least 150bp), and query sequences are compared using each dbBact sequence length.
+<br>
+<h2>Annotations</h2>
+Observations about microbes are stored as annotations. Each annotation is comprised of multiple ontology terms describing what is known about a group of bacteria which are derived from a single experiment.<br>
+Annotation types can be:<br>
+<b>differential expression</b> - the group of sequences is higher in one sample type compared to another.<br>
+For example:<br>
+"higher in Crohns' Diease compared to controls in homo sapiens, feces."<br>
+<b>common</b> - The group of sequences is found in more than half of the samples of the type in this experiment.<br>
+For example:<br>
+"common in feces, mus musculus, research facility, united states of america"<br>
+<b>high frequency</b> - The group of sequences has a mean frequency of more than 1% in samples of the type in this experiment.<br>
+For example:<br>
+"high frequency in feces, mus musculus, research facility, united states of america"<br>
+<b>contamination</b> - The group of sequences is suspected to be a reagent/lab contaminant in the experiment
+<b>other</b> - Other (free text) information about a group of sequences (i.e. known pathogen, host DNA, etc.)
+<h2>Terms</h2>
+Annotation terms are preferably taken from a set of ontologies, to create a common language and enable using the tree structure for the terms (i.e. disease is a parent of IBD etc.). Required terms which are not found in the ontolgies can also be used (and linked to other terms).
+<h2>Adding annotations</h2>
+Any user can contribute new sequences/annotations to dbBact. Annotations can either be anonymous (do not require registration to dbBact) or named. Anonymous annotations can be edited by all users. Named annotations can be edited only by the user that created them.
+<h2>Querying dbBact</h2>
+<h3>Single sequence query</h3>
+By entering a single sequence (length>100bp), you can view all annotations and terms associated with this sequence which are present in dbBact
+<h3>Multiple sequences (FASTA file)</h3>
+A FASTA file can be used as the query. Results will be all annotations where at least one of the FASTA sequences is present. Annotations and terms are sorted according to the enrichment of the specific annotation/term in the sequences of the query FASTA.
+<h3>Taxonomy query</h3>
+A single taxonomic level can be used as a query (such as gammaproteobacteria). Results will be dbBact annotations/terms associated with any bacteria which has this taxonomy (dbBact uses RDP for taxonomy assignment)
+<h3>Term query</h3>
+Use any dbBact ontolgy term (such as crohns' disease, or feces) to get all annotations containing this term.
+<h3>Differential abundance</h3>
+Compare two sets of sequences (two FASTA files) to get dbBact terms significantly enriched in sequences from one of the sequence sets. Significance is based on mean-rank permutation test with dsFDR multiple hypothesis correction.
+<h1>Using dbBact</h1>
+dbBact can be accessed using the following methods:<br>
+<b>website</b> - (dbbact.org) Enables querying and adding anonymous annotations.<br>
+<b>Calour</b> - (https://github.com/biocore/calour) A python module for interactive heatmap exploration of microbial data. dbBact information is displayed in the heatmaps, as well as in command based analysis and enables adding anonymous and named annotations.<br>
+<b>REST API</b> - (api.dbbact.org) Enables querying and addition of new annotations.<br>
+<br><br>
 <font face="arial" color="black" size="4">
     
     <table style="width:100%;margin-right:8px;margin-left:8px;">
