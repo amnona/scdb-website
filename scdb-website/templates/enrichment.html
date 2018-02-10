@@ -90,20 +90,22 @@
         
      function validateForm()
      {
-        var searchTbId = document.getElementById('searchTbId');
-        var fastaFileId = document.getElementById('fastaFile');
-     
-        if( searchTbId.value.trim().length == 0 && fastaFileId.value.trim().length == 0 )
-        {
-            alert('Please enter search keyword or fasta file name');
-            return false;
-        }
-        
-        //remove spaces
-        searchTbId.value = searchTbId.value.trim();
+        var fastaFileId1 = document.getElementById('fastaFileDisplayTb1');
+        var fastaFileId2 = document.getElementById('fastaFileDisplayTb2');
          
+        if( fastaFileId1.value.trim().length == 0 && fastaFileId2.value.trim().length == 0 )
+        {
+            alert('Please select two fasta files');
+            return false;
+        }    
+        loadingFunc();
         return true;
-     }
+    }
+        
+    function loadingFunc(){
+        document.getElementById("divContId").style.display = "none";
+        document.getElementById("divWaitId").style.display = "block";
+    }//preloader
         
     function fileBrowse1()
     {
@@ -136,8 +138,14 @@
     </script>
   </head>
   <body>
+    <div id="divWaitId" style="display: none; cursor: wait;">
+    <img style="position: absolute;top: 50%;left: 50%;width: 200px;height: 200px;margin-top: -100px;margin-left: -100px;" src='static/loading.gif'>        
+    </div>                      
+    </div>                    
+    <div id="divContId">
+        
     <table style="padding:0;width:100%;background-color:#006e98;margin-right:8px;margin-left:8px;">
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"></td>
     </tr>
     <tr height="10">
@@ -164,10 +172,10 @@
     <tr height="20">
     <td colspan="4"></td>
     </tr>
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"><font face="arial" size=4 color="white"><center>dbBact is still under development. We would value your comments and suggestions. Please email us at info@dbbact.org</center></font></td>
     </tr>
-    <tr height="20">
+    <tr height="10">
     <td colspan="4"></td>
     </tr>
     </table>
@@ -193,7 +201,7 @@
     </font>
       
    <font face="arial" size="5">
-    <form action='enrichment_results' method='post' enctype = "multipart/form-data">
+    <form onsubmit="return validateForm();" action='enrichment_results' method='post' enctype = "multipart/form-data">
       <input type = "hidden" name = "example" id="exampleId" value=""/>  
     
       <table style="width:90%;margin-right:5%;margin-left:5%;">
@@ -229,7 +237,7 @@
         <tr style="height:100px;background-color:#EAF0F8;">
             <td colspan="1"></td>
             <td colspan="3" style="min-width:400px;width: auto !important;width:400px;">Sequences of interest fasta file:</td>
-            <td colspan="4"><input type='text' id='fastaFileDisplayTb1' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
+            <td colspan="4"><input type='text' id='fastaFileDisplayTb1' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;' readonly></td>
             <td colspan="1">
                 <input type="file" id="seqs1" name="seqs1" style="display:none;" onchange="alertFilename1()" />
                 <input type="button" id="fileBrowseBut1" value="browse"  onClick="fileBrowse1();"/></td>
@@ -241,7 +249,7 @@
         <tr style="height:100px;background-color:#EAF0F8;">
             <td colspan="1"></td>
             <td colspan="3">Background (compare to) fasta file:</td>
-            <td colspan="4"><input type='text' id='fastaFileDisplayTb2' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;'></td>
+            <td colspan="4"><input type='text' id='fastaFileDisplayTb2' name='file name' class="form-control input-lg" style='width: calc(100% - 40px); margin: 20px; overflow: auto; border: 1px solid black;' readonly></td>
             <td colspan="1">
                 <input type="file" id="seqs2" name="seqs2" style="display:none;" onchange="alertFilename2()" />
                 <input type="button" id="fileBrowseBut2" value="browse"  onClick="fileBrowse2();"/></td>
@@ -263,7 +271,7 @@
         <tr style="height:70px">
             <td colspan="1"></td>
             <td colspan="8" colspan="3">
-            <center><a href='enrichment_results?example=true'><u>Or click here for an example</u></a></center>
+            <center><a onclick="loadingFunc();" href='enrichment_results?example=true'><u>Or click here for an example</u></a></center>
             </td>
             <td colspan="1"></td>
             </tr>
@@ -309,6 +317,7 @@
             </div>
         </div>
 -->
+    </div>
     </body>
 </html>
 <!-- =======
