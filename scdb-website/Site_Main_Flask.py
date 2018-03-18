@@ -2077,7 +2077,6 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     # set up the website_sequences field so we'll see XXX/YYY in the table
     for cannotation, cseqlist in annotation_seq_list.items():
         annotations[str(cannotation)]['website_sequences'] = cseqlist
-    print(annotations['651'])
     wpart += draw_annotation_table(sorted_annotations)
 
     # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
