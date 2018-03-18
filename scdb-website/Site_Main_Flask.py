@@ -779,7 +779,6 @@ def annotation_info(annotationid):
     webPage += '<h2>Annotations Details</h2>'
     webPage += draw_annotation_table([annotation])
 
-    print(annotation)
     webPage += render_template('annotdetail.html')
     webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('description', annotation['description'])
     webPage += '<tr><td>%s</td><td>%s</td></tr>' % ('type', annotation['annotationtype'])
@@ -1906,7 +1905,7 @@ def calculate_score(annotations, seqannotations, term_info, ignore_exp=None):
         if cterm in term_info:
             term_scores[cterm] = term_scores[cterm] / (term_info[cterm]['total_annotations']+3)
         else:
-            print('%s not in term_info' % cterm)
+            debug(3, 'calculate_score: %s not in term_info' % cterm)
             term_scores[cterm] = 0
     return term_scores
 
