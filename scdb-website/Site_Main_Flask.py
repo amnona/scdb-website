@@ -486,6 +486,10 @@ def search_results():
         err, webPage = get_taxonomy_info(sequence)
         if not err:
             return webPage
+        # or maybe based on hash string
+        err, webPage = get_hash_info(sequence)
+        if not err:
+            return webPage
         return error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
                              'or taxonomy.' % sequence)
 
@@ -1014,6 +1018,51 @@ def get_taxonomy_info(taxonomy):
 
     webPage = render_template('header.html', title='dbBact ontology')
     webPage += render_template('taxinfo.html', taxonomy=taxonomy, seq_count=len(tax_seqs))
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('footer.html')
+    return '', webPage
+
+def get_hash_info(hash_str):
+    '''
+    get the information all sequences based on its hash
+
+    Parameters
+    ----------
+    hash_str : string
+        sequence represented by its hash
+
+    Returns
+    -------
+    err : str
+        empty ('') if found, none empty if error encountered
+    webPage : str
+        the html of the resulting table
+    '''
+    # get the hash annotations
+    res = requests.get(get_db_address() + '/sequences/get_hash_annotations', json={'hash': hash_str})
+    if res.status_code != 200:
+        msg = 'error getting hash annotations for %s: %s' % (hash_str, res.content)
+        debug(6, msg)
+        return msg, msg
+    hash_seqs = res.json()['seqids']
+    annotations_counts = res.json()['annotations']
+    if len(annotations_counts) == 0:
+        msg = 'no annotations found for hash %s' % hash_str
+        debug(1, msg)
+        return msg, msg
+
+    # convert to list of annotations with counts as a key/value
+    annotations = []
+    for cann in annotations_counts:
+        cannotation = cann[0]
+        cannotation['website_sequences'] = [-1] * cann[1]
+        annotations.append(cannotation)
+
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
+
+    webPage = render_template('header.html', title='dbBact ontology')
+    webPage += render_template('hashinfo.html', hash_str=hash_str, seq_count=len(hash_seqs))
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
