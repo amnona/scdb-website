@@ -81,39 +81,41 @@ def test_enrichment():
                               numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
     return webPage
 
+
 def build_res_html(success, expId, isNewExp, annotId, additional = None):
     successStr = ''
     expIdStr = ''
     existingStr = ''
     annotIdStr = ''
     debugStr = ''
-    
+
     if success == True:
         successStr = 'Operation succeed'
     else:
         successStr = 'Operation failed'
-        
+
     if expId == -1:
         expIdStr = 'NA'
         existingStr = ''
     else:
         expIdStr = "<a href='http://127.0.0.1:5000/exp_info/" + str(expId) + "'>" + str(expId) + "</a>"
-            
-        if isNewExp == True:
+
+        if isNewExp is True:
             existingStr = '(new)'
         else:
             existingStr = '(existing)'
-        
+
     if annotId == -1:
         annotIdStr = 'NA'
     else:
         annotIdStr = str(annotId)
-        
-    if additional != None:
+
+    if additional is not None:
         debugStr = "Error information : " + additional
-    
-    webStr = render_template('header.html', title='Error') + render_template('add_data_results.html', title_str=successStr, new_or_existing_str=existingStr, annotation_id=annotIdStr,exp_id=expIdStr, debug_info=debugStr)
+
+    webStr = render_template('header.html', title='Error') + render_template('add_data_results.html', title_str=successStr, new_or_existing_str=existingStr, annotation_id=annotIdStr, exp_id=expIdStr, debug_info=debugStr)
     return webStr
+
 
 @Site_Main_Flask_Obj.route('/add_data_results', methods=['POST', 'GET'])
 def add_data_results():
@@ -150,7 +152,7 @@ def add_data_results():
     if descName is None or len(descName.strip()) == 0:
         descName = 'na'
     # print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
-    
+
     #Exp list
     hiddenExpName = request.form.get('hiddenExpName')
     hiddenExpValue = request.form.get('hiddenExpValue')
@@ -163,7 +165,7 @@ def add_data_results():
     if hiddenRegionStr is None or len(hiddenRegionStr.strip()) == 0:
         webpage = build_res_html(False, -1, False, -1 , 'Invalid region value')
         return(webpage, 400)
-        
+
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
         webpage = build_res_html(False, -1, False, -1 , 'Invalid Input (error code: -1)')
         return(webpage, 400)
@@ -175,20 +177,20 @@ def add_data_results():
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
     expDataValueArr = hiddenExpValue.split(';')  # split string into a list
-    
+
     ontDataNameArr = hiddenOntName.split(';')  # split string into a list
     annotationTypeArr = hiddenOntType.split(';')  # split string into a list
     annotationDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
 
     #### Strings to return
-    #{{title_str}} - Operation failed / Operation completed successfully 
+    #{{title_str}} - Operation failed / Operation completed successfully
     #{{exp_str}}
     #{{anot_str}}
     resTitleStr = ''
     resExpStr = ''
     resAnotStr = ''
     newExpFlag = False
-    
+
     #####################################################      
     # Get expirement id or -1 if doesn't exist
     #####################################################      
@@ -496,6 +498,18 @@ def search_results():
     return webPage
 
 
+@Site_Main_Flask_Obj.route('/sequences_wordcloud', methods=['POST'])
+def sequences_wordcloud():
+    '''show the wordcloud for the set of sequences
+    '''
+    alldat = request.get_json()
+    sequences = alldat.get('sequences')
+    ignore_exp = alldat.get('ignore_exp')
+
+    err, webpage = draw_sequences_annotations_compact(sequences, ignore_exp=ignore_exp)
+    return webpage
+
+
 @Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
 def sequence_annotations(sequence):
     # long, so probably a sequence
@@ -595,12 +609,14 @@ def draw_sequences_annotations(seqs):
     return '', webPage
 
 
-def draw_sequences_annotations_compact(seqs):
+def draw_sequences_annotations_compact(seqs, ignore_exp=None):
     '''Draw the webpage for annotations for a set of sequences
 
     Parameters
     ----------
     seqs : list of str sequences (ACGT)
+    ignore_exp : list of int (optional)
+        list of experiment ids to ignore when calculating the score. None to include all experiments
 
     Returns
     -------
@@ -626,7 +642,7 @@ def draw_sequences_annotations_compact(seqs):
 
     webPage = render_template('header.html')
     webPage += '<h2>Annotations for sequence list relative freq:</h2>'
-    webPage += draw_group_annotation_details(annotations, seqannotations, term_info=term_info)
+    webPage += draw_group_annotation_details(annotations, seqannotations, term_info=term_info, ignore_exp=ignore_exp)
     webPage += render_template('footer.html')
     return '', webPage
 
