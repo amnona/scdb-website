@@ -1,7 +1,7 @@
 from flask import Flask
-from Site_Main_Flask import Site_Main_Flask_Obj
+from .Site_Main_Flask import Site_Main_Flask_Obj
 import os
-from utils import debug, SetDebugLevel
+from .utils import debug, SetDebugLevel
 
 dbDefaultUser = "na"  # anonymos user in case the field is empty
 dbDefaultPwd = ""

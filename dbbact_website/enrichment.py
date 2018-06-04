@@ -1,8 +1,8 @@
 import requests
 
 import numpy as np
-from mini_dsfdr import dsfdr
-from utils import debug
+from .mini_dsfdr import dsfdr
+from .utils import debug
 from collections import defaultdict
 
 

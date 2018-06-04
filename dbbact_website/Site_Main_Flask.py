@@ -6,9 +6,9 @@ import os
 import json
 import requests
 import operator
-from utils import debug, get_fasta_seqs
+from .utils import debug, get_fasta_seqs
 
-import enrichment
+from . import enrichment
 
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
 
