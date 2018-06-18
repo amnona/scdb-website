@@ -1,3 +1,4 @@
+import tempfile
 from flask import Blueprint, request, render_template, make_response, redirect, url_for, Markup
 import urllib.parse
 from collections import defaultdict
@@ -6,49 +7,12 @@ import os
 import json
 import requests
 import operator
-from .utils import debug, get_fasta_seqs
+from .utils import debug, get_fasta_seqs, get_db_address
+from .term_pairs import get_enriched_term_pairs
 
 from . import enrichment
 
 Site_Main_Flask_Obj = Blueprint('Site_Main_Flask_Obj', __name__, template_folder='templates')
-
-
-def get_db_address():
-    '''
-    Get the database address based on the environment variable SCDB_WEBSITE_TYPE
-    (use export SCDB_WEBSITE_TYPE="local" / "main"(default) / "develop")
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    server_address : str
-        the supercooldb server web address based on the env. variable
-    '''
-    if 'OPENU_FLAG' in os.environ:
-            debug(1, 'servertype is openu')
-            server_address = 'http://0.0.0.0:5001'
-    elif 'SCDB_WEBSITE_TYPE' in os.environ:
-        servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
-        if servertype == 'local':
-            debug(1, 'servertype is local')
-            server_address = 'http://127.0.0.1:5000'
-        elif servertype == 'main':
-            debug(1, 'servertype is main')
-            # server_address = 'http://amnonim.webfactional.com/scdb_main'
-            server_address = 'http://api.dbbact.org'
-        elif servertype == 'develop':
-            debug(1, 'servertype is develop')
-            server_address = 'http://amnonim.webfactional.com/scdb_develop'
-        else:
-            raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
-    else:
-        # server_address = 'http://amnonim.webfactional.com/scdb_main'
-        server_address = 'http://api.dbbact.org'
-        debug(1, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
-
-    return server_address
 
 
 scbd_server_address = get_db_address()
@@ -465,8 +429,14 @@ def search_results():
         if 'fasta file' in request.files:
             debug(1, 'Fasta file uploaded, processing it')
             file = request.files['fasta file']
-            textfile = TextIOWrapper(file)
-            seqs = get_fasta_seqs(textfile)
+            filepos = os.path.join(tempfile.gettempdir(), tempfile.gettempprefix())
+            print(filepos)
+            file.save(filepos)
+            with open(filepos) as textfile:
+                seqs = get_fasta_seqs(textfile)
+            os.remove(filepos)
+            # textfile = TextIOWrapper(file)
+            # seqs = get_fasta_seqs(textfile)
             if seqs is None:
                 webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file not recognized as fasta')
                 return(webPageTemp, 400)
@@ -515,18 +485,17 @@ def sequence_annotations(sequence):
     # long, so probably a sequence
     rdata = {}
     rdata['sequence'] = sequence
-    
+
     taxStr = "na"
     httpResTax = requests.get(scbd_server_address + '/sequences/get_taxonomy_str', json=rdata)
     if httpResTax.status_code == requests.codes.ok:
         jsonRes = httpResTax.json().get('taxonomy')
         taxStr = jsonRes.get('taxonomy')
-    
-        
+
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
     webPage = render_template('header.html', title='dbBact sequence annotation')
     webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy=taxStr)
-    
+
     if httpRes.status_code != requests.codes.ok:
         debug(6, "sequence annotations Error code:" + str(httpRes.status_code))
         webPage += "Failed to get annotations for sequence:\n%s" % sequence
@@ -1328,7 +1297,42 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
     return wpart
 
 
-def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
+def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
+    '''
+    draw the wordcloud (image embedded in the html)
+
+    Parameters
+    ----------
+    annotations : annotation
+        The list of annotations to process for annotation ontology terms
+    term_info: dict or None
+        a dict with the total annotations per ontology term or None to skip relative abundance word cloud
+    show_relative_freqs: bool (optional)
+        False to draw absolute term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations)
+        True to draw relative term abundance word cloud
+        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
+    seqannotations: list of dict {seqid: list of annotationids}
+
+    Returns
+    -------
+    wpart : str
+        an html webpage part with the wordcloud embedded
+    '''
+    term_scores = get_enriched_term_pairs(annotations, seqannotations=seqannotations)
+
+    wordcloud_image = draw_cloud(term_scores)
+    # wordcloud_image = draw_cloud(term_scores, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+    wordcloudimage = urllib.parse.quote(wordcloud_image)
+    wpart = ''
+    if wordcloudimage:
+        wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
+    else:
+        wpart += '<p></p>'
+    return wpart
+
+
+def draw_wordcloud_old(annotations, term_info=None, show_relative_freqs=False):
     '''
     draw the wordcloud (image embedded in the html)
 
@@ -1395,7 +1399,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
                 debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotations']))
                 continue
             if num_term[cterm] == 0:
-                debug(4,'numterm for %s is 0' % cterm)
+                debug(4, 'numterm for %s is 0' % cterm)
                 continue
             # we use -2 to give lower weight to low. num
             term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
@@ -1416,7 +1420,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False):
         # draw absolute frequencies
         wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
 
-    wordcloudimage=urllib.parse.quote(wordcloud_image)
+    wordcloudimage = urllib.parse.quote(wordcloud_image)
     if wordcloudimage:
         wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
     else:
@@ -2052,19 +2056,21 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     # The output webpage part
     wpart = ''
 
+    ignore_exp = [275]
+
     # remove annotations arising from experiments in ignore_exp list
     if ignore_exp is not None:
-        debug(1,'removing ignored experiments %s' % ignore_exp)
+        debug(1, 'removing ignored experiments %s' % ignore_exp)
         ignore_exp = set(ignore_exp)
         ignore_annotations = set()
         for cannotation_id, cannotation in annotations.items():
             if cannotation['expid'] in ignore_exp:
                 ignore_annotations.add(cannotation['annotationid'])
-        debug(1,'found %d annotations to ignore' % len(ignore_annotations))
+        debug(1, 'found %d annotations to ignore' % len(ignore_annotations))
         newseqannotations = []
-        for cseq,cseqannotations in seqannotations:
+        for cseq, cseqannotations in seqannotations:
             tsannot = [x for x in cseqannotations if x not in ignore_annotations]
-            newseqannotations.append((cseq,tsannot))
+            newseqannotations.append((cseq, tsannot))
         seqannotations = newseqannotations
 
     # calculate the score for each term
@@ -2072,6 +2078,14 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     term_scores = calculate_score(annotations, seqannotations, term_info, ignore_exp=ignore_exp)
     # draw the wordcloud
     if include_word_cloud is True:
+        # need to ignore EXP!!!!
+        debug(1, 'drawing term pair word cloud')
+        annotations_list = []
+        for cseq, cseq_annotations in seqannotations:
+            tt = [annotations[str(x)] for x in cseq_annotations]
+            annotations_list.extend(tt)
+        wpart += draw_wordcloud(annotations_list)
+        debug(1, 'drawing term pair word cloud')
         wpart += draw_group_wordcloud(term_scores, annotations, seqannotations, term_info, local_save_name=local_save_name)
 
     wpart += render_template('tabs.html')
@@ -2086,7 +2100,7 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
             annotation_seq_list[cannotation].append(cseq)
     normalized_annotation_count = {}
     for x in annotation_count:
-        normalized_annotation_count[x] = annotation_count[x] / (annotations[str(x)]['num_sequences']+50)
+        normalized_annotation_count[x] = annotation_count[x] / (annotations[str(x)]['num_sequences'] + 50)
     sorted_annotation_count = sorted(annotation_count, key=normalized_annotation_count.get, reverse=True)
     sorted_annotations = [annotations[str(x)] for x in sorted_annotation_count]
     # set up the website_sequences field so we'll see XXX/YYY in the table
@@ -2129,8 +2143,9 @@ def _get_exp_annotations(annotations):
             cterm = cdetail[1]
             if ctype == 'low':
                 cterm = '-' + cterm
-            exp_annotations[cexpid][cterm]+=1
+            exp_annotations[cexpid][cterm] += 1
     return exp_annotations
+
 
 @Site_Main_Flask_Obj.route('/sleep_test_30')
 def sleep_test_30():
@@ -2138,8 +2153,31 @@ def sleep_test_30():
     time.sleep(30)
     return "sleep test 30"
 
+
 @Site_Main_Flask_Obj.route('/sleep_test_1')
 def sleep_test_1():
     import time
     time.sleep(1)
     return "sleep test 1"
+
+
+@Site_Main_Flask_Obj.route('/termpair')
+def term_pair_test():
+    seq = 'TACGGAGGGTGCGAGCGTTAATCGGAATAACTGGGCGTAAAGGGCACGCAGGCGGTGACTTAAGTGAGGTGTGAAAGCCCCGGGCTTAACCTGGGAATTGCATTTCATACTGGGTCGCTAGAGTACTTTAGGGAGGGGTAGAATTCCACG'
+    seq = 'TACGGAGGATCCGAGCGTTATCCGGATTTATTGGGTTTAAAGGGAGCGTAGATGGATGTTTAAGTCAGTTGTGAAAGTTTGCGGCTCAACCGTAAAATTGCAGTTGATACTGGATGTCTTGAGTGCAGTTGAGGCAGGCGGAATTCGTGG'
+    seq = 'TACGTAGGGTGCGAGCGTTGTCCGGAATTATTGGGCGTAAAGGGCTTGTAGGCGGTTTGTCGCGTCTGCCGTGAAATCCTCTGGCTTAACTGGGGGCGTGCGGTGGGTACGGGCAGGCTTGAGTGCGGTAGGGGAGACTGGAACTCCTGG'
+    rdata = {}
+    rdata['sequence'] = seq
+    httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
+
+    annotations = httpRes.json().get('annotations')
+    term_scores = get_enriched_term_pairs(annotations)
+    wordcloud_image = draw_cloud(term_scores)
+    # wordcloud_image = draw_cloud(term_scores, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
+    wordcloudimage = urllib.parse.quote(wordcloud_image)
+    wpart = ''
+    if wordcloudimage:
+        wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
+    else:
+        wpart += '<p></p>'
+    return wpart

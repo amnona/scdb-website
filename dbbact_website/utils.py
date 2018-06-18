@@ -1,5 +1,8 @@
 import sys
 import smtplib
+import os
+
+debuglevel = 4
 
 
 def debug(level, msg):
@@ -13,8 +16,8 @@ def debug(level, msg):
     """
     global debuglevel
 
-    # if level>=debuglevel:
-    if True:
+    # if True:
+    if level >= debuglevel:
         print(msg, file=sys.stderr)
 
 
@@ -116,3 +119,41 @@ def get_fasta_seqs(file):
 
     debug(1, 'read %d sequences' % len(seqs))
     return seqs
+
+
+def get_db_address():
+    '''
+    Get the database address based on the environment variable SCDB_WEBSITE_TYPE
+    (use export SCDB_WEBSITE_TYPE="local" / "main"(default) / "develop")
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    server_address : str
+        the supercooldb server web address based on the env. variable
+    '''
+    if 'OPENU_FLAG' in os.environ:
+            debug(1, 'servertype is openu')
+            server_address = 'http://0.0.0.0:5001'
+    elif 'SCDB_WEBSITE_TYPE' in os.environ:
+        servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
+        if servertype == 'local':
+            debug(1, 'servertype is local')
+            server_address = 'http://127.0.0.1:5000'
+        elif servertype == 'main':
+            debug(1, 'servertype is main')
+            # server_address = 'http://amnonim.webfactional.com/scdb_main'
+            server_address = 'http://api.dbbact.org'
+        elif servertype == 'develop':
+            debug(1, 'servertype is develop')
+            server_address = 'http://amnonim.webfactional.com/scdb_develop'
+        else:
+            raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
+    else:
+        # server_address = 'http://amnonim.webfactional.com/scdb_main'
+        server_address = 'http://api.dbbact.org'
+        debug(1, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
+
+    return server_address
