@@ -1044,6 +1044,7 @@ def get_hash_info(hash_str):
         msg = 'error getting hash annotations for %s: %s' % (hash_str, res.content)
         debug(6, msg)
         return msg, msg
+    seq_strs = res.json()['seqstr']
     hash_seqs = res.json()['seqids']
     annotations_counts = res.json()['annotations']
     if len(annotations_counts) == 0:
@@ -1061,8 +1062,14 @@ def get_hash_info(hash_str):
     annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
     annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
 
+    seq_web = ''
+    for seq in seq_strs:
+        if len(seq_web) > 0:
+            seq_web += '<br>'
+        seq_web += seq
+        
     webPage = render_template('header.html', title='dbBact ontology')
-    webPage += render_template('hashinfo.html', hash_str=hash_str, seq_count=len(hash_seqs))
+    webPage += render_template('hashinfo.html', hash_str=hash_str, seq_name=seq_web)
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
