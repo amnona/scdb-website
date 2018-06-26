@@ -510,7 +510,7 @@ def sequence_annotations(sequence):
     httpResTax = requests.get(scbd_server_address + '/sequences/get_taxonomy_str', json=rdata)
     if httpResTax.status_code == requests.codes.ok:
         jsonRes = httpResTax.json().get('taxonomy')
-        taxStr = jsonRes.get('taxonomy')
+        taxStr = jsonRes # .get('taxonomy')
     
         
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
