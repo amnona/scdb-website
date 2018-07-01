@@ -121,15 +121,16 @@ def get_term_pairs_score(annotations, seqannotations=None, min_exp=3, get_pairs=
 	# calculate the precision for each term (i.e. how many of the annotations for the sequences are for this term)
 	term_total_counts = defaultdict(float)
 	total_annotations = 0
-	for cseq, cseqannotations in seqannotations:
-		for cannotation in cseqannotations:
-			cannotation = str(cannotation)
-			cterm_pairs = get_annotation_term_pairs(annotations[cannotation], get_pairs=get_pairs, get_singles=get_singles)
-			total_annotations += 1
-			for cterm in cterm_pairs:
-				term_total_counts[cterm] += 1
-	for ck, cv in term_total_counts.items():
-		term_total_counts[ck] = cv / total_annotations
+	if seqannotations is not None:
+		for cseq, cseqannotations in seqannotations:
+			for cannotation in cseqannotations:
+				cannotation = str(cannotation)
+				cterm_pairs = get_annotation_term_pairs(annotations[cannotation], get_pairs=get_pairs, get_singles=get_singles)
+				total_annotations += 1
+				for cterm in cterm_pairs:
+					term_total_counts[cterm] += 1
+		for ck, cv in term_total_counts.items():
+			term_total_counts[ck] = cv / total_annotations
 
 	return term_pair_score, term_pair_exps, term_total_counts
 

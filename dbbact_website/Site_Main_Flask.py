@@ -493,8 +493,9 @@ def sequence_annotations(sequence):
     taxStr = "na"
     httpResTax = requests.get(scbd_server_address + '/sequences/get_taxonomy_str', json=rdata)
     if httpResTax.status_code == requests.codes.ok:
-        jsonRes = httpResTax.json().get('taxonomy')
-        taxStr = jsonRes.get('taxonomy')
+        # jsonRes = httpResTax.json().get('taxonomy')
+        # taxStr = jsonRes.get('taxonomy')
+        taxStr = httpResTax.json().get('taxonomy')
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
     webPage = render_template('header.html', title='dbBact sequence annotation')
     webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy=taxStr)
@@ -1304,7 +1305,7 @@ def user_info(userid):
                render_template('footer.html'))
 
 
-def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True,  include_ratio=True):
+def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True, include_ratio=True):
     '''
     Create table entries for a list of annotations
 
@@ -1340,7 +1341,7 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
     wpart += render_template('tabs.html')
 
     # draw the annotation table
-    wpart += draw_annotation_table(annotations,include_ratio)
+    wpart += draw_annotation_table(annotations, include_ratio)
 
     # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
 
@@ -1352,7 +1353,7 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
     return wpart
 
 
-def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
+def draw_wordcloud_new(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
     '''
     draw the wordcloud (image embedded in the html)
 
@@ -1387,7 +1388,7 @@ def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False, seqan
     return wpart
 
 
-def draw_wordcloud_old(annotations, term_info=None, show_relative_freqs=False):
+def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
     '''
     draw the wordcloud (image embedded in the html)
 
@@ -2139,7 +2140,7 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
         for cseq, cseq_annotations in seqannotations:
             tt = [annotations[str(x)] for x in cseq_annotations]
             annotations_list.extend(tt)
-        wpart += draw_wordcloud(annotations_list)
+        wpart += draw_wordcloud(annotations_list, seqannotations=seqannotations)
         debug(1, 'drawing term pair word cloud')
         wpart += draw_group_wordcloud(term_scores, annotations, seqannotations, term_info, local_save_name=local_save_name)
 
