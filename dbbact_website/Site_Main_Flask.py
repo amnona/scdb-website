@@ -1336,7 +1336,7 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
 
     # draw the wordcloud
     if include_word_cloud is True:
-        wpart += draw_wordcloud(annotations, term_info, show_relative_freqs=show_relative_freqs)
+        wpart += draw_wordcloud_new(annotations, term_info, show_relative_freqs=show_relative_freqs)
 
     wpart += render_template('tabs.html')
 
@@ -1375,6 +1375,8 @@ def draw_wordcloud_new(annotations, term_info=None, show_relative_freqs=False, s
     wpart : str
         an html webpage part with the wordcloud embedded
     '''
+    if seqannotations is None:
+        seqannotations = [[1, list(annotations.keys())]]
     term_scores = get_enriched_term_pairs(annotations, seqannotations=seqannotations)
 
     wordcloud_image = draw_cloud(term_scores)
@@ -2140,7 +2142,7 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
         for cseq, cseq_annotations in seqannotations:
             tt = [annotations[str(x)] for x in cseq_annotations]
             annotations_list.extend(tt)
-        wpart += draw_wordcloud(annotations_list, seqannotations=seqannotations)
+        wpart += draw_wordcloud_new(annotations_list, seqannotations=seqannotations)
         debug(1, 'drawing term pair word cloud')
         wpart += draw_group_wordcloud(term_scores, annotations, seqannotations, term_info, local_save_name=local_save_name)
 
