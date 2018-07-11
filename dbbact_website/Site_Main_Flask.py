@@ -9,6 +9,7 @@ import requests
 import operator
 from .utils import debug, get_fasta_seqs, get_db_address
 from .term_pairs import get_enriched_term_pairs, get_enrichment_score
+import matplotlib as mpl
 
 from . import enrichment
 
@@ -419,27 +420,36 @@ def search_results():
     if len(sequence) < 50:
         # if number assume it is a greengenes id
         if sequence.isdigit():
-            debug(1, 'get info for greengenesid %s' % sequence)
+            debug(2, 'get info for greengenesid %s' % sequence)
             webPage = sequence_annotations(sequence)
             return webPage
         # try is it an ontology term
         err, webPage = get_ontology_info(sequence)
         if not err:
+            debug(2, 'get info for ontology term %s' % sequence)
             return webPage
         # or maybe a taxonomy term
         err, webPage = get_taxonomy_info(sequence)
         if not err:
+            debug(2, 'get info for taxonomy %s' % sequence)
             return webPage
         # or maybe based on hash string
         err, webPage = get_hash_info(sequence)
         if not err:
+            debug(2, 'get info for qiime2 hash %s' % sequence)
             return webPage
+        # so we can't find it
+        debug(2, 'search sequence/term/etc not found for %s' % sequence)
         return error_message('Not found', 'Keyword <b>%s</b> was not found in dbBact ontology '
                              'or taxonomy.' % sequence)
 
+    # 50 < length < 100 - it's a sequence but not long enough
     if len(sequence) < 100:
+        debug(2, 'sequence too short len=%d' % len(sequence))
         webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Sequences must be at least 100bp long.')
         return(webPageTemp, 400)
+
+    # so it's a legit sequence - let's get the annotations for it
     webPage = sequence_annotations(sequence)
     return webPage
 
@@ -572,7 +582,7 @@ def draw_sequences_annotations(seqs):
     return '', webPage
 
 
-def draw_sequences_annotations_compact(seqs, ignore_exp=[209]):
+def draw_sequences_annotations_compact(seqs, ignore_exp=[]):
     '''Draw the webpage for annotations for a set of sequences
 
     Parameters
@@ -661,6 +671,9 @@ def getannotationstrings(cann):
 
     if len(cdesc) >= 1 and cdesc[-1] == ',':
         cdesc = cdesc[:-1]
+
+    if cann['description']:
+        cdesc += ')'
     return cdesc
 
 
@@ -723,7 +736,7 @@ def annotation_info(annotationid):
     webPage += draw_download_fasta_button(annotationid)
 
     # add the ontology parent terms for the annotation
-    webPage += '<h2>Ontology terms</h2>'
+    webPage += '<h2>Ontology terms (including parents)</h2>'
     res = requests.get(get_db_address() + '/annotations/get_annotation_ontology_parents', json={'annotationid': annotationid})
     if res.status_code != 200:
         debug(6, 'no ontology parents found for annotationid %d' % annotationid)
@@ -795,7 +808,8 @@ def get_ontology_info(term):
         cannotation['website_sequences'] = [0]
 
     webPage = render_template('header.html', title='dbBact taxonomy')
-    webPage += '<h1>Summmary for ontology term: %s</h1>\n' % term
+    webPage += '<h1>Summary for ontology term: %s</h1>\n' % term
+    webPage += 'Number of annotations with term: %d' % len(annotations)
     webPage += '<h2>Annotations:</h2>'
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
@@ -940,9 +954,10 @@ def get_taxonomy_info(taxonomy):
     webPage += render_template('footer.html')
     return '', webPage
 
+
 def get_hash_info(hash_str):
     '''
-    get the information all sequences based on its hash
+    get the information about a sequence based on its qiime2 hash
 
     Parameters
     ----------
@@ -985,7 +1000,7 @@ def get_hash_info(hash_str):
         if len(seq_web) > 0:
             seq_web += '<br>'
         seq_web += seq
-        
+
     webPage = render_template('header.html', title='dbBact ontology')
     webPage += render_template('hashinfo.html', hash_str=hash_str, seq_name=seq_web)
     webPage += draw_annotation_details(annotations)
@@ -1120,6 +1135,8 @@ def annotation_seqs(annotationid):
 
 
 def draw_sequences_info(sequences):
+    '''write the table entries for each sequence (sequence, total counts etc.)
+    '''
     webPage = render_template('seqlist.html')
     # sort the sequences based on taxonomy
     sequences = sorted(sequences, key=lambda x: x.get('taxonomy', ''))
@@ -1150,9 +1167,9 @@ def forgot_password_submit():
     else:
         usermail = request.form['useremail']
 
-    json_user={'user':usermail}
-    httpRes=requests.post(scbd_server_address +'/users/forgot_password',json=json_user)
-    if httpRes.status_code==200:
+    json_user = {'user': usermail}
+    httpRes = requests.post(scbd_server_address + '/users/forgot_password', json=json_user)
+    if httpRes.status_code == 200:
         webpage = render_template('header.html', title='Password Recovery')
         webpage += render_template('recover_form.html')
     else:
@@ -1160,7 +1177,7 @@ def forgot_password_submit():
     return webpage
 
 
-@Site_Main_Flask_Obj.route('/recover_user_password',methods=['POST','GET'])
+@Site_Main_Flask_Obj.route('/recover_user_password', methods=['POST', 'GET'])
 def recover_user_password():
     """
     this function will update new user password in the db
@@ -1172,25 +1189,25 @@ def recover_user_password():
     """
 
     usermail = ''
-    if request.method=='GET':
-        usermail=request.args['user']
-        recoverycode=request.args['recoverycode']
-        newpassword=request.args['newpassword']
+    if request.method == 'GET':
+        usermail = request.args['user']
+        recoverycode = request.args['recoverycode']
+        newpassword = request.args['newpassword']
     else:
         usermail = request.form['user']
         recoverycode = request.form['recoverycode']
         newpassword = request.form['newpassword']
 
-    json_user={}
-    json_user['user']=usermail
-    json_user['recoverycode']=recoverycode
-    json_user['newpassword']=newpassword
+    json_user = {}
+    json_user['user'] = usermail
+    json_user['recoverycode'] = recoverycode
+    json_user['newpassword'] = newpassword
 
-    httpRes=requests.post(scbd_server_address +'/users/recover_password',json=json_user)
-    if httpRes.status_code==200:
+    httpRes = requests.post(scbd_server_address + '/users/recover_password', json=json_user)
+    if httpRes.status_code == 200:
         webpage = render_template('done_success.html')
     else:
-        webpage = render_template('done_fail.html',mes='Failed to reset password',error=httpRes.text)
+        webpage = render_template('done_fail.html', mes='Failed to reset password', error=httpRes.text)
     return webpage
 
 
@@ -1272,6 +1289,20 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
 
 
 def draw_wordcloud_fscore(fscores, recall=None, precision=None, term_count={}):
+    '''Draw the wordcloud for the terms in fscores and return an html section with the image embedded
+
+    Parameters
+    ----------
+    fscores: dict of {term(str): fscore(float)}
+    recall: dict of {term(str): recall score(float)}, optional
+    precision: dict of {term(str): precision score(float)}, optional
+    term_count: dict of {term(str): number of experiments with term(float)}, optional
+        used to determine the color intensity
+
+    Returns
+    -------
+    str: the html part with embedded wordcloud image
+    '''
     wordcloud_image = draw_cloud(fscores, recall, precision, term_count)
     wordcloudimage = urllib.parse.quote(wordcloud_image)
     wpart = ''
@@ -1369,72 +1400,14 @@ def draw_ontology_score_list(scores, section_id, description=None, max_terms=100
         data = data[:max_terms]
 
     for cterm, cscore in data:
-        wpart += '<tr><td><a href=%s>%s</a></td><td>%f</td></tr>\n' % (url_for('.ontology_info', term=cterm), cterm, cscore)
+        if cterm[0] == '-':
+            ctermlink = cterm[1:]
+            cterm = 'LOWER IN %s' % ctermlink
+        else:
+            ctermlink = cterm
+        wpart += '<tr><td><a href=%s>%s</a></td><td>%f</td></tr>\n' % (url_for('.ontology_info', term=ctermlink), cterm, cscore)
     wpart += '</table>\n'
     wpart += '</div>\n'
-    return wpart
-
-
-def draw_ontology_list(annotations, term_info=None, term_scores=None):
-    '''
-    create table entries for a list of ontology terms
-
-    input:
-    annotations : list of dict of annotation details (from REST API)
-    term_info : dict of dict or None (optional)
-        None (default) to skip relative word cloud.
-        Otherwise need to have information about all ontology terms to be drawn
-        dict of {term: dict} where
-            term : ontology term (str)
-            dict: pairs of:
-                'total_annotations' : int
-                'total_sequences' : int
-    term_scores: dict of {term(str): score(float)} (optional)
-        if not none, sort terms according to the score and show the score in the table.
-        None to sort by number annotations*seqs the term appears in.
-
-    output:
-    wpart : str
-        html code for the annotations table
-    '''
-    # The output webpage part
-    wpart = '<div id="onto-list" class="tab-pane" style="margin-top: 20px; margin-bottom: 20px;">\n'
-
-    # draw the ontology terms list
-    if term_scores:
-        common_terms = [(k,v) for k,v in term_scores.items()]
-        common_terms = sorted(common_terms, key=lambda x: x[1], reverse=True)
-    else:
-        common_terms = get_common_terms(annotations)
-    wpart += '<table style="width: 100%;">\n'
-    wpart += '<col><col width="100px">\n'
-    wpart += '<tr><th>Term</th><th>No.</th></tr>\n'
-    for cterm in common_terms:
-        wpart += '<tr><td><a href=%s>%s</a></td><td>%f</td></tr>\n' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
-        # wpart += '<a href=' + urllib.parse.quote(relpath + 'ontology_info/' + cterm[0]) + '>%s</a>: %d <br>' % (cterm[0], cterm[1])
-    wpart += '</table>\n'
-
-    # draw the ontology term relative frequencies
-    if term_info is not None:
-        wpart += '<table style="width: 100%;">\n'
-        for cterm, cinfo in term_info.items():
-            if cinfo['total_annotations'] is None:
-                debug(4, 'missing info total_annotations for %s' % cterm)
-                continue
-            if cinfo['total_sequences'] is None:
-                debug(4, 'missing info total_sequences for %s' % cterm)
-                continue
-            wpart += '<tr><td>%s : %d, %d</td></tr>\n' % (cterm, cinfo['total_annotations'], cinfo['total_sequences'])
-        wpart += '</table>\n'
-    wpart += '</div>\n'
-    return wpart
-
-
-def draw_annotation_terms(annotations):
-    wpart = ''
-    common_terms = get_common_terms(annotations)
-    for cterm in common_terms:
-        wpart += '<a href=%s>%s</a>: %d<br' % (url_for('.ontology_info', term=cterm[0]), cterm[0], cterm[1])
     return wpart
 
 
@@ -1458,70 +1431,41 @@ def annotation_seq_download(annotationid):
     return response
 
 
-def get_common_terms(annotations):
-    '''
-    Get the terms most common to all the annotations
+def _get_color(word, font_size, position, orientation, font_path, random_state, fscore, recall, precision, term_count):
+    '''Get the color for a wordcloud term based on the term_count and higher/lower
+
+    If term starts with "-", it is lower in and colored red. otherwise colored blue
+    If we have term_count, we use it to color from close to white(low count) to full color (>=10 experiments)
 
     Parameters
     ----------
-    annotations : list of annotations
+    fscores: dict of {term(str): fscore(float)}
+        between 0 and 1
+    recall: dict of {term(str): recall score(float)}, optional
+    precision: dict of {term(str): precision score(float)}, optional
+    term_count: dict of {term(str): number of experiments with term(float)}, optional
+        used to determine the color intensity
 
-    Resturns
-    --------
-    common_terms: sorted list of (term, count)
+
+    Returns
+    -------
+    str: the color in hex "0#RRGGBB"
     '''
-    terms = defaultdict(int)
-    for cannotation in annotations:
-        for cdetail in cannotation['details']:
-            if cdetail[0] == 'all' or cdetail[0] == 'high':
-                if 'website_sequences' in cannotation:
-                    numseqs = len(cannotation['website_sequences'])
-                else:
-                    numseqs = 1
-                terms[cdetail[1]] += numseqs
-    common_terms = []
-    for k, v in terms.items():
-        common_terms.append([k, v])
-    common_terms = sorted(common_terms, reverse=True, key=lambda x: x[1])
-    return common_terms
-
-
-def _get_color_rec_prec(word, font_size, position, orientation, font_path, random_state, fscore, recall, precision, term_count):
-    import matplotlib as mpl
-
     cmap = mpl.cm.get_cmap('bwr')
-    if word[0] == '-':
-        rgba = cmap(float(0.5 + 0.25 + (min(term_count[word], 10) / 40)), bytes=True)
+    if word in term_count:
+        count = min(term_count[word], 10)
     else:
-        rgba = cmap(float(0.5 - 0.25 - (min(term_count[word], 10) / 40)), bytes=True)
-    # rgba = cmap(1.0 - float(100 - int(10 * min(term_count[word], 10)) / 100), bytes=True)
+        count = 10
+
+    if word[0] == '-':
+        rgba = cmap(float(0.5 + 0.25 + count / 40), bytes=True)
+    else:
+        rgba = cmap(float(0.5 - 0.25 - count / 40), bytes=True)
+
     red = format(rgba[0], '02x')
     green = format(rgba[1], '02x')
     blue = format(rgba[2], '02x')
     return '#%s%s%s' % (red, green, blue)
-
-    if word in term_count:
-        clevel = format(255 - int(55 + 20 * min(term_count[word], 10)), '02x')
-    else:
-        clevel = hex(200)[2:]
-
-    if word[0] == '-':
-        red_level = clevel
-    else:
-        red_level = '00'
-
-    return '#%s%s%s' % (clevel, clevel, clevel)
-    # if word in recall:
-    #     green_level = format(int(155 + 100 * recall[word]), '02x')
-    # else:
-    #     green_level = clevel
-
-    # if word in precision:
-    #     blue_level = format(int(155 + 100 * precision[word]), '02x')
-    # else:
-    #     blue_level = clevel
-
-    # return '#%s%s%s' % (red_level, green_level, blue_level)
 
 
 def draw_cloud(fscores, recall={}, precision={}, term_count={}, local_save_name=None):
@@ -1563,9 +1507,9 @@ def draw_cloud(fscores, recall={}, precision={}, term_count={}, local_save_name=
 
     # wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
     if local_save_name is not None:
-        wc = WordCloud(width=400 * 3, height=200 * 3, background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color_rec_prec(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
+        wc = WordCloud(width=400 * 3, height=200 * 3, background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
     else:
-        wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color_rec_prec(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
+        wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
 
     if isinstance(fscores, str):
         debug(2, 'generating from words list')
@@ -1576,7 +1520,7 @@ def draw_cloud(fscores, recall={}, precision={}, term_count={}, local_save_name=
     else:
         debug(4, 'unknown type for generate_wordcloud!')
 
-    fig = plt.figure(   )
+    fig = plt.figure()
     plt.imshow(wordcloud)
     plt.axis("off")
     fig.tight_layout()
@@ -1623,9 +1567,10 @@ def reset_password():
     URL: /reset password
     Method: POST
     """
-    webpage = render_template('header.html',title='Reset Password')
+    webpage = render_template('header.html', title='Reset Password')
     webpage += render_template('reset_password.html') 
     return webpage
+
 
 @Site_Main_Flask_Obj.route('/about', methods=['POST', 'GET'])
 def about():
@@ -1637,6 +1582,7 @@ def about():
     webpage = render_template('header.html',title='About Us')
     webpage += render_template('about.html') 
     return webpage
+
 
 """
 Auto complete tests
@@ -1758,75 +1704,6 @@ def old_dbbact(path):
     return json.dumps(res)
 
 
-def get_annotation_term_counts(annotations, exp_annotations=None, score_method='rel'):
-    '''Get the annotation type corrected count for all terms in annotations
-
-    Parameters
-    ----------
-    annotations : list of dict
-        list of annotations where the feature is present
-    dict of {expid:int : dict of {term:str : total:int}}
-        from self._get_exp_annotations()
-    score_method: str (optional)
-            The method to use for score calculation:
-            'all_mean' : score is the mean (per experiment) of the scoring for the term out of all annotations that have the term
-            'rel' : coverage of the annotation sequences by the query sequences
-            'sum' : score is sum of all annotations where the term appears (experiment is ignored)
-
-    Returns
-    -------
-        dict of {term: score}
-        note: lower in terms are "-"+term
-    '''
-    term_count = defaultdict(int)
-    for cannotation in annotations:
-        details = cannotation['details']
-        annotation_type = cannotation['annotationtype']
-        if annotation_type == 'common':
-            cscore = 1
-        elif annotation_type == 'highfreq':
-            cscore = 2
-        elif annotation_type == 'other':
-            cscore = 0.5
-        elif annotation_type == 'contamination':
-            cscore = 1
-            details = [('all', 'contamination')]
-        elif annotation_type == 'other':
-            cscore = 0
-        elif annotation_type == 'diffexp':
-            cscore = None
-        else:
-            debug(4, 'unknown annotation type %s encountered (annotationid %d). skipped' % (annotation_type, cannotation['annotationid']))
-            continue
-        for cdetail in details:
-            ctype = cdetail[0]
-            cterm = cdetail[1]
-            if ctype == 'all':
-                cscore = 1
-            elif ctype == 'high':
-                cscore = 1
-            elif ctype == 'low':
-                # if low - change the term to "-term" - i.e. lower in term
-                cterm = '-' + cterm
-                cscore = 1
-            else:
-                debug(4, 'unknown detail type %s encountered for annotation %d' % (ctype, cannotation['annotationid']))
-
-            if score_method == 'all_mean':
-                scale_factor = exp_annotations[cannotation['expid']][cterm]
-                if scale_factor == 0:
-                    debug(4, 'scale factor=0. term %s, exp %d, annotationid %d, score %d, scale %d' % (cterm, cannotation['expid'], cannotation['annotationid'], cscore, scale_factor))
-                    scale_factor = 1
-            elif score_method == 'rel':
-                scale_factor = cannotation['num_sequences'] + 100
-            else:
-                scale_factor = 1
-
-            # fix for differential abundance
-            term_count[cterm] += cscore / scale_factor
-    return term_count
-
-
 def draw_group_annotation_details(annotations, seqannotations, term_info, include_word_cloud=True, ignore_exp=[], local_save_name=None, sequences=None):
     '''
     Create wordcloud and table entries for a list of annotations
@@ -1901,50 +1778,7 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     return wpart
 
 
-def _get_exp_annotations(annotations):
-    '''
-    Get all annotations for each experiment in annotations
-
-    Parameters
-    ----------
-    annotations : dict of {annotationid:int : annotation:dict}
-
-
-    Returns
-    -------
-    dict of {expid:int : dict of {term:str : total:int}}
-    '''
-    # exp_annotations = {}
-    exp_annotations = defaultdict(lambda: defaultdict(int))
-    for cannotation in annotations.values():
-        cexpid = cannotation['expid']
-        if cannotation['annotationtype'] == 'contamination':
-            exp_annotations[cexpid]['contamination'] += 1
-            continue
-        for cdetail in cannotation['details']:
-            ctype = cdetail[0]
-            cterm = cdetail[1]
-            if ctype == 'low':
-                cterm = '-' + cterm
-            exp_annotations[cexpid][cterm] += 1
-    return exp_annotations
-
-
-@Site_Main_Flask_Obj.route('/sleep_test_30')
-def sleep_test_30():
-    import time
-    time.sleep(30)
-    return "sleep test 30"
-
-
-@Site_Main_Flask_Obj.route('/sleep_test_1')
-def sleep_test_1():
-    import time
-    time.sleep(1)
-    return "sleep test 1"
-
-
-@Site_Main_Flask_Obj.route('/termpair')
+@Site_Main_Flask_Obj.route('/termpairtest')
 def term_pair_test():
     seq = 'TACGGAGGGTGCGAGCGTTAATCGGAATAACTGGGCGTAAAGGGCACGCAGGCGGTGACTTAAGTGAGGTGTGAAAGCCCCGGGCTTAACCTGGGAATTGCATTTCATACTGGGTCGCTAGAGTACTTTAGGGAGGGGTAGAATTCCACG'
     seq = 'TACGGAGGATCCGAGCGTTATCCGGATTTATTGGGTTTAAAGGGAGCGTAGATGGATGTTTAAGTCAGTTGTGAAAGTTTGCGGCTCAACCGTAAAATTGCAGTTGATACTGGATGTCTTGAGTGCAGTTGAGGCAGGCGGAATTCGTGG'
