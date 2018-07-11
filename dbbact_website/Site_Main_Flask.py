@@ -8,7 +8,7 @@ import json
 import requests
 import operator
 from .utils import debug, get_fasta_seqs, get_db_address
-from .term_pairs import get_enriched_term_pairs
+from .term_pairs import get_enriched_term_pairs, get_enrichment_score
 
 from . import enrichment
 
@@ -355,40 +355,11 @@ def landing_page():
 
 @Site_Main_Flask_Obj.route('/main', methods=['POST', 'GET'])
 def main_html():
-    """
-    Title: the main dbBact page and search tool
-    URL: site/main_html
+    """Title: the main dbBact page and search tool
+    URL: dbbact.org/main
     Method: GET
     """
-    httpRes = requests.get(scbd_server_address + '/stats/stats')
-    # NumOntologyTerms = 0
-    NumAnnotation = 0
-    NumSequences = 0
-    NumSequenceAnnotation = 0
-    NumExperiments = 0
-    if httpRes.status_code == 200:
-        jsonRes = httpRes.json()
-        # NumOntologyTerms = jsonRes.get("stats").get('NumOntologyTerms')
-        NumAnnotation = jsonRes.get("stats").get('NumAnnotations')
-        NumSequences = jsonRes.get("stats").get('NumSequences')
-        NumSequenceAnnotation = jsonRes.get("stats").get('NumSeqAnnotations')
-        NumExperiments = jsonRes.get("stats").get('NumExperiments')
-
-    webPage = render_template('searchpage.html',
-                              numAnnot=(str(NumAnnotation).replace('.0', '')),
-                              numSeq=(str(NumSequences).replace('.0', '')),
-                              numExp=(str(NumExperiments).replace('.0', '')),
-                              numSeqAnnot=(str(NumSequenceAnnotation).replace('.0', '')))
-    return webPage
-
-
-@Site_Main_Flask_Obj.route('/main2', methods=['POST', 'GET'])
-def main2_html():
-    """
-    Title: the main dbBact page and search tool
-    URL: site/main_html
-    Method: GET
-    """
+    # get the dbbact statistics from the dbbact rest-api server
     httpRes = requests.get(scbd_server_address + '/stats/stats')
     # NumOntologyTerms = 0
     NumAnnotation = 0
@@ -415,8 +386,8 @@ def main2_html():
 def search_results():
     """
     Title: Search results page
-    URL: site/search_results
-    Method: POST
+    URL: dbbact.org/search_results
+    Method: GET / POST
     """
     webPageTemp = ''
     if request.method == 'GET':
@@ -427,19 +398,20 @@ def search_results():
     # if we have a fasta file attached, process it
     if sequence == '':
         if 'fasta file' in request.files:
-            debug(1, 'Fasta file uploaded, processing it')
+            debug(2, 'Fasta file uploaded, processing it')
+            # save the file locally, get the sequences and remove it
             file = request.files['fasta file']
             filepos = os.path.join(tempfile.gettempdir(), tempfile.gettempprefix())
-            print(filepos)
+            debug(2, 'fasta tmp file is %s' % filepos)
             file.save(filepos)
             with open(filepos) as textfile:
                 seqs = get_fasta_seqs(textfile)
             os.remove(filepos)
-            # textfile = TextIOWrapper(file)
-            # seqs = get_fasta_seqs(textfile)
+            # if no sequences in fasta file - return error message
             if seqs is None:
                 webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file not recognized as fasta')
                 return(webPageTemp, 400)
+            # return the webpage for the group annotations
             err, webpage = draw_sequences_annotations_compact(seqs)
             return webpage
 
@@ -447,7 +419,7 @@ def search_results():
     if len(sequence) < 50:
         # if number assume it is a greengenes id
         if sequence.isdigit():
-            debug(1,'get info for greengenesid %s' % sequence)
+            debug(1, 'get info for greengenesid %s' % sequence)
             webPage = sequence_annotations(sequence)
             return webPage
         # try is it an ontology term
@@ -474,7 +446,14 @@ def search_results():
 
 @Site_Main_Flask_Obj.route('/sequences_wordcloud', methods=['POST'])
 def sequences_wordcloud():
-    '''show the wordcloud for the set of sequences
+    '''show the info page (wordcloud, term table, etc.) for a set of sequences
+
+    Parameters
+    ----------
+    sequences: list of str
+        the sequences to get the annotations for
+    ignore_exp: list of int, optional
+        dbbact experiment ids to exclude from the analysis
     '''
     alldat = request.get_json()
     sequences = alldat.get('sequences')
@@ -486,17 +465,27 @@ def sequences_wordcloud():
 
 @Site_Main_Flask_Obj.route('/sequence_annotations/<string:sequence>')
 def sequence_annotations(sequence):
-    # long, so probably a sequence
+    '''Get annotations for a given sequence and return the info page about it
+    (including wordcloud, term table, etc.)
+
+    Parameters
+    ----------
+    sequence: str
+        the sequences to look for (ACGT string or greengenesID from rep. set 97%)
+    '''
     rdata = {}
     rdata['sequence'] = sequence
 
+    # Get the taxonomy for the sequence
     taxStr = "na"
     httpResTax = requests.get(scbd_server_address + '/sequences/get_taxonomy_str', json=rdata)
     if httpResTax.status_code == requests.codes.ok:
-        # jsonRes = httpResTax.json().get('taxonomy')
-        # taxStr = jsonRes.get('taxonomy')
         taxStr = httpResTax.json().get('taxonomy')
+
+    # Get the annotations for the sequence
     httpRes = requests.get(scbd_server_address + '/sequences/get_annotations', json=rdata)
+
+    # Create the results page
     webPage = render_template('header.html', title='dbBact sequence annotation')
     webPage += render_template('seqinfo.html', sequence=sequence.upper(), taxonomy=taxStr)
 
@@ -508,7 +497,7 @@ def sequence_annotations(sequence):
         if len(annotations) == 0:
             webPage += '<br><br><h1>No annotations for sequence found in dbBact</h1>'
             webPage += '<h2>Are you using >100bp sequences?</h2>'
-            webPage += 'Note dbBact is populated mostly with V4 (EMP primer) based sequences<br>'
+            webPage += 'Note dbBact is populated mostly with V4 (EMP 515F primer) based sequences<br>'
             webPage += 'so no results could mean you are not using a EMP-V4 derived sequence<br>'
             webPage += 'These sequences usually begin with a "TACG"'
         else:
@@ -517,6 +506,7 @@ def sequence_annotations(sequence):
             annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
             term_info = get_term_info_for_annotations(annotations)
             webPage += draw_annotation_details(annotations, term_info, show_relative_freqs=True)
+
     webPage += render_template('footer.html')
     return webPage
 
@@ -582,7 +572,7 @@ def draw_sequences_annotations(seqs):
     return '', webPage
 
 
-def draw_sequences_annotations_compact(seqs, ignore_exp=None):
+def draw_sequences_annotations_compact(seqs, ignore_exp=[209]):
     '''Draw the webpage for annotations for a set of sequences
 
     Parameters
@@ -598,6 +588,7 @@ def draw_sequences_annotations_compact(seqs, ignore_exp=None):
     webpage : str
         the webpage for the annotations of these sequences
     '''
+    # get the compact annotations for the sequences
     res = requests.get(get_db_address() + '/sequences/get_fast_annotations',
                        json={'sequences': seqs})
     if res.status_code != 200:
@@ -609,72 +600,14 @@ def draw_sequences_annotations_compact(seqs, ignore_exp=None):
     annotations = res['annotations']
     seqannotations = res['seqannotations']
     if len(seqannotations) == 0:
-        msg = 'no sequences found'
+        msg = 'None of the %d sequences were found in dbBact. Are these >100bp long 16S sequences?\nNote dbBact is populated mostly by EMP V4 (515F) amplicon sequences.' % len(seqs)
+        debug(3, msg)
         return msg, msg
     term_info = res['term_info']
 
     webPage = render_template('header.html')
-    webPage += '<h2>Annotations for sequence list relative freq:</h2>'
-    webPage += draw_group_annotation_details(annotations, seqannotations, term_info=term_info, ignore_exp=ignore_exp)
-    webPage += render_template('footer.html')
-    return '', webPage
-
-
-def draw_sequences_annotations_compact_old(seqs):
-    '''Draw the webpage for annotations for a set of sequences
-
-    Parameters
-    ----------
-    seqs : list of str sequences (ACGT)
-
-    Returns
-    -------
-    err : str
-        the error encountered or '' if ok
-    webpage : str
-        the webpage for the annotations of these sequences
-    '''
-    res = requests.get(get_db_address() + '/sequences/get_fast_annotations',
-                       json={'sequences': seqs})
-    if res.status_code != 200:
-        msg = 'error getting annotations for sequences : %s' % res.content
-        debug(6, msg)
-        return msg, msg
-
-    res = res.json()
-    dict_annotations = res['annotations']
-    seqannotations = res['seqannotations']
-    if len(seqannotations) == 0:
-        msg = 'no sequences found'
-        return msg, msg
-    term_info = res['term_info']
-
-    # convert to dict of key=annotationid, value=list of sequences with this annotation
-    annotation_seqs = defaultdict(list)
-    annotation_counts = defaultdict(int)
-    for cseqannotation in seqannotations:
-        cseqid = cseqannotation[0]
-        annotationids = cseqannotation[1]
-        for cid in annotationids:
-            annotation_seqs[cid].append(cseqid)
-            annotation_counts[cid] += 1
-
-    # get the sorted annotations list
-    annotations = []
-    sorted_annotations = sorted(annotation_counts.items(), key=operator.itemgetter(1), reverse=True)
-    for csan in sorted_annotations:
-        # note we need str as json dict keys are stored as strings :(
-        cannotation = dict_annotations[str(csan[0])]
-        cannotation['website_sequences'] = annotation_seqs[csan[0]]
-        annotations.append(cannotation)
-
-    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
-    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
-
-    webPage = render_template('header.html')
-    webPage += '<h2>Annotations for sequence list relative freq:</h2>'
-    # webPage += draw_annotation_details(annotations, term_info=term_info)
-    webPage += draw_annotation_details(annotations, term_info=term_info, show_relative_freqs=True)
+    webPage += '<h2>Annotations for %d sequences</h2>' % len(seqs)
+    webPage += draw_group_annotation_details(annotations, seqannotations, term_info=term_info, ignore_exp=ignore_exp, sequences=seqs)
     webPage += render_template('footer.html')
     return '', webPage
 
@@ -1305,13 +1238,14 @@ def user_info(userid):
                render_template('footer.html'))
 
 
-def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True, include_ratio=True):
-    '''
-    Create table entries for a list of annotations
+def draw_annotation_details(annotations, term_info=None, show_relative_freqs=False, include_word_cloud=True, include_ratio=True, ignore_exp=[]):
+    '''Draw the wordcloud and details for a list of annotations
+    Converts the annotations list to dict, creates the seqannotations and calls draw_group_annotation_details()
 
     Parameters
     ----------
-    annotations : list of dict of annotation details (from REST API)
+    annotations: list of dict
+        list of annotations (each annotation is a dict of annotation details) - from dbbact /sequences/get_annotations
     term_info : dict of dict or None (optional)
         None (default) to skip relative word cloud.
         Otherwise need to have information about all ontology terms to be drawn
@@ -1320,165 +1254,27 @@ def draw_annotation_details(annotations, term_info=None, show_relative_freqs=Fal
             dict: pairs of:
                 'total_annotations' : int
                 'total_sequences' : int
-    show_relative_freqs: bool (optional)
-        False to draw absolute term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations)
-        True to draw relative term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
+    include_word_cloud: bool, optional
+        True (default) to draw the wordcloud, False to just draw the term tables
+    ignore_exp: list of int, optional
+        the experiment ids to exclude from the analysis
 
     Returns
     -------
-    wpart : str
-        html code for the annotations table
+    html part for wordcloud and term tables
     '''
-    # The output webpage part
-    wpart = ''
-
-    # draw the wordcloud
-    if include_word_cloud is True:
-        wpart += draw_wordcloud_new(annotations, term_info, show_relative_freqs=show_relative_freqs)
-
-    wpart += render_template('tabs.html')
-
-    # draw the annotation table
-    wpart += draw_annotation_table(annotations, include_ratio)
-
-    # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
-
-    # draw the ontology term list
-    wpart += draw_ontology_list(annotations, term_info)
-
-    wpart += '    </div>\n'
-    wpart += '  </div>\n'
-    return wpart
-
-
-def draw_wordcloud_new(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
-    '''
-    draw the wordcloud (image embedded in the html)
-
-    Parameters
-    ----------
-    annotations : annotation
-        The list of annotations to process for annotation ontology terms
-    term_info: dict or None
-        a dict with the total annotations per ontology term or None to skip relative abundance word cloud
-    show_relative_freqs: bool (optional)
-        False to draw absolute term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations)
-        True to draw relative term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
-    seqannotations: list of dict {seqid: list of annotationids}
-
-    Returns
-    -------
-    wpart : str
-        an html webpage part with the wordcloud embedded
-    '''
-    if seqannotations is None:
-        seqannotations = [[1, list(annotations.keys())]]
-    term_scores = get_enriched_term_pairs(annotations, seqannotations=seqannotations)
-
-    wordcloud_image = draw_cloud(term_scores)
-    # wordcloud_image = draw_cloud(term_scores, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
-    wordcloudimage = urllib.parse.quote(wordcloud_image)
-    wpart = ''
-    if wordcloudimage:
-        wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
-    else:
-        wpart += '<p></p>'
-    return wpart
-
-
-def draw_wordcloud(annotations, term_info=None, show_relative_freqs=False, seqannotations=None):
-    '''
-    draw the wordcloud (image embedded in the html)
-
-    Parameters
-    ----------
-    annotations : annotation
-        The list of annotations to process for annotation ontology terms
-    term_info: dict or None
-        a dict with the total annotations per ontology term or None to skip relative abundance word cloud
-    show_relative_freqs: bool (optional)
-        False to draw absolute term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations)
-        True to draw relative term abundance word cloud
-        (i.e. term size based on how many times we see the term in the annotations divided by total times we see the term in the database)
-
-    Returns
-    -------
-    wpart : str
-        an html webpage part with the wordcloud embedded
-    '''
-    wpart = ''
-
-    # draw the wordcloud
-    # termstr = ''
-    # total frequencies of each term (not only leaves) in dbbact
-
-    num_term = defaultdict(int)
-    num_low_term = defaultdict(int)
-    num_high_term = defaultdict(int)
+    annotations_dict = {}
     for cannotation in annotations:
-        for cdetail in cannotation['details']:
-            if cdetail[0] == 'all' or cdetail[0] == 'high':
-                orig_term = cdetail[1]
-                if 'website_sequences' in cannotation:
-                    # if it's high freq. it's worth more
-                    if cannotation['annotationtype'] == 'highfreq':
-                        factor = 2
-                    else:
-                        factor = 1
-                    num_to_add = factor * len(cannotation['website_sequences'])
-                    num_high_term[orig_term] += num_to_add
-                    num_term[orig_term] += num_to_add
-            elif cdetail[0] == 'low':
-                orig_term = cdetail[1]
-                if 'website_sequences' in cannotation:
-                    num_low_term[orig_term] += len(cannotation['website_sequences'])
-                    num_term[orig_term] += len(cannotation['website_sequences'])
+        annotations_dict[str(cannotation['annotationid'])] = cannotation
+    seqannotations = (((0, list(annotations_dict.keys())),))
+    wpart = draw_group_annotation_details(annotations_dict, seqannotations=seqannotations, term_info=term_info, include_word_cloud=include_word_cloud, ignore_exp=ignore_exp)
+    return wpart
 
-    # calculate the relative enrichment of each term (if term_info is supplied)
-    term_frac = None
-    if term_info is not None:
-        debug(1, 'drawing relative frequencies wordcloud')
-        # do the relative freq. word cloud
-        term_frac = {}
-        for cterm in num_term:
-            if cterm not in term_info:
-                debug(2, 'term %s not in term_info!' % cterm)
-                continue
-            # if we don't have enough statistics about the term, ignore it
-            # so we need at least 4 annotations with this term.
-            # Otherwise we get a lot of discretization effect (i.e. 100% of the times we observe this term are fish,
-            # but we have 1 fish annotation)
-            if term_info[cterm]['total_annotations'] < 4:
-                debug(2, 'term %s has <4 (%d) total annotations' % (cterm, term_info[cterm]['total_annotations']))
-                continue
-            if num_term[cterm] == 0:
-                debug(4, 'numterm for %s is 0' % cterm)
-                continue
-            # we use -2 to give lower weight to low. num
-            term_frac[cterm] = num_term[cterm] / term_info[cterm]['total_annotations']
-        # wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term)
-        # wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
-        # wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
 
-    if show_relative_freqs:
-        debug(1, 'drawing relative freq. wordcloud')
-        # draw relative frequencies
-        if len(term_frac) == 0:
-            debug(4, 'not enough info for relative freq - switching to absolute')
-            wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
-        else:
-            wordcloud_image = draw_cloud(term_frac, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
-    else:
-        debug(1, 'drawing absolute count wordcloud')
-        # draw absolute frequencies
-        wordcloud_image = draw_cloud(num_term, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac)
-
+def draw_wordcloud_fscore(fscores, recall=None, precision=None, term_count={}):
+    wordcloud_image = draw_cloud(fscores, recall, precision, term_count)
     wordcloudimage = urllib.parse.quote(wordcloud_image)
+    wpart = ''
     if wordcloudimage:
         wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
     else:
@@ -1530,15 +1326,50 @@ def draw_annotation_table(annotations, include_ratio=True):
         num_sequences = dataRow.get('num_sequences', '?')
         if 'website_sequences' in dataRow:
             observed_sequences = len(dataRow['website_sequences'])
-            if include_ratio == True:
+            if include_ratio is True:
                 sequences_string = '%s / %s' % (observed_sequences, num_sequences)
             else:
-                sequences_string =  '%s' % (num_sequences)
+                sequences_string = '%s' % (num_sequences)
         else:
             observed_sequences = '?'
             sequences_string = '%s' % num_sequences
         wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_seqs', annotationid=annotationid), sequences_string)
         wpart += '</tr>\n'
+    wpart += '</table>\n'
+    wpart += '</div>\n'
+    return wpart
+
+
+def draw_ontology_score_list(scores, section_id, description=None, max_terms=100):
+    '''Create table entries for ontology terms sorted by score
+
+    Parameters
+    ----------
+    scores: dict of {term (str): score (float)}
+        the scores to sort the terms by
+    section_id: str
+        the name of the section (for the tabs - i.e. 'recall' etc.)
+    max_terms: int, optional
+        maximal number of terms to add ot the list, or None to show all
+
+    Returns
+    -------
+    str
+        the html code for the section
+    '''
+    wpart = '<div id="%s" class="tab-pane" style="margin-top: 20px; margin-bottom: 20px;">\n' % section_id
+    if description is not None:
+        wpart += description
+    wpart += '<table style="width: 90%;">\n'
+    wpart += '<col><col width="100px">\n'
+    wpart += '<tr><th>Term</th><th>Score</th></tr>\n'
+
+    data = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    if max_terms is not None:
+        data = data[:max_terms]
+
+    for cterm, cscore in data:
+        wpart += '<tr><td><a href=%s>%s</a></td><td>%f</td></tr>\n' % (url_for('.ontology_info', term=cterm), cterm, cscore)
     wpart += '</table>\n'
     wpart += '</div>\n'
     return wpart
@@ -1655,75 +1486,58 @@ def get_common_terms(annotations):
     return common_terms
 
 
-def _get_color(word, font_size, position, orientation, font_path, random_state, num_high_term=None, num_low_term=None, term_frac=None):
-    '''Get the color for a given ontology term in the word cloud
-    The color depends on whether the term was observed in 'higher in' or 'lower in' (or both or none)
-    if only higher in - green
-    if only lower in - red
-    if both - yellow
-    if none (i.e. all annotations with this term in our annotation set are 'all') - black
+def _get_color_rec_prec(word, font_size, position, orientation, font_path, random_state, fscore, recall, precision, term_count):
+    import matplotlib as mpl
 
-    Intensity depends on the tern_frac for this tern
-
-    This function is used by WordCloud
-
-    Parameters
-    ----------
-    word : str
-        The term (word) to determine the color for
-    num_high_term : dict of {str: int} (optional)
-        The number of times the term (key) was observed as 'higher in'
-    num_low_term : dict of {str: int} (optional)
-        The number of times the term (key) was observed as 'lower in'
-    term_frac : dict of {str: float} (optional)
-        The fraction of times we observed this term (key) in our annotations
-        out of total annotations containing the term (key) in the database
-
-    Returns
-    -------
-    str of hex formatted color (i.e. '#00FFAC')
-    '''
-    # debug(1,**kwargs)
-    clevel = hex(200)[2:]
-    if term_frac is not None:
-        if word in term_frac:
-            clevel = format(int(155 + 100 * term_frac[word]), '02x')
-    if num_high_term is None:
-        return '#0000' + clevel
-        # return '#0000ff'
-    if num_low_term is None:
-        return '#0000' + clevel
-        # return '#0000ff'
-    if word in num_high_term:
-        if word in num_low_term:
-            return '#' + clevel + clevel + '00'
-            # return '#999900'
-        return '#00' + clevel + '00'
-        # return '#00ff00'
+    cmap = mpl.cm.get_cmap('bwr')
+    if word[0] == '-':
+        rgba = cmap(float(0.5 + 0.25 + (min(term_count[word], 10) / 40)), bytes=True)
     else:
-        if word in num_low_term:
-            return '#' + clevel + '0000'
-            # return '#ff0000'
-        return '#0000' + clevel
-        # return '#0000ff'
+        rgba = cmap(float(0.5 - 0.25 - (min(term_count[word], 10) / 40)), bytes=True)
+    # rgba = cmap(1.0 - float(100 - int(10 * min(term_count[word], 10)) / 100), bytes=True)
+    red = format(rgba[0], '02x')
+    green = format(rgba[1], '02x')
+    blue = format(rgba[2], '02x')
+    return '#%s%s%s' % (red, green, blue)
+
+    if word in term_count:
+        clevel = format(255 - int(55 + 20 * min(term_count[word], 10)), '02x')
+    else:
+        clevel = hex(200)[2:]
+
+    if word[0] == '-':
+        red_level = clevel
+    else:
+        red_level = '00'
+
+    return '#%s%s%s' % (clevel, clevel, clevel)
+    # if word in recall:
+    #     green_level = format(int(155 + 100 * recall[word]), '02x')
+    # else:
+    #     green_level = clevel
+
+    # if word in precision:
+    #     blue_level = format(int(155 + 100 * precision[word]), '02x')
+    # else:
+    #     blue_level = clevel
+
+    # return '#%s%s%s' % (red_level, green_level, blue_level)
 
 
-def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None, local_save_name=None):
+def draw_cloud(fscores, recall={}, precision={}, term_count={}, local_save_name=None):
     '''
     Draw a wordcloud for a list of terms
 
     Parameters
     ----------
-    words : str or dict
-        If str, the terms (each replicated according to it's frequency).
-        If dict, key is term and value is the number of times we observed this term (or relative frequency)
-    num_high_term : dict of {str: int} (optional)
-        The number of times the term (key) was observed as 'higher in'
-    num_low_term : dict of {str: int} (optional)
-        The number of times the term (key) was observed as 'lower in'
-    term_frac : dict of {str: float} (optional)
-        The fraction of times we observed this term (key) in our annotations
-        out of total annotations containing the term (key) in the database
+    fscores: dict of {term (str): fscore(float)}
+        the f-score for each term (determines the size)
+    recall : dict of {term (str): recall(float)}
+        the recall score for each term (determines the green color)
+    precision : dict of {term (str): precision(float)}
+        the precision score for each term (determines the blue color)
+    term_count: dict of {term (str): number of experiments where the term was observed(int)}
+        The number of unique experiments where the term annotations are coming from
     local_save_name : str or None (optional)
         if str, save also as pdf to local file local_save_name (for MS figures) in high res
 
@@ -1735,35 +1549,34 @@ def draw_cloud(words, num_high_term=None, num_low_term=None, term_frac=None, loc
     import matplotlib.pyplot as plt
     from io import BytesIO
 
-    plt.hold(False)
-
-    debug(1, 'draw_cloud for %d words' % len(words))
-    if len(words) == 0:
-        debug(2, 'no words for wordcloud')
+    debug(1, 'draw_cloud for %d words' % len(fscores))
+    if len(fscores) == 0:
+        debug(3, 'no words for wordcloud')
         return ''
-    # wc = WordCloud(background_color="white", width=200, height=100)
 
     # normalize the fractions to a scale max=1
-    if term_frac is not None:
-        maxval = max(term_frac.values())
-        debug(1, 'maxval is %f' % maxval)
-        for ckey, cval in term_frac.items():
-            term_frac[ckey] = term_frac[ckey] / maxval
+    if fscores is not None:
+        maxval = max(fscores.values())
+        debug(1, 'normalizing fscores. maxval is %f' % maxval)
+        for ckey, cval in fscores.items():
+            fscores[ckey] = fscores[ckey] / maxval
 
     # wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
     if local_save_name is not None:
-        wc = WordCloud(width=400*3, height=200*3, background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
+        wc = WordCloud(width=400 * 3, height=200 * 3, background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color_rec_prec(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
     else:
-        wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color(*x, **y, num_high_term=num_high_term, num_low_term=num_low_term, term_frac=term_frac))
-    if isinstance(words, str):
-        debug(1, 'generating from words list')
-        wordcloud = wc.generate(words)
-    elif isinstance(words, dict):
-        debug(1, 'generating from frequency dict')
-        wordcloud = wc.generate_from_frequencies(words)
+        wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(), color_func=lambda *x, **y: _get_color_rec_prec(*x, **y, fscore=fscores, recall=recall, precision=precision, term_count=term_count))
+
+    if isinstance(fscores, str):
+        debug(2, 'generating from words list')
+        wordcloud = wc.generate(fscores)
+    elif isinstance(fscores, dict):
+        debug(2, 'generating from frequency dict')
+        wordcloud = wc.generate_from_frequencies(fscores)
     else:
         debug(4, 'unknown type for generate_wordcloud!')
-    fig = plt.figure()
+
+    fig = plt.figure(   )
     plt.imshow(wordcloud)
     plt.axis("off")
     fig.tight_layout()
@@ -1945,49 +1758,6 @@ def old_dbbact(path):
     return json.dumps(res)
 
 
-def calculate_score(annotations, seqannotations, term_info, ignore_exp=None):
-    '''Get the enrichment score for each term in seqs compared to all of dbBact
-
-    Calculation is:
-        for each term:
-        sum over all sequences of sum over all sequence annotations contatining the term of (1/(#seqs in annotation+100))
-        divided by the (total number of annotations cotaining this term in the database + 3)
-
-    Parameters
-    ----------
-    ignore_exp:
-        List of experimentIDs to ignore when calculating the score, or None to include all
-
-    Returns
-    -------
-    dict of {term(str): score(float)}
-        The score for each term. Higher is more enriched
-    '''
-    # we need to count how many annotations per experiment
-    exp_annotations = _get_exp_annotations(annotations)
-    # calculate the per-term score
-    term_scores = defaultdict(float)
-    for cseqid, cannotation_ids in seqannotations:
-        cannotations = [annotations[str(cid)] for cid in cannotation_ids]
-        cterm_scores = get_annotation_term_counts(cannotations, exp_annotations=exp_annotations)
-        for cterm, cscore in cterm_scores.items():
-            term_scores[cterm] += cscore
-
-    # normalize by number of sequences total in database for each term
-    terms = list(term_info.keys())
-    for cterm in terms:
-        term_info['-'+cterm] = term_info[cterm]
-
-
-    for cterm in term_scores:
-        if cterm in term_info:
-            term_scores[cterm] = term_scores[cterm] / (term_info[cterm]['total_annotations']+3)
-        else:
-            debug(3, 'calculate_score: %s not in term_info' % cterm)
-            term_scores[cterm] = 0
-    return term_scores
-
-
 def get_annotation_term_counts(annotations, exp_annotations=None, score_method='rel'):
     '''Get the annotation type corrected count for all terms in annotations
 
@@ -2020,7 +1790,7 @@ def get_annotation_term_counts(annotations, exp_annotations=None, score_method='
             cscore = 0.5
         elif annotation_type == 'contamination':
             cscore = 1
-            details = [('all','contamination')]
+            details = [('all', 'contamination')]
         elif annotation_type == 'other':
             cscore = 0
         elif annotation_type == 'diffexp':
@@ -2045,10 +1815,10 @@ def get_annotation_term_counts(annotations, exp_annotations=None, score_method='
             if score_method == 'all_mean':
                 scale_factor = exp_annotations[cannotation['expid']][cterm]
                 if scale_factor == 0:
-                    debug(4,'scale factor=0. term %s, exp %d, annotationid %d, score %d, scale %d' % (cterm, cannotation['expid'], cannotation['annotationid'], cscore, scale_factor))
+                    debug(4, 'scale factor=0. term %s, exp %d, annotationid %d, score %d, scale %d' % (cterm, cannotation['expid'], cannotation['annotationid'], cscore, scale_factor))
                     scale_factor = 1
             elif score_method == 'rel':
-                scale_factor = cannotation['num_sequences']+100
+                scale_factor = cannotation['num_sequences'] + 100
             else:
                 scale_factor = 1
 
@@ -2057,43 +1827,17 @@ def get_annotation_term_counts(annotations, exp_annotations=None, score_method='
     return term_count
 
 
-def draw_group_wordcloud(term_scores, annotations, seqannotations, term_info, local_save_name=None):
-    '''Draw the wordcloud for sequences
-
-    Parameters
-    ----------
-    term_scores : dict of {term(str):score(float)}
-        from calculate_score(annotations, seqannotations, term_info)
-    local_save_name : str or None (optional)
-        str to save (high res) wordcloud image to loca file nameed local_save_name (for MS figures)
-
-    Returns
-    -------
-    str: html part encoding the wordcloud image
+def draw_group_annotation_details(annotations, seqannotations, term_info, include_word_cloud=True, ignore_exp=[], local_save_name=None, sequences=None):
     '''
-    wpart = ''
-
-    debug(1, 'drawing group wordcloud')
-    wordcloud_image = draw_cloud(term_scores, num_high_term=None, num_low_term=None, term_frac=None, local_save_name=local_save_name)
-
-    wordcloudimage=urllib.parse.quote(wordcloud_image)
-    if wordcloudimage:
-        wpart += render_template('wordcloud.html', wordcloudimage=urllib.parse.quote(wordcloud_image))
-    else:
-        wpart += '<p></p>'
-    return wpart
-
-
-def draw_group_annotation_details(annotations, seqannotations, term_info, include_word_cloud=True, ignore_exp=None, local_save_name=None):
-    '''
-    Create table entries for a list of annotations
+    Create wordcloud and table entries for a list of annotations
 
     Parameters
     ----------
     annotations : dict of {annotationid(str): annotationdetails(dict)}
         dict of annotation details (from REST API). NOTE: key is str of annotationID!
-    seqannotations: `
-    term_info : dict of dict or None (optional)
+    seqannotations: list of (seqid, [annotation ids])
+        list of annotations for each sequence.
+    term_info : dict of dict or None, optional
         None (default) to skip relative word cloud.
         Otherwise need to have information about all ontology terms to be drawn
         dict of {term: dict} where
@@ -2104,7 +1848,9 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     include_word_cloud: bool (optional)
         True to plot the wordcloud. False to not plot it
     ignore_exp : list of int (optional)
-        list of experiment ids to ignore when calculating the score. None to include all experiments
+        list of experiment ids to ignore when calculating the score.
+    sequences : list of str or None (optional)
+        the list of sequences to which the annotation details are obtained. If None, calculate from seqannotations
 
     Returns
     -------
@@ -2114,39 +1860,20 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
     # The output webpage part
     wpart = ''
 
-    ignore_exp = [275]
-
-    # remove annotations arising from experiments in ignore_exp list
-    if ignore_exp is not None:
-        debug(1, 'removing ignored experiments %s' % ignore_exp)
-        ignore_exp = set(ignore_exp)
-        ignore_annotations = set()
-        for cannotation_id, cannotation in annotations.items():
-            if cannotation['expid'] in ignore_exp:
-                ignore_annotations.add(cannotation['annotationid'])
-        debug(1, 'found %d annotations to ignore' % len(ignore_annotations))
-        newseqannotations = []
-        for cseq, cseqannotations in seqannotations:
-            tsannot = [x for x in cseqannotations if x not in ignore_annotations]
-            newseqannotations.append((cseq, tsannot))
-        seqannotations = newseqannotations
-
     # calculate the score for each term
     debug(1, 'calculating score')
-    term_scores = calculate_score(annotations, seqannotations, term_info, ignore_exp=ignore_exp)
-    # draw the wordcloud
+    fscores, recall, precision, term_count = get_enrichment_score(annotations, seqannotations, ignore_exp=ignore_exp, term_info=term_info)
+
+    # draw the wordcloud for the group terms
     if include_word_cloud is True:
-        # need to ignore EXP!!!!
         debug(1, 'drawing term pair word cloud')
-        annotations_list = []
-        for cseq, cseq_annotations in seqannotations:
-            tt = [annotations[str(x)] for x in cseq_annotations]
-            annotations_list.extend(tt)
-        wpart += draw_wordcloud_new(annotations_list, seqannotations=seqannotations)
-        debug(1, 'drawing term pair word cloud')
-        wpart += draw_group_wordcloud(term_scores, annotations, seqannotations, term_info, local_save_name=local_save_name)
+        wpart += draw_wordcloud_fscore(fscores, recall, precision, term_count)
 
     wpart += render_template('tabs.html')
+
+    wpart += draw_ontology_score_list(fscores, section_id='fscores', description='term enrichment score')
+    wpart += draw_ontology_score_list(recall, section_id='recall', description='Fraction of dbbact annotations with this term covered by the query')
+    wpart += draw_ontology_score_list(precision, section_id='precision', description='Fraction of annotations for the query sequences containing the term')
 
     # draw the annotation table
     # first we need to sort the annotations by total sequences from submitted list in each annotation
@@ -2166,10 +1893,8 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
         annotations[str(cannotation)]['website_sequences'] = cseqlist
     wpart += draw_annotation_table(sorted_annotations)
 
-    # wpart += '<div style="-webkit-column-count: 3; -moz-column-count: 3; column-count: 3;">\n'
-
     # draw the ontology term list
-    wpart += draw_ontology_list(sorted_annotations, term_info, term_scores)
+    # wpart += draw_ontology_list(sorted_annotations, term_info, fscores)
 
     wpart += '    </div>\n'
     wpart += '  </div>\n'

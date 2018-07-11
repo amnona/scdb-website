@@ -146,25 +146,25 @@ def get_db_address():
         the supercooldb server web address based on the env. variable
     '''
     if 'OPENU_FLAG' in os.environ:
-            debug(1, 'servertype is openu')
+            debug(0, 'servertype is openu')
             server_address = 'http://0.0.0.0:5001'
     elif 'SCDB_WEBSITE_TYPE' in os.environ:
         servertype = os.environ['SCDB_WEBSITE_TYPE'].lower()
         if servertype == 'local':
-            debug(1, 'servertype is local')
-            server_address = 'http://127.0.0.1:5000'
+            debug(0, 'servertype is local')
+            server_address = 'http://127.0.0.1:5001'
         elif servertype == 'main':
-            debug(1, 'servertype is main')
+            debug(0, 'servertype is main')
             # server_address = 'http://amnonim.webfactional.com/scdb_main'
             server_address = 'http://api.dbbact.org'
         elif servertype == 'develop':
-            debug(1, 'servertype is develop')
+            debug(0, 'servertype is develop')
             server_address = 'http://amnonim.webfactional.com/scdb_develop'
         else:
             raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
     else:
         # server_address = 'http://amnonim.webfactional.com/scdb_main'
         server_address = 'http://api.dbbact.org'
-        debug(1, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
+        debug(0, 'using default server main (use env. variable SCDB_WEBSITE_TYPE to set)')
 
     return server_address
