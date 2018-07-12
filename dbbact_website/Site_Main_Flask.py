@@ -1499,11 +1499,13 @@ def draw_cloud(fscores, recall={}, precision={}, term_count={}, local_save_name=
         return ''
 
     # normalize the fractions to a scale max=1
+    new_scores = {}
     if fscores is not None:
         maxval = max(fscores.values())
         debug(1, 'normalizing fscores. maxval is %f' % maxval)
         for ckey, cval in fscores.items():
-            fscores[ckey] = fscores[ckey] / maxval
+            new_scores[ckey] = fscores[ckey] / maxval
+    fscores = new_scores
 
     # wc = WordCloud(background_color="white", relative_scaling=0.5, stopwords=set(),colormap="Blues")
     if local_save_name is not None:

@@ -32,7 +32,7 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 	fscore = {}
 	for cterm, crecall in recall.items():
 		cprecision = precision[cterm]
-		fscore[cterm] = (crecall * cprecision) / (crecall + cprecision)
+		fscore[cterm] = 2 * (crecall * cprecision) / (crecall + cprecision)
 
 	for cterm in fscore.keys():
 		debug(1, 'term %s, recall %f, precision %f, fscore %f' % (cterm, recall[cterm], precision[cterm], fscore[cterm]))
