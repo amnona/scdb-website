@@ -135,7 +135,9 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 		# 	print('*whale blow not found for sequence')
 		# 	print(cseq_term_exps)
 		# and add the normalized count
+		debug(1, 'going over exp list')
 		for cterm, cexplist in cseq_term_exps.items():
+			debug(1, 'processing term %s' % cterm)
 			if cterm[0] != '-':
 				if cterm not in term_info:
 					debug(4, 'term %s not in term_info' % cterm)
@@ -151,6 +153,7 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 			# 	print(cexplist)
 			# 	print('term info: %s' % term_info[cterm])
 			recall[cterm] += crecall / num_sequences
+			debug(1, 'next term')
 	debug(1, 'recall contains %d terms' % len(recall))
 	return recall
 
