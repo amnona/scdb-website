@@ -120,6 +120,7 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 	num_sequences = len(seqannotations)
 	debug(1, 'total sequences: %d' % num_sequences)
 	for cseq, cseq_annotations in seqannotations:
+		debug(1, 'processing seq %s' % cseq)
 		# for each term (in all the annotations), get all the experiments where it appears
 		cseq_term_exps = defaultdict(set)
 		for cannotationid in cseq_annotations:
