@@ -142,14 +142,21 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 				if cterm not in term_info:
 					debug(4, 'term %s not in term_info' % cterm)
 					continue
-				crecall = len(cexplist) / term_info[cterm]['total_experiments']
+				try:
+					crecall = len(cexplist) / term_info[cterm]['total_experiments']
+				except:
+					debug(4, 'term %s does not have total_experiments ok' % cterm)
+					crecall = len(cexplist)
 			else:
 				debug(1, 'has - as first letter')
 				if cterm[1:] not in term_info:
 					debug(4, 'term %s not in term_info' % cterm)
 					continue
-				debug(1, term_info[cterm[1:]])
-				crecall = len(cexplist) / term_info[cterm[1:]]['total_experiments']
+				try:
+					crecall = len(cexplist) / term_info[cterm[1:]]['total_experiments']
+				except:
+					debug(4, 'term %s from pos 1 does not have total_experiments ok' % cterm)
+					crecall = len(cexplist)
 			# if cterm == 'whale blow':
 			# 	print('term: %s' % cterm)
 			# 	print(cexplist)
