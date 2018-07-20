@@ -25,9 +25,13 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 		the number of experiments where annotations for each term appear
 	'''
 	debug(2, 'getting enrichment scores from %d sequences' % len(seqannotations))
+	debug(1, 'getting recall')
 	recall = get_recall(annotations, seqannotations, ignore_exp=ignore_exp)
+	debug(1, 'getting precision')
 	precision = get_precision(annotations, seqannotations, ignore_exp=ignore_exp)
+	debug(1, 'getting term count from get_enrichent_score()')
 	term_count = get_term_total_counts(annotations, seqannotations, ignore_exp=ignore_exp)
+	debug(1, 'calculating the enrichment scores')
 
 	fscore = {}
 	for cterm, crecall in recall.items():
@@ -146,6 +150,7 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 			# 	print(cexplist)
 			# 	print('term info: %s' % term_info[cterm])
 			recall[cterm] += crecall / num_sequences
+	debug(1, 'recall contains %d terms' % len(recall))
 	return recall
 
 
