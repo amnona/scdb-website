@@ -249,18 +249,18 @@ def add_data_results():
     rannotation['method'] = methodName
     rannotation['agentType'] = 'DBBact website submission'
     rannotation['description'] = descName
-    rannotation['annotationList'] = annotationListArr    
-    #Everything is ready to add the data
-    httpRes = requests.post(scbd_server_address + '/annotations/add',json=rannotation)
+    rannotation['annotationList'] = annotationListArr
+    # Everything is ready to add the data
+    httpRes = requests.post(scbd_server_address + '/annotations/add', json=rannotation)
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
-        annotId = jsonRes.get("annotationId")    
-        webpage = build_res_html(True, expId, newExpFlag, annotId )
+        annotId = jsonRes.get("annotationId")
+        webpage = build_res_html(True, expId, newExpFlag, annotId)
         return(webpage, 400)
     else:
-        webpage = build_res_html(False, expId, newExpFlag, -1,  'Failed to add annotations')
+        webpage = build_res_html(False, expId, newExpFlag, -1, 'Failed to add annotations')
         return(webpage, 400)
-    
+
     return ''
 
 
@@ -272,13 +272,13 @@ def enrichment_results():
     Method: POST
     """
     webPageTemp = ''
-    
+
     if request.method == 'GET':
         exampleStr = request.args['example']
     else:
         exampleStr = request.form['example']
-    
-    #first file
+
+    # first file
     if exampleStr != 'true':
         if 'seqs1' in request.files:
             debug(1, 'Fasta file uploaded, processing it')
@@ -292,15 +292,15 @@ def enrichment_results():
             webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Missing fasta file name 1')
             return(webPageTemp, 400)
     else:
-        #only used for example query
+        # only used for example query
         with open("dbbact_website/enrichment_example/seqs-fec.fa", "r") as myfile:
-            textfile1=myfile.readlines()
+            textfile1 = myfile.readlines()
             seqs1 = get_fasta_seqs(textfile1)
             if seqs1 is None:
                 webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
                 return(webPageTemp, 400)
-    
-    #second file
+
+    # second file
     if exampleStr != 'true':
         if 'seqs2' in request.files:
             debug(1, 'Fasta file uploaded, processing it')
@@ -313,15 +313,14 @@ def enrichment_results():
         else:
             webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Missing fasta file name')
     else:
-        #only used for example query
-        with open ("enrichment_example/seqs-sal.fa", "r") as myfile:
-            textfile2=myfile.readlines()
+        # only used for example query
+        with open("dbbact_website/enrichment_example/seqs-sal.fa", "r") as myfile:
+            textfile2 = myfile.readlines()
             seqs2 = get_fasta_seqs(textfile2)
             if seqs2 is None:
                 webPageTemp = render_template('header.html', title='Error') + render_template('error_page.html', error_str='Error: Uploaded file1 not recognized as fasta')
                 return(webPageTemp, 400)
-        
-        
+
     webpage = render_template('header.html')
     # webpage = render_template('info_header.html')
     for term_type in ['term', 'annotation']:
