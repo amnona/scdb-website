@@ -293,7 +293,7 @@ def enrichment_results():
             return(webPageTemp, 400)
     else:
         #only used for example query
-        with open ("enrichment_example/seqs-fec.fa", "r") as myfile:
+        with open("dbbact_website/enrichment_example/seqs-fec.fa", "r") as myfile:
             textfile1=myfile.readlines()
             seqs1 = get_fasta_seqs(textfile1)
             if seqs1 is None:
