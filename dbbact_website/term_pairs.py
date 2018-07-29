@@ -25,7 +25,6 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 		the number of experiments where annotations for each term appear
 	'''
 	debug(2, 'getting enrichment scores from %d sequences' % len(seqannotations))
-	pita
 	debug(1, 'getting recall')
 	recall = get_recall(annotations, seqannotations, ignore_exp=ignore_exp)
 	debug(1, 'getting precision')
