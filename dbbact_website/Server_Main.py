@@ -29,7 +29,8 @@ def gunicorn(debug_level=6):
     Flask app
     '''
     SetDebugLevel(debug_level)
-    debug(6, 'starting dbbact rest-api server using gunicorn, debug_level=%d' % debug_level)
+    app.log = True
+    debug(6, 'starting dbbact website server using gunicorn, debug_level=%d' % debug_level)
     return app
 
 
