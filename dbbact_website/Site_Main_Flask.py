@@ -419,9 +419,17 @@ def search_results():
     if len(sequence) < 50:
         # if number assume it is a greengenes id
         if sequence.isdigit():
+            # try gg first
+            err, webPage = get_gg_info(sequence)
+            if not err:
+                debug(2, 'get info for greengenes id %s' % sequence)
+                return webPage
+            
             debug(2, 'get info for greengenesid %s' % sequence)
             webPage = sequence_annotations(sequence)
             return webPage
+        
+        
         # try is it an ontology term
         err, webPage = get_ontology_info(sequence)
         if not err:
@@ -436,6 +444,11 @@ def search_results():
         err, webPage = get_hash_info(sequence)
         if not err:
             debug(2, 'get info for qiime2 hash %s' % sequence)
+            return webPage
+        # or maybe based on silva
+        err, webPage = get_silva_info(sequence)
+        if not err:
+            debug(2, 'get info for silva id %s' % sequence)
             return webPage
         # so we can't find it
         debug(2, 'search sequence/term/etc not found for %s' % sequence)
@@ -998,14 +1011,116 @@ def get_hash_info(hash_str):
     for seq in seq_strs:
         if len(seq_web) > 0:
             seq_web += '<br>'
-        seq_web += seq
+        seq_web += seq.upper()
 
     webPage = render_template('header.html', title='dbBact ontology')
-    webPage += render_template('hashinfo.html', hash_str=hash_str, seq_name=seq_web)
+    webPage += render_template('hashinfo.html', hash_place_holder=hash_str, seq_names_place_holder=seq_web)
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
 
+def get_gg_info(ggid_str):
+    '''
+    get the information about a sequence based on its gg id 
+
+    Parameters
+    ----------
+    hash_str : string
+        sequence represented by its gg id
+
+    Returns
+    -------
+    err : str
+        empty ('') if found, none empty if error encountered
+    webPage : str
+        the html of the resulting table
+    '''
+    # get the hash annotations
+    res = requests.get(get_db_address() + '/sequences/get_gg_annotations', json={'gg_id': ggid_str})
+    if res.status_code != 200:
+        msg = 'error getting hash annotations for %s: %s' % (ggid_str, res.content)
+        debug(6, msg)
+        return msg, msg
+    seq_strs = res.json()['seqstr']
+    gg_seqs = res.json()['seqids']
+    annotations_counts = res.json()['annotations']
+    if len(annotations_counts) == 0:
+        msg = 'no annotations found for gg id %s' % ggid_str
+        debug(1, msg)
+        return msg, msg
+
+    # convert to list of annotations with counts as a key/value
+    annotations = []
+    for cann in annotations_counts:
+        cannotation = cann[0]
+        cannotation['website_sequences'] = [-1] * cann[1]
+        annotations.append(cannotation)
+
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
+
+    seq_web = ''
+    for seq in seq_strs:
+        if len(seq_web) > 0:
+            seq_web += '<br>'
+        seq_web += seq.upper()
+
+    webPage = render_template('header.html', title='dbBact ontology')
+    webPage += render_template('gginfo.html', gg_place_holder=ggid_str, seq_names_place_holder=seq_web)
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('footer.html')
+    return '', webPage
+
+def get_silva_info(silva_str):
+    '''
+    get the information about a sequence based on its silva id 
+
+    Parameters
+    ----------
+    hash_str : string
+        sequence represented by its silva id
+
+    Returns
+    -------
+    err : str
+        empty ('') if found, none empty if error encountered
+    webPage : str
+        the html of the resulting table
+    '''
+    # get the hash annotations
+    res = requests.get(get_db_address() + '/sequences/get_silva_annotations', json={'silva_id': silva_str})
+    if res.status_code != 200:
+        msg = 'error getting hash annotations for %s: %s' % (silva_str, res.content)
+        debug(6, msg)
+        return msg, msg
+    seq_strs = res.json()['seqstr']
+    silva_seqs = res.json()['seqids']
+    annotations_counts = res.json()['annotations']
+    if len(annotations_counts) == 0:
+        msg = 'no annotations found for gg id %s' % silva_str
+        debug(1, msg)
+        return msg, msg
+    # convert to list of annotations with counts as a key/value
+    annotations = []
+    for cann in annotations_counts:
+        cannotation = cann[0]
+        cannotation['website_sequences'] = [-1] * cann[1]
+        annotations.append(cannotation)
+
+    annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
+    annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
+    
+    seq_web = ''
+    for seq in seq_strs:
+        if len(seq_web) > 0:
+            seq_web += '<br>'
+        seq_web += seq.upper()
+
+    webPage = render_template('header.html', title='dbBact ontology')
+    webPage += render_template('silvainfo.html', silva_place_holder=silva_str, seq_names_place_holder=seq_web)
+    webPage += draw_annotation_details(annotations)
+    webPage += render_template('footer.html')
+    return '', webPage
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
 def experiment_info(expid):
