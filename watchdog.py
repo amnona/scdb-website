@@ -55,7 +55,7 @@ if __name__ == '__main__':
     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d--%H:%M:%S")
     count_execution = 0
     
-    proc  = subprocess.Popen("gunicorn 'dbbact_website.Server_Main:gunicorn(debug_level=6)' -b 0.0.0.0:5000 --workers 4 --timeout 300 --name=dbbact-website",shell=True)
+    proc  = subprocess.Popen("gunicorn 'dbbact_website.Server_Main:gunicorn(debug_level=5)' -b 0.0.0.0:5000 --workers 4 --name=dbbact-website --timeout 300 --capture-output --log-file /home/eitano/logs/scdb-website-output.txt",shell=True)
     process_to_watch = proc.pid
     count_execution = count_execution + 1
     summary_str = "count_execution = %s\nprocess_id = %s\n" % (count_execution,process_to_watch)
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     
     while isFileExist("stop") == False:
         if isProcessExist(process_to_watch) == False :
-            proc  = subprocess.Popen("gunicorn 'dbbact_website.Server_Main:gunicorn(debug_level=6)' -b 0.0.0.0:5000 --workers 4 --timeout 300 --name=dbbact-website",shell=True)
+            proc  = subprocess.Popen("gunicorn 'dbbact_website.Server_Main:gunicorn(debug_level=5)' -b 0.0.0.0:5000 --workers 4 --name=dbbact-website --timeout 300 --capture-output --log-file /home/eitano/logs/scdb-website-output.txt",shell=True)
             process_to_watch = proc.pid
             count_execution = count_execution + 1
             summary_str = "count_execution = %s\nprocess_id = %s\n" % (count_execution,process_to_watch)
