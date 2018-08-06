@@ -47,14 +47,14 @@ def test_enrichment():
     return webPage
 
 
-def build_res_html(success, expId, isNewExp, annotId, additional = None):
+def build_res_html(success, expId, isNewExp, annotId, additional=None):
     successStr = ''
     expIdStr = ''
     existingStr = ''
     annotIdStr = ''
     debugStr = ''
 
-    if success == True:
+    if success is True:
         successStr = 'Operation succeed'
     else:
         successStr = 'Operation failed'
@@ -99,13 +99,13 @@ def add_data_results():
             textfile1 = TextIOWrapper(file1)
             seqs1 = get_fasta_seqs(textfile1)
         except:
-            webpage = build_res_html(False, -1, isNewExp, annotId ,'Could not open fasta file')
+            webpage = build_res_html(False, -1, isNewExp, annotId,'Could not open fasta file')
             return(webpage, 400)
         if seqs1 is None:
-            webpage = build_res_html(False, -1, False, -1 , 'Invalid fasta file')
+            webpage = build_res_html(False, -1, False, -1, 'Invalid fasta file')
             return(webpage, 400)
     else:
-        webpage = build_res_html(False, -1, False, -1 , 'Missing fasta file')
+        webpage = build_res_html(False, -1, False, -1, 'Missing fasta file')
         return(webpage, 400)
 
     # Prepare all exp data in array
@@ -118,26 +118,26 @@ def add_data_results():
         descName = 'na'
     # print(">>>>>>>>>>>>>><<<<<<<<<<<<<<<<<method name" + methodName)
 
-    #Exp list
+    # Exp list
     hiddenExpName = request.form.get('hiddenExpName')
     hiddenExpValue = request.form.get('hiddenExpValue')
-    #Ont list
+    # Ont list
     hiddenOntName = request.form.get('hiddenOntName')
     hiddenOntType = request.form.get('hiddenOntType')
     hiddenOntDetType = request.form.get('hiddenOntDetType')
 
     hiddenRegionStr = request.form.get('hiddenRegion')
     if hiddenRegionStr is None or len(hiddenRegionStr.strip()) == 0:
-        webpage = build_res_html(False, -1, False, -1 , 'Invalid region value')
+        webpage = build_res_html(False, -1, False, -1, 'Invalid region value')
         return(webpage, 400)
 
     if hiddenOntType is None or len(hiddenOntType.strip()) == 0:
-        webpage = build_res_html(False, -1, False, -1 , 'Invalid Input (error code: -1)')
+        webpage = build_res_html(False, -1, False, -1, 'Invalid Input (error code: -1)')
         return(webpage, 400)
 
     # in case one of the parameters is missing
     if hiddenExpName is None or len(hiddenExpName.strip()) == 0 or hiddenExpValue is None or len(hiddenExpValue.strip()) == 0 or hiddenOntName is None or len(hiddenOntName.strip()) == 0 or hiddenOntDetType is None or len(hiddenOntDetType.strip()) == 0:
-        webpage = build_res_html(False, -1, False, -1 , 'Invalid Input (error code: -2)')
+        webpage = build_res_html(False, -1, False, -1, 'Invalid Input (error code: -2)')
         return(webpage, 400)
 
     expDataNameArr = hiddenExpName.split(';')  # split string into a list
@@ -147,71 +147,72 @@ def add_data_results():
     annotationTypeArr = hiddenOntType.split(';')  # split string into a list
     annotationDetTypeArr = hiddenOntDetType.split(';')  # split string into a list
 
-    #### Strings to return
-    #{{title_str}} - Operation failed / Operation completed successfully
-    #{{exp_str}}
-    #{{anot_str}}
+    # ### Strings to return
+    # {{title_str}} - Operation failed / Operation completed successfully
+    # {{exp_str}}
+    # {{anot_str}}
     resTitleStr = ''
     resExpStr = ''
     resAnotStr = ''
     newExpFlag = False
 
-    #####################################################      
-    # Get expirement id or -1 if doesn't exist
-    #####################################################      
+    '''
+        #####################################################
+        # Get expirement id or -1 if doesn't exist
+        #####################################################
+    '''
     rdata = {}
     rdata['nameStrArr'] = expDataNameArr
-    rdata['valueStrArr'] = expDataValueArr    
-    httpRes = requests.get(scbd_server_address + '/experiments/get_id_by_list',json=rdata)
+    rdata['valueStrArr'] = expDataValueArr
+    httpRes = requests.get(scbd_server_address + '/experiments/get_id_by_list', json=rdata)
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
         expId = jsonRes.get("expId")
         errorCode = jsonRes.get("errorCode")
         errorText = jsonRes.get("errorText")
-        if expId < 0 : 
-            # identification appears in more than one expirement 
-            if errorCode == -2 :
-                webpage = build_res_html(False, -1, False, -1 , 'More than one experiments was found')
+        if expId < 0:
+            # identification appears in more than one expirement
+            if errorCode == -2:
+                webpage = build_res_html(False, -1, False, -1, 'More than one experiments was found')
                 return(webpage, 400)
             # expirement was not found, try to find
             elif errorCode == -1:
                 rdataExp = {}
                 test = []
-                
-                for i in range(len(expDataNameArr)):
-                    test.append((expDataNameArr[i],expDataValueArr[i]))
-                
-                rdataExp = {'expId': -1, 'private': False, 'details' : test}
 
-                httpRes = requests.post(scbd_server_address + '/experiments/add_details',json=rdataExp)
+                for i in range(len(expDataNameArr)):
+                    test.append((expDataNameArr[i], expDataValueArr[i]))
+
+                rdataExp = {'expId': -1, 'private': False, 'details': test}
+
+                httpRes = requests.post(scbd_server_address + '/experiments/add_details', json=rdataExp)
                 if httpRes.status_code == 200:
                     jsonRes = httpRes.json()
-                    expId = jsonRes.get("expId")    
+                    expId = jsonRes.get("expId")
                     newExpFlag = True
-                else: 
-                    webpage = build_res_html(False, -1, False, -1 , 'Failed to create new expirement')
+                else:
+                    webpage = build_res_html(False, -1, False, -1, 'Failed to create new expirement')
                     return(webpage, 400)
     else:
-        webpage = build_res_html(False, -1, False, -1 , 'Failed to get expirement id')
+        webpage = build_res_html(False, -1, False, -1, 'Failed to get expirement id')
         return(webpage, 400)
-    #####################################################      
-    
-    #####################################################      
+
+    # ####################################################
     # Add sequences if they are missing
-    #####################################################      
+    # ####################################################
     rdata = {}
     rdata['sequences'] = seqs1
     rdata['primer'] = hiddenRegionStr
-    
-    httpRes = requests.post(scbd_server_address + '/sequences/add',json=rdata)
+
+    httpRes = requests.post(scbd_server_address + '/sequences/add', json=rdata)
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
-        seqList = jsonRes.get("seqIds")    
+        seqList = jsonRes.get("seqIds")
         if len(seqList) != len(seqs1):
-            webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve all sequneces IDs')
+            webpage = build_res_html(False, expId, newExpFlag, -1, 'Failed to retrieve all sequneces IDs')
             return(webpage, 400)
     else:
-        webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve sequneces IDs')
+        webpage = build_res_html(False, expId, newExpFlag, -1, 'Failed to retrieve sequneces IDs')
         return(webpage, 400)
     #####################################################      
     
@@ -424,12 +425,11 @@ def search_results():
             if not err:
                 debug(2, 'get info for greengenes id %s' % sequence)
                 return webPage
-            
+
             debug(2, 'get info for greengenesid %s' % sequence)
             webPage = sequence_annotations(sequence)
             return webPage
-        
-        
+
         # try is it an ontology term
         err, webPage = get_ontology_info(sequence)
         if not err:
@@ -440,12 +440,12 @@ def search_results():
         if not err:
             debug(2, 'get info for taxonomy %s' % sequence)
             return webPage
-        # or maybe based on hash string
+        # or maybe based on qiime2 hash string
         err, webPage = get_hash_info(sequence)
         if not err:
             debug(2, 'get info for qiime2 hash %s' % sequence)
             return webPage
-        # or maybe based on silva
+        # or maybe based on silva id
         err, webPage = get_silva_info(sequence)
         if not err:
             debug(2, 'get info for silva id %s' % sequence)
@@ -1071,14 +1071,15 @@ def get_gg_info(ggid_str):
     webPage += render_template('footer.html')
     return '', webPage
 
+
 def get_silva_info(silva_str):
     '''
-    get the information about a sequence based on its silva id 
+    get the information about a sequence based on its silva id
 
     Parameters
     ----------
-    hash_str : string
-        sequence represented by its silva id
+    silva_str : str
+        sequence represented by its silva id (should be XXXX.N.NNN or XXXX.%)
 
     Returns
     -------
@@ -1093,11 +1094,11 @@ def get_silva_info(silva_str):
         msg = 'error getting hash annotations for %s: %s' % (silva_str, res.content)
         debug(6, msg)
         return msg, msg
-    seq_strs = res.json()['seqstr']
-    silva_seqs = res.json()['seqids']
+    silva_seq_strs = res.json()['seqstr']
+    silva_seq_ids = res.json()['seqids']
     annotations_counts = res.json()['annotations']
     if len(annotations_counts) == 0:
-        msg = 'no annotations found for gg id %s' % silva_str
+        msg = 'no annotations found for silva id %s' % silva_str
         debug(1, msg)
         return msg, msg
     # convert to list of annotations with counts as a key/value
@@ -1109,18 +1110,25 @@ def get_silva_info(silva_str):
 
     annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
     annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
-    
+
     seq_web = ''
-    for seq in seq_strs:
+    total_num_seqs = len(silva_seq_strs)
+    for seq in silva_seq_strs:
         if len(seq_web) > 0:
             seq_web += '<br>'
         seq_web += seq.upper()
+        # let's try to add taxonomy to the sequence
+        taxres = requests.get(get_db_address() + '/sequences/get_taxonomy_str', json={'sequence': seq})
+        if taxres.status_code == 200:
+            seq_web += '<br>'
+            seq_web += '(' + taxres.json()['taxonomy'].lower() + ')'
 
     webPage = render_template('header.html', title='dbBact ontology')
-    webPage += render_template('silvainfo.html', silva_place_holder=silva_str, seq_names_place_holder=seq_web)
+    webPage += render_template('silvainfo.html', silva_place_holder=silva_str, seq_names_place_holder=seq_web, number_seqs_place_holder=total_num_seqs)
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
+
 
 @Site_Main_Flask_Obj.route('/exp_info/<int:expid>')
 def experiment_info(expid):
