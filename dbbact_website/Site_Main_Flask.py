@@ -1115,13 +1115,13 @@ def get_silva_info(silva_str):
     total_num_seqs = len(silva_seq_strs)
     for seq in silva_seq_strs:
         if len(seq_web) > 0:
-            seq_web += '<br>'
+            seq_web += '\n'
         seq_web += seq.upper()
         # let's try to add taxonomy to the sequence
         taxres = requests.get(get_db_address() + '/sequences/get_taxonomy_str', json={'sequence': seq})
         if taxres.status_code == 200:
-            seq_web += '<br>'
-            seq_web += '(' + taxres.json()['taxonomy'].lower() + ')'
+            seq_web += '\n'
+            seq_web += '(' + taxres.json()['taxonomy'].lower() + ')\n'
 
     webPage = render_template('header.html', title='dbBact ontology')
     webPage += render_template('silvainfo.html', silva_place_holder=silva_str, seq_names_place_holder=seq_web, number_seqs_place_holder=total_num_seqs)

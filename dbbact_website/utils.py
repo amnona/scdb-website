@@ -160,6 +160,9 @@ def get_db_address():
         elif servertype == 'develop':
             debug(0, 'servertype is develop')
             server_address = 'http://amnonim.webfactional.com/scdb_develop'
+        elif servertype == 'amnon':
+            debug(0, 'servertype is amnon')
+            server_address = 'http://127.0.0.1:5001'
         else:
             raise ValueError('unknown server type %s in SCDB_WEBSITE_TYPE' % servertype)
     else:
