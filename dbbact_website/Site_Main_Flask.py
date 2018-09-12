@@ -533,7 +533,7 @@ def sequence_annotations(sequence):
     return webPage
 
 
-def get_annotations_terms(annotations):
+def get_annotations_terms(annotations, get_low=True):
     '''
     Get a list of terms present in the annotations
 
@@ -549,8 +549,10 @@ def get_annotations_terms(annotations):
     terms = set()
     for cannotation in annotations:
         details = cannotation['details']
-        for cdetail in details:
-            terms.add(cdetail[1])
+        for ctype, cterm in details:
+            if ctype == 'low':
+                cterm = '-' + cterm
+            terms.add(cterm)
     terms = list(terms)
     return terms
 
@@ -1818,11 +1820,11 @@ def old_dbbact(path):
     annotation1 = {}
     annotation1['description'] = 'ERROR - please update dbbact-calour client'
     annotation1['annotationtype'] = 'other'
-    annotation1['details'] = ['all','na']
+    annotation1['details'] = ['all', 'na']
     annotation2 = {}
     annotation2['description'] = 'use pip install --upgrade --force-reinstall --no-deps git+git://github.com/amnona/dbbact-calour'
     annotation2['annotationtype'] = 'other'
-    annotation2['details'] = ['all','na']
+    annotation2['details'] = ['all', 'na']
     res['annotations'] = [annotation1, annotation2]
     res['term_info'] = {'error': {'total_sequences': 1, 'total_annotations': 1}}
     return json.dumps(res)

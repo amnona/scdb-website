@@ -25,7 +25,7 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 	term_count: dict of {term(str): total experiments(float)}
 		the number of experiments where annotations for each term appear
 	'''
-	term_info=None
+	# term_info=None
 	debug(2, 'getting enrichment scores from %d sequences' % len(seqannotations))
 	debug(1, 'getting recall')
 	recall = get_recall(annotations, seqannotations, ignore_exp=ignore_exp, term_info=term_info, term_types=term_types)
@@ -69,7 +69,6 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 			reduced_f[cterm] = cscore
 			for ccterm in cterm.split('+'):
 				found_items.add(ccterm)
-	print(reduced_f)
 	return fscore, recall, precision, term_count, reduced_f
 
 
