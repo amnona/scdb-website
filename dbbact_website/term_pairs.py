@@ -4,7 +4,8 @@ import requests
 from .utils import get_db_address, debug
 
 
-def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=None):
+# def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=None, term_types=('single', 'pairs')):
+def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=None, term_types=('single')):
 	'''Get f score, recall and precision for set of annotations
 
 	Parameters
@@ -24,13 +25,14 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 	term_count: dict of {term(str): total experiments(float)}
 		the number of experiments where annotations for each term appear
 	'''
+	term_info=None
 	debug(2, 'getting enrichment scores from %d sequences' % len(seqannotations))
 	debug(1, 'getting recall')
-	recall = get_recall(annotations, seqannotations, ignore_exp=ignore_exp)
+	recall = get_recall(annotations, seqannotations, ignore_exp=ignore_exp, term_info=term_info, term_types=term_types)
 	debug(1, 'getting precision')
-	precision = get_precision(annotations, seqannotations, ignore_exp=ignore_exp)
+	precision = get_precision(annotations, seqannotations, ignore_exp=ignore_exp, term_types=term_types)
 	debug(1, 'getting term count from get_enrichent_score()')
-	term_count = get_term_total_counts(annotations, seqannotations, ignore_exp=ignore_exp)
+	term_count = get_term_total_counts(annotations, seqannotations, ignore_exp=ignore_exp, term_types=term_types)
 	debug(1, 'calculating the enrichment scores')
 
 	fscore = {}
@@ -52,10 +54,26 @@ def get_enrichment_score(annotations, seqannotations, ignore_exp=[], term_info=N
 	zz = sorted(precision.items(), key=lambda x: x[1])
 	debug(2, 'precision')
 	debug(2, zz[-10:])
-	return fscore, recall, precision, term_count
+
+	# create the reduced f-scores that contain each term only once (for term pairs)
+	zz = sorted(fscore.items(), key=lambda x: x[1], reverse=True)
+	found_items = set()
+	reduced_f = {}
+	for (cterm, cscore) in zz:
+		isok = True
+		for ccterm in cterm.split('+'):
+			if ccterm in found_items:
+				isok = False
+				continue
+		if isok:
+			reduced_f[cterm] = cscore
+			for ccterm in cterm.split('+'):
+				found_items.add(ccterm)
+	print(reduced_f)
+	return fscore, recall, precision, term_count, reduced_f
 
 
-def get_term_total_counts(annotations, seqannotations, ignore_exp=[]):
+def get_term_total_counts(annotations, seqannotations, ignore_exp=[], term_types=('single')):
 	'''Get the number of experiments containing each term from our annotations
 
 	Used to calculate the color for the wordcloud
@@ -78,7 +96,7 @@ def get_term_total_counts(annotations, seqannotations, ignore_exp=[]):
 			cexpid = cannotation['expid']
 			if cexpid in ignore_exp:
 				continue
-			for cterm in get_terms(cannotation):
+			for cterm in get_terms(cannotation, term_types=term_types):
 				term_exps[cterm].add(cannotation['expid'])
 
 	term_exp_count = {}
@@ -87,7 +105,7 @@ def get_term_total_counts(annotations, seqannotations, ignore_exp=[]):
 	return term_exp_count
 
 
-def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], term_info=None):
+def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], term_info=None, term_types=('single'), low_num_correction=1):
 	'''Calculate the recall (what fraction of the database enteries for this term are covered by the query)
 
 	Parameters
@@ -99,6 +117,8 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 		'exp-mean': calculate the per-experiment mean for the term
 	term_info: dict of {term (str): details {"total_annotations": float, "total_sequences": float}} (see dbbact rest-api /ontology/get_term_stats) or None, optional
 		The statistics about each term. if None, the function will contact dbbact to get the term_info
+	low_num_correction: int, optional
+		the constant to penalize low number of experiments in the recall. used as recall=obs/(total+low_num_correction)
 
 	Returns
 	-------
@@ -109,13 +129,15 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 	recall = defaultdict(float)
 	all_terms = set()
 	for cannotation in annotations.values():
-		all_terms = all_terms.union(set(get_terms(cannotation)))
-	all_terms_positive = [x[1:] if x[0] == '-' else x for x in all_terms]
+		cterms = get_terms(cannotation, term_types=term_types)
+		all_terms = all_terms.union(set(cterms))
+	# all_terms_positive = [x[1:] if x[0] == '-' else x for x in all_terms]
 	debug(1, 'total terms in all annotations: %d' % len(all_terms))
 
 	if term_info is None:
 		debug(2, 'term_info was None, getting from dbbact')
-		term_info = get_term_info(all_terms_positive)
+		term_info = get_term_info(list(all_terms), term_types=term_types)
+		# term_info = get_term_info(all_terms_positive, term_types=term_types)
 
 	num_sequences = len(seqannotations)
 	debug(1, 'total sequences: %d' % num_sequences)
@@ -125,7 +147,7 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 		cseq_term_exps = defaultdict(set)
 		for cannotationid in cseq_annotations:
 			cannotation = annotations[str(cannotationid)]
-			terms = get_terms(cannotation)
+			terms = get_terms(cannotation, term_types=term_types)
 			cexp = cannotation['expid']
 			if cexp in ignore_exp:
 				continue
@@ -138,36 +160,50 @@ def get_recall(annotations, seqannotations, method='exp-mean', ignore_exp=[], te
 		debug(1, 'going over exp list')
 		for cterm, cexplist in cseq_term_exps.items():
 			debug(1, 'processing term %s' % cterm)
-			if cterm[0] != '-':
-				if cterm not in term_info:
+			if cterm not in term_info:
 					debug(4, 'term %s not in term_info' % cterm)
 					continue
-				try:
-					crecall = len(cexplist) / term_info[cterm]['total_experiments']
-				except:
-					debug(4, 'term %s does not have total_experiments ok' % cterm)
-					crecall = len(cexplist)
-			else:
-				debug(1, 'has - as first letter')
-				if cterm[1:] not in term_info:
-					debug(4, 'term %s not in term_info' % cterm)
-					continue
-				try:
-					crecall = len(cexplist) / term_info[cterm[1:]]['total_experiments']
-				except:
-					debug(4, 'term %s from pos 1 does not have total_experiments ok' % cterm)
-					crecall = len(cexplist)
+			try:
+				observed = term_info[cterm]['total_experiments']
+				crecall = len(cexplist) / (observed + low_num_correction)
+			except:
+				observed = 0
+				debug(4, 'term %s does not have total_experiments ok' % cterm)
+				# crecall = len(cexplist)
+				crecall = 0
+
+			# if cterm[0] != '-':
+			# 	if cterm not in term_info:
+			# 		debug(4, 'term %s not in term_info' % cterm)
+			# 		continue
+			# 	try:
+			# 		crecall = len(cexplist) / (term_info[cterm]['total_experiments'] + low_num_correction)
+			# 	except:
+			# 		debug(4, 'term %s does not have total_experiments ok' % cterm)
+			# 		crecall = len(cexplist)
+			# else:
+			# 	debug(1, 'has - as first letter')
+			# 	if cterm[1:] not in term_info:
+			# 		debug(4, 'term %s not in term_info' % cterm)
+			# 		continue
+			# 	try:
+			# 		crecall = len(cexplist) / term_info[cterm[1:]]['total_experiments']
+			# 	except:
+			# 		debug(4, 'term %s from pos 1 does not have total_experiments ok' % cterm)
+			# 		crecall = len(cexplist)
 			# if cterm == 'whale blow':
 			# 	print('term: %s' % cterm)
 			# 	print(cexplist)
 			# 	print('term info: %s' % term_info[cterm])
 			recall[cterm] += crecall / num_sequences
-			debug(1, 'next term')
+			debug(1, 'term %s observed in %s, total in db %s, recall %s' % (cterm, cexplist, observed, crecall))
+			# if cterm == 'canis lupus familiaris+feces':
+			# 	debug(4, 'term %s observed in %s, total in db %s, recall %s' % (cterm, cexplist, observed, crecall))
 	debug(1, 'recall contains %d terms' % len(recall))
 	return recall
 
 
-def get_term_info(terms):
+def get_term_info(terms, term_types=('single')):
 	'''
 	Get the statistics about each term in annotations
 
@@ -191,7 +227,7 @@ def get_term_info(terms):
 	return term_info
 
 
-def get_precision(annotations, seqannotations, method='total-annotation', ignore_exp=[]):
+def get_precision(annotations, seqannotations, method='total-annotation', ignore_exp=[], term_types=('single')):
 	'''Calculate the precision (how many of the sequences contain the term) for each term in annotations.
 
 	Parameters
@@ -202,6 +238,12 @@ def get_precision(annotations, seqannotations, method='total-annotation', ignore
 		the method to calculate the precision. options are:
 		'per-sequence': what fraction of the sequences contain this term at least once
 		'total-annotation': what fraction of all sequences annotations contain this term (annotation can be counted more than once since iterating over all seqannotations)
+	ignore_exp: list of int, optional:
+		the experimentIDs to ignore for the precision calculation (if empty use all experiments)
+	term_types: list of str, optional
+		types of terms to use. can include the following (including combinations):
+			'single': use each term
+			'pairs': use term pairs
 
 	Returns
 	-------
@@ -215,7 +257,7 @@ def get_precision(annotations, seqannotations, method='total-annotation', ignore
 				cannotation = annotations[str(cannotationid)]
 				if cannotation['expid'] in ignore_exp:
 					continue
-				for cterm in get_terms(cannotation):
+				for cterm in get_terms(cannotation, term_types=term_types):
 					term_seqs[cterm].add(cseqid)
 		# and calculate the precision (what fraction of the sequences have this term)
 		precision = {}
@@ -233,7 +275,7 @@ def get_precision(annotations, seqannotations, method='total-annotation', ignore
 				if cannotation['expid'] in ignore_exp:
 					continue
 				cseq_total_annotations += 1
-				for cterm in get_terms(cannotation):
+				for cterm in get_terms(cannotation, term_types=term_types):
 					# we weigh each annotation by the number of annotations for this sequence (since we want mean over all sequences)
 					cseq_term_counts[cterm] += 1
 					# if we use the annotation type score - must fix normalization!!!!! need to do
@@ -284,7 +326,17 @@ def get_annotation_type_score(annotation):
 	return score
 
 
-def get_terms(annotation):
+def tessa(source):
+	'''get all pairs from a list
+	'''
+	result = []
+	for p1 in range(len(source)):
+			for p2 in range(p1 + 1, len(source)):
+					result.append([source[p1], source[p2]])
+	return result
+
+
+def get_terms(annotation, term_types=('single')):
 	'''Get a list of terms present in the annotation. terms that are "lower in" are preceded by a "-"
 
 	Parameters
@@ -295,25 +347,48 @@ def get_terms(annotation):
 			"annotationid" (str)
 			"annotationtype"
 			"details" (list of [detail_type, term])
+	term_types: list of str, optional
+		types of terms to use. can include the following (including combinations):
+			'single': use each term
+			'pairs': use term pairs
 
 	Returns
 	-------
 	list of str - the terms in the annotation
 	'''
 	terms = []
-	details = annotation['details']
-	for cdetail in details:
-		cterm = cdetail[1]
-		ctype = cdetail[0]
-		if ctype == 'low':
-			cterm = '-' + cterm
-		terms.append(cterm)
+	if 'single' in term_types:
+		details = annotation['details']
+		for cdetail in details:
+			cterm = cdetail[1]
+			ctype = cdetail[0]
+			if ctype == 'low':
+				cterm = '-' + cterm
+			terms.append(cterm)
 
-	# handle the contamination annotation as well
-	if annotation['annotationtype'] == 'contamination':
-		terms.append('contamination')
+		# handle the contamination annotation as well
+		if annotation['annotationtype'] == 'contamination':
+			terms.append('contamination')
+		debug(1, 'found %d single terms for annotation %s' % (len(terms), annotation['annotationid']))
 
-	debug(1, 'found %d terms for annotation %s' % (len(terms), annotation['annotationid']))
+	if 'pairs' in term_types:
+		# add pairs. of the form (term1+term2) where term1 is before term2 alphabetically
+		if len(details) < 10:
+			single_terms = []
+			for cdetail in details:
+				cterm = cdetail[1]
+				ctype = cdetail[0]
+				if ctype == 'low':
+					cterm = '-' + cterm
+				single_terms.append(cterm)
+			pairs = tessa(single_terms)
+			pairs = ['+'.join(sorted([x, y])) for (x, y) in pairs]
+			debug(1, 'found %d term pairs for annotation %s' % (len(pairs), annotation['annotationid']))
+			terms.extend(pairs)
+		else:
+			debug(1, 'too many terms (%d) for term pair calculation for annotation %s' % (len(details), annotation['annotationid']))
+
+	debug(1, 'found %d total terms for annotation %s' % (len(terms), annotation['annotationid']))
 	return terms
 
 

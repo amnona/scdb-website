@@ -1863,12 +1863,13 @@ def draw_group_annotation_details(annotations, seqannotations, term_info, includ
 
     # calculate the score for each term
     debug(1, 'calculating score')
-    fscores, recall, precision, term_count = get_enrichment_score(annotations, seqannotations, ignore_exp=ignore_exp, term_info=term_info)
+    fscores, recall, precision, term_count, reduced_f = get_enrichment_score(annotations, seqannotations, ignore_exp=ignore_exp, term_info=term_info)
 
     # draw the wordcloud for the group terms
     if include_word_cloud is True:
         debug(1, 'drawing term pair word cloud')
-        wpart += draw_wordcloud_fscore(fscores, recall, precision, term_count)
+        # wpart += draw_wordcloud_fscore(fscores, recall, precision, term_count)
+        wpart += draw_wordcloud_fscore(reduced_f, recall, precision, term_count)
 
     wpart += render_template('tabs.html')
 
