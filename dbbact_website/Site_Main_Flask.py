@@ -221,27 +221,26 @@ def add_data_results():
     #####################################################      
     rdata = {}
     rdata['ontologies'] = ontDataNameArr
-    
+
     httpRes = requests.post(scbd_server_address + '/ontology/get',json=rdata)
     if httpRes.status_code == 200:
         jsonRes = httpRes.json()
-        ontList = jsonRes.get("ontIds")    
+        ontList = jsonRes.get("ontIds")
         if len(ontDataNameArr) != len(ontList) :
             webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve ontologies IDs')
             return(webpage, 400)
     else:
         webpage = build_res_html(False, expId, newExpFlag, -1 , 'Failed to retrieve ontologies IDs')
         return(webpage, 400)
-    #####################################################      
-    
-    #for i in range(len(ontList)):
-    #    webpage += str(ontList[i]) + "<br>" 
-    
+    # ####################################################
+    # for i in range(len(ontList)):
+    #    webpage += str(ontList[i]) + "<br>"
+
     annotationListArr = []
-                
+
     for i in range(len(ontDataNameArr)):
         annotationListArr.append((annotationDetTypeArr[i],ontDataNameArr[i]))
-    
+
     rannotation = {}
     rannotation['expId'] = expId
     rannotation['sequences'] = seqs1

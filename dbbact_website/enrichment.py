@@ -2,7 +2,7 @@ import requests
 
 import numpy as np
 from .mini_dsfdr import dsfdr
-from .utils import debug
+from .utils import debug, get_db_address
 from collections import defaultdict
 
 
@@ -59,13 +59,9 @@ def getannotationstrings2(cann):
 
 
 def get_seq_annotations_fast(sequences):
-    import os
     rdata = {}
     rdata['sequences'] = sequences
-    if 'OPENU_FLAG' in os.environ:
-        res = requests.get('http://0.0.0.0:5001/sequences/get_fast_annotations', json=rdata)
-    else:
-        res = requests.get('http://dbbact.org/REST-API/sequences/get_fast_annotations', json=rdata)
+    res = requests.get(get_db_address() + '/sequences/get_fast_annotations', json=rdata)
     if res.status_code != 200:
         debug(5, 'error getting fast annotations for sequence list')
         return None, None, None
