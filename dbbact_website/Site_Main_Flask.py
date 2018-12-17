@@ -1574,16 +1574,17 @@ def _get_color(word, font_size, position, orientation, font_path, random_state, 
     -------
     str: the color in hex "0#RRGGBB"
     '''
-    cmap = mpl.cm.get_cmap('bwr')
     if word in term_count:
         count = min(term_count[word], 10)
     else:
         count = 10
 
     if word[0] == '-':
-        rgba = cmap(float(0.5 + 0.25 + count / 40), bytes=True)
+        cmap = mpl.cm.get_cmap('Oranges')
+        rgba = cmap(float(0.4 + count / 40), bytes=True)
     else:
-        rgba = cmap(float(0.5 - 0.25 - count / 40), bytes=True)
+        cmap = mpl.cm.get_cmap('Purples')
+        rgba = cmap(float(0.4 + count / 40), bytes=True)
 
     red = format(rgba[0], '02x')
     green = format(rgba[1], '02x')
