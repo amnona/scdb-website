@@ -8,7 +8,19 @@
     overflow: auto;
     font-size: 20px;
   }
+
+  #tax-info-seq-list-tbl tr td:first-child {
+    overflow: auto;
+    white-space: nowrap;
+  }
+  #tax-info-seq-list-tbl tr td:nth-child(2) {
+    overflow: auto;
+  }
+  #tax-info-seq-list-tbl tr td:last-child {
+    overflow: auto;
+  }
 </style>
+
 <div id="tax-panel" class="panel panel-default">
   <div class="panel-heading">
     Summmary for taxonomy:
@@ -17,5 +29,22 @@
     {{taxonomy}}
     <br>
     Total dbBact sequences with taxonomy : {{seq_count}}
+    <br>
+    <button data-toggle="collapse" data-target="#seqlist">Show sequences</button>
+    <br>
+    <div id="seqlist" class="collapse">
+      <table id="tax-info-seq-list-tbl" style="width: 80%; table-layout: fixed;">
+        <col width="60%">
+        <col width="30%">
+        <col width="10%">
+        <tr>
+          <th>Taxonomy</th>
+          <th>Sequence</th>
+          <th>No. annots</th>
+        </tr>
+        {{ details | safe}}
+    </table>
+    </div>
   </div>
 </div>
+

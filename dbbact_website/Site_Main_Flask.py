@@ -961,8 +961,26 @@ def get_taxonomy_info(taxonomy):
     annotations = sorted(annotations, key=lambda x: x.get('num_sequences', 0), reverse=False)
     annotations = sorted(annotations, key=lambda x: len(x.get('website_sequences', [])), reverse=True)
 
+    # get all dbbact sequences containing the taxonomy
+    res = requests.get(get_db_address() + '/sequences/get_taxonomy_sequences', json={'taxonomy': taxonomy})
+    if res.status_code != 200:
+        msg = 'error getting taxonomy sequences for %s: %s' % (taxonomy, res.content)
+        debug(6, msg)
+        return msg, msg
+    seqs = res.json()['sequences']
+
+    # add the list of bacterial sequences with the taxonomy
+    tax_seq_list = ''
+    for cseqinfo in seqs:
+        cseqinfo['seq'] = cseqinfo['seq'].upper()
+        tax_seq_list += "<tr>"
+        tax_seq_list += '<td>' + cseqinfo['taxonomy'] + '</td>'
+        tax_seq_list += '<td><a href=%s>%s</a></td>' % (url_for('.sequence_annotations', sequence=cseqinfo['seq']), cseqinfo['seq'])
+        tax_seq_list += '<td>' + 'na' + '</td></tr>'
+
     webPage = render_template('header.html', title='dbBact ontology')
-    webPage += render_template('taxinfo.html', taxonomy=taxonomy, seq_count=len(tax_seqs))
+    webPage += render_template('taxinfo.html', taxonomy=taxonomy, seq_count=len(tax_seqs), details=tax_seq_list)
+
     webPage += draw_annotation_details(annotations)
     webPage += render_template('footer.html')
     return '', webPage
