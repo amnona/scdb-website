@@ -1,4 +1,4 @@
-<table id="annot-table">
+<!-- <table id="annot-table">
   <col width="10%">
   <col width="10%">
   <col width="60%">
@@ -11,3 +11,27 @@
     <th>Date</th>
     <th>Sequences</th>
   </tr>
+ -->
+
+<div id="annot-table-div" class="tab-pane in active" style="margin-top: 20px; margin-bottom: 20px;">
+  <table id="annot-table" class="table responsive" style="width: 100%;">
+    <thead>
+      <tr>
+        <th>Exp. ID</th>
+        <th>User ID</th>
+        <th>Description</th>
+        <th>Date</th>
+        <th>Sequences</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ details | safe}}
+    </tbody>
+  </table>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#annot-table').DataTable({'scrollX': true, 'autoWidth': true, 'paging': false, 'aaSorting': []});
+} );
+</script>
