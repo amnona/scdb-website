@@ -9,42 +9,45 @@
     font-size: 20px;
   }
 
-  #tax-info-seq-list-tbl tr td:first-child {
-    overflow: auto;
-    white-space: nowrap;
-  }
-  #tax-info-seq-list-tbl tr td:nth-child(2) {
-    overflow: auto;
-  }
-  #tax-info-seq-list-tbl tr td:last-child {
-    overflow: auto;
-  }
-</style>
+ </style>
 
 <div id="tax-panel" class="panel panel-default">
   <div class="panel-heading">
     Summmary for taxonomy:
   </div>
+
   <div id="tax-box" class="panel-body">
     {{taxonomy}}
     <br>
     Total dbBact sequences with taxonomy : {{seq_count}}
     <br>
-    <button data-toggle="collapse" data-target="#seqlist">Show sequences</button>
+    <button id="collapse-btn" data-toggle="collapse" data-target="#seqlist">Show sequences</button>
     <br>
     <div id="seqlist" class="collapse">
-      <table id="tax-info-seq-list-tbl" style="width: 80%; table-layout: fixed;">
-        <col width="60%">
-        <col width="30%">
-        <col width="10%">
+      <table id="tax-info-seq-list-tbl" class="table responsive" style="width: 100%;">
+      <thead>
         <tr>
+          <th># exps</th>
+          <th># anno.</th>
           <th>Taxonomy</th>
           <th>Sequence</th>
-          <th>No. annots</th>
         </tr>
+      </thead>
+      <tbody>
         {{ details | safe}}
+      </tbody>
     </table>
     </div>
   </div>
 </div>
 
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#tax-info-seq-list-tbl').DataTable({'scrollX': true, 'autoWidth': true, 'paging': true, 'lengthMenu':[10, 25, 50, 100, -1], 'pageLength': 10, 'aaSorting': []});
+} );
+
+$('#seqlist').on('shown.bs.collapse', function() {
+   $('#tax-info-seq-list-tbl').DataTable().columns.adjust().draw();
+ });
+</script>

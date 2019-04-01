@@ -971,12 +971,16 @@ def get_taxonomy_info(taxonomy):
 
     # add the list of bacterial sequences with the taxonomy
     tax_seq_list = ''
+    # sort so highest total experiments sequence is first
+    seqs = sorted(seqs, key=lambda k: k['total_experiments'], reverse=True)
     for cseqinfo in seqs:
         cseqinfo['seq'] = cseqinfo['seq'].upper()
         tax_seq_list += "<tr>"
+        tax_seq_list += '<td>' + str(cseqinfo['total_experiments']) + '</td>'
+        tax_seq_list += '<td>' + str(cseqinfo['total_annotations']) + '</td>'
         tax_seq_list += '<td>' + cseqinfo['taxonomy'] + '</td>'
         tax_seq_list += '<td><a href=%s>%s</a></td>' % (url_for('.sequence_annotations', sequence=cseqinfo['seq']), cseqinfo['seq'])
-        tax_seq_list += '<td>' + 'na' + '</td></tr>'
+        tax_seq_list += '</tr>'
 
     webPage = render_template('header.html', title='dbBact ontology')
     webPage += render_template('taxinfo.html', taxonomy=taxonomy, seq_count=len(tax_seqs), details=tax_seq_list)
@@ -1470,10 +1474,11 @@ def draw_annotation_table(annotations, include_ratio=True):
     -------
     str: the HTML part for the annotations table
     '''
-    wpart = '<div id="annot-table" class="tab-pane in active" style="margin-top: 20px; margin-bottom: 20px;">\n'
+    # wpart = '<div id="annot-table" class="tab-pane in active" style="margin-top: 20px; margin-bottom: 20px;">\n'
 
     # the table header and css
-    wpart += render_template('annottable.html')
+    # wpart += render_template('annottable.html')
+    wpart = ''
     for dataRow in annotations:
         wpart += '  <tr>'
         # add the experimentid info+link
@@ -1507,9 +1512,11 @@ def draw_annotation_table(annotations, include_ratio=True):
             sequences_string = '%s' % num_sequences
         wpart += "<td><a href=%s>%s</a></td>" % (url_for('.annotation_seqs', annotationid=annotationid), sequences_string)
         wpart += '</tr>\n'
-    wpart += '</table>\n'
-    wpart += '</div>\n'
-    return wpart
+    # wpart += '</table>\n'
+    # wpart += '</div>\n'
+    # return wpart
+    ppart = render_template('annottable.html', details=wpart)
+    return ppart
 
 
 def draw_ontology_score_list(scores, section_id, description=None, max_terms=100):
